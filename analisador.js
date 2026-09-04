@@ -3,13 +3,26 @@ const cheerio = require("cheerio");
 
 const apiKey = process.env.PAGESPEED_API_KEY;
 
+// =========================
+// ANALISA O PAGESPEED
+// =========================
+
 async function analisarPageSpeed(url) {
   const resultado = {
     score: null,
+
     lcp: null,
+    lcpMs: null,
+
     cls: null,
+    clsValor: null,
+
     fcp: null,
+    fcpMs: null,
+
     speedIndex: null,
+    speedIndexMs: null,
+
     erro: null
   };
 
@@ -33,14 +46,20 @@ async function analisarPageSpeed(url) {
     resultado.lcp =
       audits["largest-contentful-paint"]?.displayValue || null;
 
-    resultado.cls =
-      audits["cumulative-layout-shift"]?.displayValue || null;
+    resultado.lcpMs =
+  audits["largest-contentful-paint"]?.numericValue ?? null;
 
-    resultado.fcp =
-      audits["first-contentful-paint"]?.displayValue || null;
+resultado.clsValor =
+  audits["cumulative-layout-shift"]?.numericValue ?? null;
 
-    resultado.speedIndex =
-      audits["speed-index"]?.displayValue || null;
+resultado.fcpMs =
+  audits["first-contentful-paint"]?.numericValue ?? null;
+
+resultado.speedIndexMs =
+  audits["speed-index"]?.numericValue ?? null;
+
+    resultado.speedIndexMs =
+      audits["speed-index"]?.numericValue || null;
 
   } catch (erro) {
     resultado.erro = erro.message;
@@ -48,6 +67,11 @@ async function analisarPageSpeed(url) {
 
   return resultado;
 }
+
+
+// =========================
+// ANALISA O HTML
+// =========================
 
 async function analisarHTML(url) {
   const resultado = {
@@ -94,6 +118,85 @@ async function analisarHTML(url) {
   return resultado;
 }
 
+
+// =========================
+// GERA FINDINGS
+// =========================
+
+function gerarFindings(performance, seo) {
+  const findings = [];
+
+  // SEO
+  if (!seo.erro) {
+    if (
+      !seo.metaDescription ||
+      seo.metaDescription === "Não encontrada"
+    ) {
+      findings.push({
+        codigo: "META_DESCRIPTION_AUSENTE",
+        categoria: "seo",
+        evidencia:
+          "Nenhuma meta description foi encontrada no HTML da página."
+      });
+    }
+
+    if (seo.h1Count === 0) {
+      findings.push({
+        codigo: "H1_AUSENTE",
+        categoria: "seo",
+        evidencia:
+          "Nenhum elemento H1 foi encontrado no HTML da página."
+      });
+    }
+
+    if (
+      !seo.title ||
+      seo.title === "Não encontrado"
+    ) {
+      findings.push({
+        codigo: "TITLE_AUSENTE",
+        categoria: "seo",
+        evidencia:
+          "Nenhum elemento title foi encontrado na página."
+      });
+    }
+  }
+
+  // PERFORMANCE
+  if (!performance.erro) {
+    if (
+      performance.lcpMs !== null &&
+      performance.lcpMs > 2500
+    ) {
+      findings.push({
+        codigo: "LCP_ALTO",
+        categoria: "performance",
+        evidencia:
+          `O Largest Contentful Paint medido foi de ${performance.lcp}.`
+      });
+    }
+
+    if (
+      performance.clsValor !== null &&
+      performance.clsValor > 0.1
+    ) {
+      findings.push({
+        codigo: "CLS_ALTO",
+        categoria: "performance",
+        evidencia:
+          `O Cumulative Layout Shift medido foi de ${performance.cls}.`
+      });
+    }
+  }
+
+  return findings;
+}
+
+
+// =========================
+// FUNÇÃO PRINCIPAL
+// =========================
+
 async function analisarSites() {
   const sites = [
     "https://google.com",
@@ -112,10 +215,14 @@ async function analisarSites() {
     console.log("Lendo HTML do site...");
     const seo = await analisarHTML(url);
 
+    console.log("Gerando findings...");
+    const findings = gerarFindings(performance, seo);
+
     const resultado = {
       url,
       performance,
-      seo
+      seo,
+      findings
     };
 
     console.log("\n✅ Resultado completo:");
@@ -123,4 +230,6 @@ async function analisarSites() {
   }
 }
 
+
+// Inicia o programa
 analisarSites();

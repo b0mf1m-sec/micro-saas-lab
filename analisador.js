@@ -1,9 +1,99 @@
 require("dotenv").config();
+const cheerio = require("cheerio");
 
-// Pegamos a chave da API do arquivo .env
 const apiKey = process.env.PAGESPEED_API_KEY;
 
-// Função assíncrona responsável por analisar os sites
+async function analisarPageSpeed(url) {
+  const resultado = {
+    score: null,
+    lcp: null,
+    cls: null,
+    fcp: null,
+    speedIndex: null,
+    erro: null
+  };
+
+  const apiEndpoint =
+    `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${apiKey}`;
+
+  try {
+    const resposta = await fetch(apiEndpoint);
+    const dados = await resposta.json();
+
+    if (dados.error) {
+      resultado.erro = dados.error.message;
+      return resultado;
+    }
+
+    const audits = dados.lighthouseResult.audits;
+
+    resultado.score =
+      dados.lighthouseResult.categories.performance.score * 100;
+
+    resultado.lcp =
+      audits["largest-contentful-paint"]?.displayValue || null;
+
+    resultado.cls =
+      audits["cumulative-layout-shift"]?.displayValue || null;
+
+    resultado.fcp =
+      audits["first-contentful-paint"]?.displayValue || null;
+
+    resultado.speedIndex =
+      audits["speed-index"]?.displayValue || null;
+
+  } catch (erro) {
+    resultado.erro = erro.message;
+  }
+
+  return resultado;
+}
+
+async function analisarHTML(url) {
+  const resultado = {
+    title: null,
+    metaDescription: null,
+    h1Count: null,
+    h1Textos: [],
+    erro: null
+  };
+
+  try {
+    const resposta = await fetch(url);
+
+    if (!resposta.ok) {
+      resultado.erro = `HTTP ${resposta.status}`;
+      return resultado;
+    }
+
+    const html = await resposta.text();
+
+    const $ = cheerio.load(html);
+
+    resultado.title =
+      $("title").first().text().trim() || "Não encontrado";
+
+    resultado.metaDescription =
+      $('meta[name="description"]').attr("content")?.trim() ||
+      "Não encontrada";
+
+    resultado.h1Count = $("h1").length;
+
+    $("h1").each((index, elemento) => {
+      const texto = $(elemento).text().trim();
+
+      if (texto) {
+        resultado.h1Textos.push(texto);
+      }
+    });
+
+  } catch (erro) {
+    resultado.erro = erro.message;
+  }
+
+  return resultado;
+}
+
 async function analisarSites() {
   const sites = [
     "https://google.com",
@@ -11,51 +101,26 @@ async function analisarSites() {
     "https://openai.com"
   ];
 
-  // Percorre cada site da lista
   for (let i = 0; i < sites.length; i++) {
     const url = sites[i];
 
     console.log(`\nAnalisando site ${i + 1}: ${url}`);
 
-    // Monta o endereço da API usando a URL do site e a chave do .env
-    const apiEndpoint =
-      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${apiKey}`;
+    console.log("Consultando PageSpeed...");
+    const performance = await analisarPageSpeed(url);
 
-    try {
-      console.log("Aguardando resposta do Google...");
+    console.log("Lendo HTML do site...");
+    const seo = await analisarHTML(url);
 
-      // Faz a requisição para a API
-      const resposta = await fetch(apiEndpoint);
+    const resultado = {
+      url,
+      performance,
+      seo
+    };
 
-      // Converte a resposta para JSON
-      const dados = await resposta.json();
-
-      // Verifica se a API retornou algum erro
-      if (dados.error) {
-        console.log(
-          `🚨 O Google recusou a análise de ${url}: ${dados.error.message}`
-        );
-
-        continue;
-      }
-
-      // Extrai as métricas do PageSpeed
-      const performanceScore =
-        dados.lighthouseResult.categories.performance.score * 100;
-
-      const lcp =
-        dados.lighthouseResult.audits["largest-contentful-paint"].displayValue;
-
-      // Exibe os resultados
-      console.log(`\n✅ Resultados para: ${url}`);
-      console.log(`   Nota de Performance: ${performanceScore}/100`);
-      console.log(`   LCP: ${lcp}\n`);
-
-    } catch (erro) {
-      console.log(`❌ Erro ao analisar ${url}:`, erro.message);
-    }
+    console.log("\n✅ Resultado completo:");
+    console.dir(resultado, { depth: null });
   }
 }
 
-// Inicia a análise
 analisarSites();

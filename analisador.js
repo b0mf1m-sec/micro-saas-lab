@@ -12,7 +12,7 @@ const ai = new GoogleGenAI({
 
 
 // ======================================================
-// UTILITÁRIO: ESPERAR
+// UTILITÁRIO
 // ======================================================
 
 function esperar(ms) {
@@ -64,9 +64,7 @@ async function analisarPageSpeed(url) {
         await fetch(apiEndpoint);
 
 
-      // Se o servidor do Google falhar,
-      // tenta novamente.
-
+      // Retry se o servidor do Google falhar
       if (resposta.status >= 500) {
 
         if (tentativa < maxTentativas) {
@@ -97,8 +95,9 @@ async function analisarPageSpeed(url) {
       }
 
 
-      // Recebemos primeiro como texto
-      // para evitar erro caso a API devolva HTML.
+      // Recebe primeiro como texto.
+      // Isso evita quebrar se o Google devolver HTML
+      // em vez de JSON.
 
       const textoResposta =
         await resposta.text();
@@ -154,15 +153,19 @@ async function analisarPageSpeed(url) {
       }
 
 
-      // =========================
-      // MÉTRICAS
-      // =========================
+      // =================================================
+      // SCORE
+      // =================================================
 
       resultado.score =
         Math.round(
           performanceScore * 100
         );
 
+
+      // =================================================
+      // LCP
+      // =================================================
 
       resultado.lcp =
         audits[
@@ -176,6 +179,10 @@ async function analisarPageSpeed(url) {
         ]?.numericValue ?? null;
 
 
+      // =================================================
+      // CLS
+      // =================================================
+
       resultado.cls =
         audits[
           "cumulative-layout-shift"
@@ -188,6 +195,10 @@ async function analisarPageSpeed(url) {
         ]?.numericValue ?? null;
 
 
+      // =================================================
+      // FCP
+      // =================================================
+
       resultado.fcp =
         audits[
           "first-contentful-paint"
@@ -199,6 +210,10 @@ async function analisarPageSpeed(url) {
           "first-contentful-paint"
         ]?.numericValue ?? null;
 
+
+      // =================================================
+      // SPEED INDEX
+      // =================================================
 
       resultado.speedIndex =
         audits[
@@ -230,7 +245,6 @@ async function analisarPageSpeed(url) {
 
       resultado.erro =
         erro.message;
-
 
       return resultado;
     }
@@ -323,9 +337,9 @@ async function analisarHTML(url) {
         cheerio.load(html);
 
 
-      // =========================
+      // =================================================
       // TITLE
-      // =========================
+      // =================================================
 
       resultado.title =
         $("title")
@@ -336,9 +350,9 @@ async function analisarHTML(url) {
         "Não encontrado";
 
 
-      // =========================
+      // =================================================
       // META DESCRIPTION
-      // =========================
+      // =================================================
 
       resultado.metaDescription =
         $('meta[name="description"]')
@@ -348,9 +362,9 @@ async function analisarHTML(url) {
         "Não encontrada";
 
 
-      // =========================
+      // =================================================
       // H1
-      // =========================
+      // =================================================
 
       resultado.h1Count =
         $("h1").length;
@@ -421,6 +435,7 @@ function gerarFindings(
   // ====================================================
 
   if (!seo.erro) {
+
 
     // TITLE AUSENTE
 
@@ -501,7 +516,8 @@ function gerarFindings(
 
   if (!performance.erro) {
 
-    // LCP
+
+    // LCP ACIMA DO NOSSO LIMITE
 
     if (
       performance.lcpMs !== null &&
@@ -525,7 +541,7 @@ function gerarFindings(
     }
 
 
-    // CLS
+    // CLS ACIMA DO NOSSO LIMITE
 
     if (
       performance.clsValor !== null &&
@@ -564,8 +580,7 @@ async function gerarViewsComIA(
   findings
 ) {
 
-  // Se não há finding,
-  // não gastamos chamada da Gemini.
+  // Sem findings = sem chamada de IA.
 
   if (
     !findings ||
@@ -590,7 +605,7 @@ async function gerarViewsComIA(
 
 
   const prompt = `
-You are assisting a Local SEO agency.
+You are assisting a Local SEO agency with prospecting.
 
 You will receive ONLY verified technical findings collected by software.
 
@@ -600,109 +615,313 @@ Your job is to create TWO outputs:
 2. PROSPECT VIEW
 
 
-========================
-GLOBAL SAFETY RULES
-========================
+==================================================
+GLOBAL FACTUAL RULES
+==================================================
 
-The verified findings below are your ONLY source of factual information.
+The VERIFIED FINDINGS below are your ONLY source of factual information.
 
-NEVER invent, assume, infer, or add technical problems that are not explicitly included.
+NEVER invent, assume, infer, or add technical problems.
 
-NEVER invent:
+NEVER invent or claim:
 
 - visitor behavior
 - bounce rate
+- lost customers
 - conversions
 - revenue impact
-- lost customers
-- rankings
+- traffic loss
+- ranking loss
 - Google penalties
-- traffic impact
-- financial impact
-- mobile-specific impact
+- financial loss
+- mobile-specific problems
 
-unless that exact information exists in the verified findings.
+unless that exact information is explicitly included in the verified findings.
 
-NEVER invent information about the SEO agency.
+NEVER invent credentials about the agency.
 
 Do NOT say:
 
 "We specialize in..."
+"We've helped..."
 "Our team..."
-"We have helped..."
 "Our clients..."
 
-unless such information was provided.
+unless that information was explicitly provided.
 
 Technical measurements must remain exactly as supplied.
 
-If a claim is not justified by the verified findings, DO NOT make that claim.
+If a factual claim cannot be supported by the verified findings,
+DO NOT make that claim.
 
 
-========================
+==================================================
 AGENCY VIEW
-========================
+==================================================
 
-Write a concise technical explanation intended for the SEO professional.
+Write a concise technical explanation intended for an SEO professional.
 
 For every finding explain:
 
 - what was detected;
 - the exact evidence;
 - what the metric or element represents;
-- why it may be worth reviewing;
+- why it deserves review;
 - suggested priority based ONLY on the provided severity.
+
+Prefer objective language.
+
+For example:
+
+"The measurement exceeds the threshold used by this analyzer."
+
+Do NOT claim that the threshold is universal,
+industry-standard,
+or used by all performance tools.
 
 Do NOT invent additional diagnostics.
 
-For performance findings, prefer objective wording such as:
-
-"The measurement exceeds the threshold used by the analyzer."
-
-Avoid claiming user impact unless it is directly supported.
+Do NOT infer visitor behavior.
 
 Keep the Agency View concise and professional.
 
 
-========================
+==================================================
 PROSPECT VIEW
-========================
+==================================================
 
-Write a short outreach message for the business owner.
+Write a short B2B outreach message to the business owner.
 
-Rules:
+MARKETING INTENSITY:
+3 out of 5.
 
-- Write in English.
-- Maximum approximately 110 words.
-- Sound human and consultative.
-- Avoid heavy technical jargon.
-- Briefly explain technical terminology when necessary.
-- Do not use fear or aggressive sales language.
-- Do not state that visitors are leaving.
-- Do not state that customers are being lost.
-- Do not claim ranking impact.
-- Do not claim revenue impact.
-- Do not invent agency credentials.
+The message should be persuasive enough to create curiosity,
+but never exaggerate or invent business impact.
 
-Use cautious language such as:
 
-"may"
-"can"
-"could"
-"potentially"
+==================================================
+FACTUAL RESTRICTIONS
+==================================================
 
-For performance issues, you may say:
+- Never say "fully load" when describing LCP.
+
+- When describing LCP, prefer:
+
+  "the main visible content took X seconds to appear in the test."
+
+- Never imply that multiple issues or opportunities exist when only one verified finding was provided.
+
+- If there is exactly one finding, refer to it in the singular.
+
+- If there are multiple findings, you may mention that more than one area was found.
+
+- Never say a threshold is an industry-standard or universal benchmark unless that information was explicitly provided.
+
+- Do NOT mention "the threshold used by this analyzer" in the Prospect View.
+
+Threshold language belongs only in the Agency View.
+
+- Never claim or imply:
+
+  visitor behavior,
+  bounce rate,
+  lost customers,
+  lost revenue,
+  lower conversions,
+  ranking loss,
+  Google penalties,
+  traffic loss,
+  or mobile-specific impact,
+
+unless that exact information was explicitly provided in the verified findings.
+
+- Never invent agency credentials or experience.
+
+Do NOT say:
+
+"We specialize in..."
+"We've helped..."
+"Our team..."
+"Our clients..."
+
+unless that information was explicitly provided.
+
+
+==================================================
+PROSPECT VIEW STRUCTURE
+==================================================
+
+Use this general flow:
+
+
+1. PERSONALIZED HOOK
+
+Make it clear that the sender actually reviewed the website.
+
+Good style examples:
+
+"I took a quick look at your website and noticed one thing worth reviewing."
+
+"I ran a quick check on your site and one specific area stood out."
+
+Avoid generic introductions.
+
+
+2. SPECIFIC EVIDENCE
+
+Mention the strongest VERIFIED finding.
+
+Use the exact measurement provided.
+
+If there is only one finding,
+focus only on that finding.
+
+If there are multiple findings,
+prioritize the 1 or 2 strongest findings.
+
+Do not overwhelm the prospect with technical details.
+
+
+3. SIMPLE EXPLANATION
+
+Translate the technical finding into normal business language.
+
+For LCP:
+
+Explain that it measures how long the main visible content takes to appear.
+
+You may say:
 
 "This result may make the page feel slower to some visitors."
 
-Do NOT infer behavior beyond that.
+Do NOT say that the entire page took that amount of time to load.
 
-End with a soft CTA offering to show what should be prioritized and why.
+For structural SEO findings:
+
+Explain the role of the element conservatively.
+
+Never claim guaranteed improvements in:
+
+- rankings
+- traffic
+- conversions
+- revenue
 
 
-========================
+4. CURIOSITY / VALUE GAP
+
+Create a reason for the prospect to reply
+without fear or exaggeration.
+
+If there is exactly one finding,
+keep the wording singular.
+
+Allowed examples:
+
+"This is something I would look at first."
+
+"I can show you what I would prioritize first and why."
+
+"I can send over a quick breakdown of what I would review first."
+
+If there are multiple VERIFIED findings,
+you may say:
+
+"There are a couple of areas I would look at first."
+
+Do NOT claim that additional issues exist
+unless they are present in the VERIFIED FINDINGS.
+
+
+5. SOFT CTA
+
+Finish with a low-friction question.
+
+Prefer:
+
+"Want me to send over the quick breakdown?"
+
+"Would it be useful if I showed you what I'd prioritize first?"
+
+"Happy to send over a quick breakdown if you're interested."
+
+Do NOT automatically ask for:
+
+- a meeting
+- a call
+- calendar availability
+
+
+==================================================
+WRITING STYLE
+==================================================
+
+- Write in English.
+
+- Approximately 70 to 110 words.
+
+- Natural and human.
+
+- Short paragraphs.
+
+- Consultative.
+
+- Confident but not aggressive.
+
+- Avoid sounding like an automated audit.
+
+- Avoid heavy technical jargon.
+
+- Avoid robotic wording.
+
+Avoid phrases such as:
+
+"this load timing"
+
+"standard benchmark threshold"
+
+"technical deficiency"
+
+
+Prefer natural wording such as:
+
+"how quickly the main content appears"
+
+"page loading performance"
+
+"one thing worth reviewing"
+
+
+- No fake urgency.
+
+- No fear-based selling.
+
+- No long introduction.
+
+- Do not mention AI.
+
+- Do not use "Dear Sir/Madam".
+
+- Do not invent the business owner's name.
+
+
+==================================================
+GOAL
+==================================================
+
+The message should make the prospect think:
+
+"They actually looked at my website,
+found something specific,
+and I am curious to see what they would recommend."
+
+The message must remain completely grounded
+in the VERIFIED FINDINGS.
+
+
+==================================================
 OUTPUT FORMAT
-========================
+==================================================
 
 Return ONLY valid JSON.
 
@@ -715,19 +934,19 @@ Exactly this structure:
 
 Do NOT use Markdown code fences.
 
-Do NOT add text before or after the JSON.
+Do NOT add anything before or after the JSON.
 
 
-========================
+==================================================
 TARGET WEBSITE
-========================
+==================================================
 
 ${url}
 
 
-========================
+==================================================
 VERIFIED FINDINGS
-========================
+==================================================
 
 ${JSON.stringify(
   findings,
@@ -820,7 +1039,7 @@ ${JSON.stringify(
 
 
 // ======================================================
-// ANALISA UMA URL
+// ANALISA UM SITE
 // ======================================================
 
 async function analisarSite(url) {
@@ -927,7 +1146,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // OBJETO FINAL
+  // RESULTADO FINAL
   // ====================================================
 
   const resultado = {
@@ -955,7 +1174,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // RESULTADO TÉCNICO
+  // TERMINAL - RESULTADO TÉCNICO
   // ====================================================
 
   console.log(
@@ -988,7 +1207,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // AGENCY VIEW
+  // TERMINAL - AGENCY VIEW
   // ====================================================
 
   if (
@@ -1015,7 +1234,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // PROSPECT VIEW
+  // TERMINAL - PROSPECT VIEW
   // ====================================================
 
   if (
@@ -1080,37 +1299,50 @@ async function analisarSite(url) {
 
 
 // ======================================================
-// ENTRADA PELO TERMINAL
+// TERMINAL
 // ======================================================
 
-// Só abre o terminal quando analisador.js
-// for executado diretamente.
+// Essa parte só roda quando você executar:
 //
-// Se outro arquivo importar o analisador,
-// essa parte não será executada.
+// node analisador.js
+//
+// Quando server.js importa o analisador,
+// ela não será executada.
 
-if (require.main === module) {
+if (
+  require.main === module
+) {
 
   const rl =
     readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
+
+      input:
+        process.stdin,
+
+      output:
+        process.stdout
     });
 
 
   rl.question(
+
     "\n🌐 Digite a URL do site que deseja analisar:\n> ",
 
     async (url) => {
 
-      url = url.trim();
+      url =
+        url.trim();
 
+
+      // Adiciona HTTPS automaticamente
 
       if (
         !url.startsWith("http://") &&
         !url.startsWith("https://")
       ) {
-        url = `https://${url}`;
+
+        url =
+          `https://${url}`;
       }
 
 
@@ -1138,7 +1370,7 @@ if (require.main === module) {
 
 
 // ======================================================
-// EXPORTA PARA OUTROS ARQUIVOS
+// EXPORTA PARA O SERVER.JS
 // ======================================================
 
 module.exports = {

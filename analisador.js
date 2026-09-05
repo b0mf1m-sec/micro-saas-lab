@@ -1083,62 +1083,64 @@ async function analisarSite(url) {
 // ENTRADA PELO TERMINAL
 // ======================================================
 
-const rl =
-  readline.createInterface({
+// Só abre o terminal quando analisador.js
+// for executado diretamente.
+//
+// Se outro arquivo importar o analisador,
+// essa parte não será executada.
 
-    input:
-      process.stdin,
+if (require.main === module) {
 
-    output:
-      process.stdout
-  });
-
-
-rl.question(
-
-  "\n🌐 Digite a URL do site que deseja analisar:\n> ",
-
-  async (url) => {
-
-    url =
-      url.trim();
+  const rl =
+    readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
 
 
-    // Se você digitar:
-    //
-    // empresa.com
-    //
-    // o programa transforma em:
-    //
-    // https://empresa.com
+  rl.question(
+    "\n🌐 Digite a URL do site que deseja analisar:\n> ",
 
-    if (
-      !url.startsWith("http://") &&
-      !url.startsWith("https://")
-    ) {
+    async (url) => {
 
-      url =
-        `https://${url}`;
+      url = url.trim();
+
+
+      if (
+        !url.startsWith("http://") &&
+        !url.startsWith("https://")
+      ) {
+        url = `https://${url}`;
+      }
+
+
+      try {
+
+        await analisarSite(url);
+
+      } catch (erro) {
+
+        console.log(
+          "\n🚨 Erro inesperado:"
+        );
+
+        console.log(
+          erro.message
+        );
+
+      } finally {
+
+        rl.close();
+      }
     }
+  );
+}
 
 
-    try {
+// ======================================================
+// EXPORTA PARA OUTROS ARQUIVOS
+// ======================================================
 
-      await analisarSite(url);
-
-    } catch (erro) {
-
-      console.log(
-        "\n🚨 Erro inesperado:"
-      );
-
-      console.log(
-        erro.message
-      );
-
-    } finally {
-
-      rl.close();
-    }
-  }
-);
+module.exports = {
+  analisarSite
+};

@@ -3,6 +3,16 @@ const cheerio = require("cheerio");
 
 const apiKey = process.env.PAGESPEED_API_KEY;
 
+
+// =========================
+// UTILITÁRIO: ESPERAR
+// =========================
+
+function esperar(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 // =========================
 // ANALISA O PAGESPEED
 // =========================
@@ -29,58 +39,106 @@ async function analisarPageSpeed(url) {
   const apiEndpoint =
     `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${apiKey}`;
 
-  try {
-    const resposta = await fetch(apiEndpoint);
+  const maxTentativas = 2;
 
-    if (!resposta.ok) {
-      resultado.erro = `HTTP ${resposta.status}`;
+  for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+
+    try {
+      const resposta = await fetch(apiEndpoint);
+
+      // Se o PageSpeed responder 500, tenta novamente
+      if (resposta.status >= 500) {
+
+        if (tentativa < maxTentativas) {
+          console.log(
+            `⚠️ PageSpeed falhou. Tentando novamente em 2 segundos...`
+          );
+
+          await esperar(2000);
+          continue;
+        }
+
+        resultado.erro = `HTTP ${resposta.status}`;
+        return resultado;
+      }
+
+      if (!resposta.ok) {
+        resultado.erro = `HTTP ${resposta.status}`;
+        return resultado;
+      }
+
+      // Primeiro pegamos como texto
+      const textoResposta = await resposta.text();
+
+      let dados;
+
+      try {
+        dados = JSON.parse(textoResposta);
+      } catch {
+        resultado.erro =
+          "O PageSpeed retornou uma resposta inválida.";
+        return resultado;
+      }
+
+      if (dados.error) {
+        resultado.erro = dados.error.message;
+        return resultado;
+      }
+
+      const audits = dados.lighthouseResult?.audits;
+
+      const performanceScore =
+        dados.lighthouseResult?.categories?.performance?.score;
+
+      if (!audits || performanceScore === undefined) {
+        resultado.erro =
+          "Dados do Lighthouse incompletos.";
+        return resultado;
+      }
+
+      resultado.score =
+        Math.round(performanceScore * 100);
+
+      resultado.lcp =
+        audits["largest-contentful-paint"]?.displayValue ?? null;
+
+      resultado.lcpMs =
+        audits["largest-contentful-paint"]?.numericValue ?? null;
+
+      resultado.cls =
+        audits["cumulative-layout-shift"]?.displayValue ?? null;
+
+      resultado.clsValor =
+        audits["cumulative-layout-shift"]?.numericValue ?? null;
+
+      resultado.fcp =
+        audits["first-contentful-paint"]?.displayValue ?? null;
+
+      resultado.fcpMs =
+        audits["first-contentful-paint"]?.numericValue ?? null;
+
+      resultado.speedIndex =
+        audits["speed-index"]?.displayValue ?? null;
+
+      resultado.speedIndexMs =
+        audits["speed-index"]?.numericValue ?? null;
+
+      return resultado;
+
+    } catch (erro) {
+
+      if (tentativa < maxTentativas) {
+        console.log(
+          `⚠️ Erro ao consultar PageSpeed. Tentando novamente...`
+        );
+
+        await esperar(2000);
+        continue;
+      }
+
+      resultado.erro = erro.message;
       return resultado;
     }
-
-    const dados = await resposta.json();
-
-    if (dados.error) {
-      resultado.erro = dados.error.message;
-      return resultado;
-    }
-
-    const audits = dados.lighthouseResult?.audits;
-    const performanceScore =
-      dados.lighthouseResult?.categories?.performance?.score;
-
-    if (!audits || performanceScore === undefined) {
-      resultado.erro = "Dados do Lighthouse incompletos.";
-      return resultado;
-    }
-
-    resultado.score = performanceScore * 100;
-
-    resultado.lcp =
-      audits["largest-contentful-paint"]?.displayValue ?? null;
-
-    resultado.lcpMs =
-      audits["largest-contentful-paint"]?.numericValue ?? null;
-
-    resultado.cls =
-      audits["cumulative-layout-shift"]?.displayValue ?? null;
-
-    resultado.clsValor =
-      audits["cumulative-layout-shift"]?.numericValue ?? null;
-
-    resultado.fcp =
-      audits["first-contentful-paint"]?.displayValue ?? null;
-
-    resultado.fcpMs =
-      audits["first-contentful-paint"]?.numericValue ?? null;
-
-    resultado.speedIndex =
-      audits["speed-index"]?.displayValue ?? null;
-
-    resultado.speedIndexMs =
-      audits["speed-index"]?.numericValue ?? null;
-
-  } catch (erro) {
-    resultado.erro = erro.message;
   }
 
   return resultado;
@@ -104,7 +162,9 @@ async function analisarHTML(url) {
     const resposta = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; MicroSaaSLab/1.0)"
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+        "Accept":
+          "text/html,application/xhtml+xml"
       }
     });
 
@@ -114,19 +174,23 @@ async function analisarHTML(url) {
     }
 
     const html = await resposta.text();
+
     const $ = cheerio.load(html);
 
     resultado.title =
       $("title").first().text().trim() || "Não encontrado";
 
     resultado.metaDescription =
-      $('meta[name="description"]').attr("content")?.trim() ||
-      "Não encontrada";
+      $('meta[name="description"]')
+        .attr("content")
+        ?.trim() || "Não encontrada";
 
-    resultado.h1Count = $("h1").length;
+    resultado.h1Count =
+      $("h1").length;
 
     $("h1").each((index, elemento) => {
-      const texto = $(elemento).text().trim();
+      const texto =
+        $(elemento).text().trim();
 
       if (texto) {
         resultado.h1Textos.push(texto);
@@ -153,6 +217,7 @@ function gerarFindings(performance, seo) {
   // =========================
 
   if (!seo.erro) {
+
     if (
       !seo.title ||
       seo.title === "Não encontrado"
@@ -188,35 +253,14 @@ function gerarFindings(performance, seo) {
           "Nenhum elemento H1 foi encontrado no HTML da página."
       });
     }
-
-    if (seo.h1Count > 1) {
-      findings.push({
-        codigo: "H1_MULTIPLO",
-        categoria: "seo",
-        severidade: "baixa",
-        evidencia:
-          `Foram encontrados ${seo.h1Count} elementos H1 na página.`
-      });
-    }
   }
+
 
   // =========================
   // PERFORMANCE
   // =========================
 
   if (!performance.erro) {
-    if (
-      performance.score !== null &&
-      performance.score < 50
-    ) {
-      findings.push({
-        codigo: "PERFORMANCE_BAIXA",
-        categoria: "performance",
-        severidade: "alta",
-        evidencia:
-          `A pontuação de Performance medida foi ${performance.score}/100.`
-      });
-    }
 
     if (
       performance.lcpMs !== null &&
@@ -254,36 +298,56 @@ function gerarFindings(performance, seo) {
 // =========================
 
 async function analisarSites() {
+
   const sites = [
-    "https://google.com",
-    "https://example.com",
-    "https://openai.com"
+    "https://washdent.com",
+    "https://www.dupontdental.com",
+    "https://districtcapitalservices.com",
+    "https://dcwashingtonplumber.com",
+    "https://www.ngachelectric.com"
   ];
 
   for (let i = 0; i < sites.length; i++) {
+
     const url = sites[i];
 
-    console.log(`\nAnalisando site ${i + 1}: ${url}`);
+    console.log(
+      `\nAnalisando site ${i + 1}: ${url}`
+    );
 
     console.log("Consultando PageSpeed...");
-    const performance = await analisarPageSpeed(url);
+    const performance =
+      await analisarPageSpeed(url);
 
     console.log("Lendo HTML do site...");
-    const seo = await analisarHTML(url);
+    const seo =
+      await analisarHTML(url);
 
     console.log("Gerando findings...");
-    const findings = gerarFindings(performance, seo);
+    const findings =
+      gerarFindings(performance, seo);
 
     const resultado = {
       url,
-      analisadoEm: new Date().toISOString(),
+
+      analisadoEm:
+        new Date().toISOString(),
+
       performance,
+
       seo,
+
       findings
     };
 
-    console.log("\n✅ Resultado completo:");
-    console.dir(resultado, { depth: null });
+    console.log(
+      "\n✅ Resultado completo:"
+    );
+
+    console.dir(
+      resultado,
+      { depth: null }
+    );
   }
 }
 

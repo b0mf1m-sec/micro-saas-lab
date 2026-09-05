@@ -31,6 +31,12 @@ async function analisarPageSpeed(url) {
 
   try {
     const resposta = await fetch(apiEndpoint);
+
+    if (!resposta.ok) {
+      resultado.erro = `HTTP ${resposta.status}`;
+      return resultado;
+    }
+
     const dados = await resposta.json();
 
     if (dados.error) {
@@ -38,28 +44,40 @@ async function analisarPageSpeed(url) {
       return resultado;
     }
 
-    const audits = dados.lighthouseResult.audits;
+    const audits = dados.lighthouseResult?.audits;
+    const performanceScore =
+      dados.lighthouseResult?.categories?.performance?.score;
 
-    resultado.score =
-      dados.lighthouseResult.categories.performance.score * 100;
+    if (!audits || performanceScore === undefined) {
+      resultado.erro = "Dados do Lighthouse incompletos.";
+      return resultado;
+    }
+
+    resultado.score = performanceScore * 100;
 
     resultado.lcp =
-      audits["largest-contentful-paint"]?.displayValue || null;
+      audits["largest-contentful-paint"]?.displayValue ?? null;
 
     resultado.lcpMs =
-  audits["largest-contentful-paint"]?.numericValue ?? null;
+      audits["largest-contentful-paint"]?.numericValue ?? null;
 
-resultado.clsValor =
-  audits["cumulative-layout-shift"]?.numericValue ?? null;
+    resultado.cls =
+      audits["cumulative-layout-shift"]?.displayValue ?? null;
 
-resultado.fcpMs =
-  audits["first-contentful-paint"]?.numericValue ?? null;
+    resultado.clsValor =
+      audits["cumulative-layout-shift"]?.numericValue ?? null;
 
-resultado.speedIndexMs =
-  audits["speed-index"]?.numericValue ?? null;
+    resultado.fcp =
+      audits["first-contentful-paint"]?.displayValue ?? null;
+
+    resultado.fcpMs =
+      audits["first-contentful-paint"]?.numericValue ?? null;
+
+    resultado.speedIndex =
+      audits["speed-index"]?.displayValue ?? null;
 
     resultado.speedIndexMs =
-      audits["speed-index"]?.numericValue || null;
+      audits["speed-index"]?.numericValue ?? null;
 
   } catch (erro) {
     resultado.erro = erro.message;
@@ -83,7 +101,12 @@ async function analisarHTML(url) {
   };
 
   try {
-    const resposta = await fetch(url);
+    const resposta = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; MicroSaaSLab/1.0)"
+      }
+    });
 
     if (!resposta.ok) {
       resultado.erro = `HTTP ${resposta.status}`;
@@ -91,7 +114,6 @@ async function analisarHTML(url) {
     }
 
     const html = await resposta.text();
-
     const $ = cheerio.load(html);
 
     resultado.title =
@@ -126,8 +148,24 @@ async function analisarHTML(url) {
 function gerarFindings(performance, seo) {
   const findings = [];
 
+  // =========================
   // SEO
+  // =========================
+
   if (!seo.erro) {
+    if (
+      !seo.title ||
+      seo.title === "Não encontrado"
+    ) {
+      findings.push({
+        codigo: "TITLE_AUSENTE",
+        categoria: "seo",
+        severidade: "alta",
+        evidencia:
+          "Nenhum elemento title foi encontrado no HTML da página."
+      });
+    }
+
     if (
       !seo.metaDescription ||
       seo.metaDescription === "Não encontrada"
@@ -135,6 +173,7 @@ function gerarFindings(performance, seo) {
       findings.push({
         codigo: "META_DESCRIPTION_AUSENTE",
         categoria: "seo",
+        severidade: "media",
         evidencia:
           "Nenhuma meta description foi encontrada no HTML da página."
       });
@@ -144,26 +183,41 @@ function gerarFindings(performance, seo) {
       findings.push({
         codigo: "H1_AUSENTE",
         categoria: "seo",
+        severidade: "media",
         evidencia:
           "Nenhum elemento H1 foi encontrado no HTML da página."
       });
     }
 
-    if (
-      !seo.title ||
-      seo.title === "Não encontrado"
-    ) {
+    if (seo.h1Count > 1) {
       findings.push({
-        codigo: "TITLE_AUSENTE",
+        codigo: "H1_MULTIPLO",
         categoria: "seo",
+        severidade: "baixa",
         evidencia:
-          "Nenhum elemento title foi encontrado na página."
+          `Foram encontrados ${seo.h1Count} elementos H1 na página.`
       });
     }
   }
 
+  // =========================
   // PERFORMANCE
+  // =========================
+
   if (!performance.erro) {
+    if (
+      performance.score !== null &&
+      performance.score < 50
+    ) {
+      findings.push({
+        codigo: "PERFORMANCE_BAIXA",
+        categoria: "performance",
+        severidade: "alta",
+        evidencia:
+          `A pontuação de Performance medida foi ${performance.score}/100.`
+      });
+    }
+
     if (
       performance.lcpMs !== null &&
       performance.lcpMs > 2500
@@ -171,6 +225,7 @@ function gerarFindings(performance, seo) {
       findings.push({
         codigo: "LCP_ALTO",
         categoria: "performance",
+        severidade: "alta",
         evidencia:
           `O Largest Contentful Paint medido foi de ${performance.lcp}.`
       });
@@ -183,8 +238,9 @@ function gerarFindings(performance, seo) {
       findings.push({
         codigo: "CLS_ALTO",
         categoria: "performance",
+        severidade: "alta",
         evidencia:
-          `O Cumulative Layout Shift medido foi de ${performance.cls}.`
+          `O Cumulative Layout Shift medido foi de ${performance.clsValor}.`
       });
     }
   }
@@ -220,6 +276,7 @@ async function analisarSites() {
 
     const resultado = {
       url,
+      analisadoEm: new Date().toISOString(),
       performance,
       seo,
       findings
@@ -231,5 +288,8 @@ async function analisarSites() {
 }
 
 
-// Inicia o programa
+// =========================
+// INICIA O PROGRAMA
+// =========================
+
 analisarSites();

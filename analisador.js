@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const cheerio = require("cheerio");
 const { GoogleGenAI } = require("@google/genai");
+const readline = require("readline");
 
 const pagespeedApiKey = process.env.PAGESPEED_API_KEY;
 
@@ -11,7 +12,7 @@ const ai = new GoogleGenAI({
 
 
 // ======================================================
-// UTILITÁRIO
+// UTILITÁRIO: ESPERAR
 // ======================================================
 
 function esperar(ms) {
@@ -43,10 +44,13 @@ async function analisarPageSpeed(url) {
     erro: null
   };
 
+
   const apiEndpoint =
     `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${pagespeedApiKey}`;
 
+
   const maxTentativas = 2;
+
 
   for (
     let tentativa = 1;
@@ -56,9 +60,13 @@ async function analisarPageSpeed(url) {
 
     try {
 
-      const resposta = await fetch(apiEndpoint);
+      const resposta =
+        await fetch(apiEndpoint);
 
-      // Tenta novamente caso o servidor do Google falhe
+
+      // Se o servidor do Google falhar,
+      // tenta novamente.
+
       if (resposta.status >= 500) {
 
         if (tentativa < maxTentativas) {
@@ -72,7 +80,9 @@ async function analisarPageSpeed(url) {
           continue;
         }
 
-        resultado.erro = `HTTP ${resposta.status}`;
+
+        resultado.erro =
+          `HTTP ${resposta.status}`;
 
         return resultado;
       }
@@ -87,11 +97,15 @@ async function analisarPageSpeed(url) {
       }
 
 
+      // Recebemos primeiro como texto
+      // para evitar erro caso a API devolva HTML.
+
       const textoResposta =
         await resposta.text();
 
 
       let dados;
+
 
       try {
 
@@ -139,6 +153,10 @@ async function analisarPageSpeed(url) {
         return resultado;
       }
 
+
+      // =========================
+      // MÉTRICAS
+      // =========================
 
       resultado.score =
         Math.round(
@@ -213,6 +231,7 @@ async function analisarPageSpeed(url) {
       resultado.erro =
         erro.message;
 
+
       return resultado;
     }
   }
@@ -230,9 +249,13 @@ async function analisarHTML(url) {
 
   const resultado = {
     title: null,
+
     metaDescription: null,
+
     h1Count: null,
+
     h1Textos: [],
+
     erro: null
   };
 
@@ -263,6 +286,8 @@ async function analisarHTML(url) {
         });
 
 
+      // Retry para erros temporários
+
       if (
         resposta.status === 429 ||
         resposta.status >= 500
@@ -271,7 +296,7 @@ async function analisarHTML(url) {
         if (tentativa < maxTentativas) {
 
           console.log(
-            `⚠️ HTML respondeu HTTP ${resposta.status}. Tentando novamente...`
+            `⚠️ HTML respondeu HTTP ${resposta.status}. Tentando novamente em 2 segundos...`
           );
 
           await esperar(2000);
@@ -298,6 +323,10 @@ async function analisarHTML(url) {
         cheerio.load(html);
 
 
+      // =========================
+      // TITLE
+      // =========================
+
       resultado.title =
         $("title")
           .first()
@@ -307,6 +336,10 @@ async function analisarHTML(url) {
         "Não encontrado";
 
 
+      // =========================
+      // META DESCRIPTION
+      // =========================
+
       resultado.metaDescription =
         $('meta[name="description"]')
           .attr("content")
@@ -314,6 +347,10 @@ async function analisarHTML(url) {
         ||
         "Não encontrada";
 
+
+      // =========================
+      // H1
+      // =========================
 
       resultado.h1Count =
         $("h1").length;
@@ -345,7 +382,7 @@ async function analisarHTML(url) {
       if (tentativa < maxTentativas) {
 
         console.log(
-          "⚠️ Erro ao ler HTML. Tentando novamente..."
+          "⚠️ Erro ao ler HTML. Tentando novamente em 2 segundos..."
         );
 
         await esperar(2000);
@@ -368,7 +405,7 @@ async function analisarHTML(url) {
 
 
 // ======================================================
-// FINDINGS
+// FINDINGS VERIFICÁVEIS
 // ======================================================
 
 function gerarFindings(
@@ -379,11 +416,13 @@ function gerarFindings(
   const findings = [];
 
 
-  // ----------------------
+  // ====================================================
   // SEO
-  // ----------------------
+  // ====================================================
 
   if (!seo.erro) {
+
+    // TITLE AUSENTE
 
     if (
       !seo.title ||
@@ -406,6 +445,8 @@ function gerarFindings(
       });
     }
 
+
+    // META DESCRIPTION AUSENTE
 
     if (
       !seo.metaDescription ||
@@ -430,6 +471,8 @@ function gerarFindings(
     }
 
 
+    // H1 AUSENTE
+
     if (
       seo.h1Count === 0
     ) {
@@ -452,11 +495,13 @@ function gerarFindings(
   }
 
 
-  // ----------------------
+  // ====================================================
   // PERFORMANCE
-  // ----------------------
+  // ====================================================
 
   if (!performance.erro) {
+
+    // LCP
 
     if (
       performance.lcpMs !== null &&
@@ -479,6 +524,8 @@ function gerarFindings(
       });
     }
 
+
+    // CLS
 
     if (
       performance.clsValor !== null &&
@@ -508,7 +555,7 @@ function gerarFindings(
 
 
 // ======================================================
-// IA
+// GEMINI
 // AGENCY VIEW + PROSPECT VIEW
 // ======================================================
 
@@ -517,8 +564,8 @@ async function gerarViewsComIA(
   findings
 ) {
 
-  // Nenhum problema comprovado:
-  // não gastamos chamada de IA.
+  // Se não há finding,
+  // não gastamos chamada da Gemini.
 
   if (
     !findings ||
@@ -527,9 +574,11 @@ async function gerarViewsComIA(
 
     return {
 
-      agencyView: null,
+      agencyView:
+        null,
 
-      prospectView: null,
+      prospectView:
+        null,
 
       status:
         "sem_findings",
@@ -604,7 +653,13 @@ For every finding explain:
 - why it may be worth reviewing;
 - suggested priority based ONLY on the provided severity.
 
-Do not invent additional diagnostics.
+Do NOT invent additional diagnostics.
+
+For performance findings, prefer objective wording such as:
+
+"The measurement exceeds the threshold used by the analyzer."
+
+Avoid claiming user impact unless it is directly supported.
 
 Keep the Agency View concise and professional.
 
@@ -623,15 +678,24 @@ Rules:
 - Avoid heavy technical jargon.
 - Briefly explain technical terminology when necessary.
 - Do not use fear or aggressive sales language.
-- Do not state that visitors are leaving or customers are being lost.
-- Do not claim ranking or revenue impact.
-- Use cautious language such as:
-  "may"
-  "can"
-  "could"
-  "potentially"
+- Do not state that visitors are leaving.
+- Do not state that customers are being lost.
+- Do not claim ranking impact.
+- Do not claim revenue impact.
+- Do not invent agency credentials.
 
-For performance issues, you may say that a result may make a page feel slower.
+Use cautious language such as:
+
+"may"
+"can"
+"could"
+"potentially"
+
+For performance issues, you may say:
+
+"This result may make the page feel slower to some visitors."
+
+Do NOT infer behavior beyond that.
 
 End with a soft CTA offering to show what should be prioritized and why.
 
@@ -649,9 +713,9 @@ Exactly this structure:
   "prospectView": "text here"
 }
 
-Do not use Markdown code fences.
+Do NOT use Markdown code fences.
 
-Do not add text before or after the JSON.
+Do NOT add text before or after the JSON.
 
 
 ========================
@@ -756,284 +820,325 @@ ${JSON.stringify(
 
 
 // ======================================================
-// FUNÇÃO PRINCIPAL
+// ANALISA UMA URL
 // ======================================================
 
-async function analisarSites() {
+async function analisarSite(url) {
 
-  const sites = [
+  console.log(
+    "\n========================================"
+  );
 
-    "https://washdent.com",
+  console.log(
+    `🔎 Analisando: ${url}`
+  );
 
-    "https://dcwashingtonplumber.com",
-
-    "https://www.ngachelectric.com"
-
-  ];
+  console.log(
+    "========================================"
+  );
 
 
-  for (
-    let i = 0;
-    i < sites.length;
-    i++
+  // ====================================================
+  // PAGESPEED
+  // ====================================================
+
+  console.log(
+    "\nConsultando PageSpeed..."
+  );
+
+
+  const performance =
+    await analisarPageSpeed(url);
+
+
+  // ====================================================
+  // HTML
+  // ====================================================
+
+  console.log(
+    "Lendo HTML do site..."
+  );
+
+
+  const seo =
+    await analisarHTML(url);
+
+
+  // ====================================================
+  // FINDINGS
+  // ====================================================
+
+  console.log(
+    "Gerando findings..."
+  );
+
+
+  const findings =
+    gerarFindings(
+      performance,
+      seo
+    );
+
+
+  // ====================================================
+  // IA
+  // ====================================================
+
+  let views;
+
+
+  if (
+    findings.length > 0
   ) {
 
-    const url =
-      sites[i];
-
-
     console.log(
-      "\n\n========================================"
-    );
-
-    console.log(
-      `Analisando site ${i + 1}: ${url}`
-    );
-
-    console.log(
-      "========================================"
+      "🤖 Gerando Agency View e Prospect View..."
     );
 
 
-    // ----------------------
-    // PageSpeed
-    // ----------------------
-
-    console.log(
-      "\nConsultando PageSpeed..."
-    );
-
-
-    const performance =
-      await analisarPageSpeed(url);
-
-
-    // ----------------------
-    // HTML
-    // ----------------------
-
-    console.log(
-      "Lendo HTML do site..."
-    );
-
-
-    const seo =
-      await analisarHTML(url);
-
-
-    // ----------------------
-    // Findings
-    // ----------------------
-
-    console.log(
-      "Gerando findings..."
-    );
-
-
-    const findings =
-      gerarFindings(
-        performance,
-        seo
+    views =
+      await gerarViewsComIA(
+        url,
+        findings
       );
 
+  } else {
 
-    // ----------------------
-    // IA
-    // ----------------------
-
-    let views;
-
-
-    if (
-      findings.length > 0
-    ) {
-
-      console.log(
-        "🤖 Gerando Agency View e Prospect View..."
-      );
+    console.log(
+      "ℹ️ Nenhum finding verificável. Gemini não será chamada."
+    );
 
 
-      views =
-        await gerarViewsComIA(
-          url,
-          findings
-        );
-
-    } else {
-
-      console.log(
-        "ℹ️ Nenhum finding verificável. Gemini não será chamada."
-      );
-
-
-      views = {
-
-        agencyView:
-          null,
-
-        prospectView:
-          null,
-
-        status:
-          "sem_findings",
-
-        erro:
-          null
-      };
-    }
-
-
-    // ----------------------
-    // Resultado final
-    // ----------------------
-
-    const resultado = {
-
-      url,
-
-      analisadoEm:
-        new Date().toISOString(),
-
-      performance,
-
-      seo,
-
-      findings,
+    views = {
 
       agencyView:
-        views.agencyView,
+        null,
 
       prospectView:
-        views.prospectView,
+        null,
 
-      iaStatus:
-        views.status
+      status:
+        "sem_findings",
+
+      erro:
+        null
     };
+  }
 
 
-    // ----------------------
-    // Resultado técnico
-    // ----------------------
+  // ====================================================
+  // OBJETO FINAL
+  // ====================================================
+
+  const resultado = {
+
+    url,
+
+    analisadoEm:
+      new Date().toISOString(),
+
+    performance,
+
+    seo,
+
+    findings,
+
+    agencyView:
+      views.agencyView,
+
+    prospectView:
+      views.prospectView,
+
+    iaStatus:
+      views.status
+  };
+
+
+  // ====================================================
+  // RESULTADO TÉCNICO
+  // ====================================================
+
+  console.log(
+    "\n✅ RESULTADO TÉCNICO"
+  );
+
+
+  console.dir(
+    {
+
+      url:
+        resultado.url,
+
+      performance:
+        resultado.performance,
+
+      seo:
+        resultado.seo,
+
+      findings:
+        resultado.findings
+
+    },
+
+    {
+      depth:
+        null
+    }
+  );
+
+
+  // ====================================================
+  // AGENCY VIEW
+  // ====================================================
+
+  if (
+    resultado.agencyView
+  ) {
 
     console.log(
-      "\n✅ RESULTADO TÉCNICO"
+      "\n========================================"
+    );
+
+    console.log(
+      "🏢 AGENCY VIEW"
+    );
+
+    console.log(
+      "========================================\n"
     );
 
 
-    console.dir(
-      {
-        url:
-          resultado.url,
-
-        performance:
-          resultado.performance,
-
-        seo:
-          resultado.seo,
-
-        findings:
-          resultado.findings
-      },
-
-      {
-        depth:
-          null
-      }
-    );
-
-
-    // ----------------------
-    // Agency View
-    // ----------------------
-
-    if (
+    console.log(
       resultado.agencyView
-    ) {
-
-      console.log(
-        "\n========================================"
-      );
-
-      console.log(
-        "🏢 AGENCY VIEW"
-      );
-
-      console.log(
-        "========================================\n"
-      );
+    );
+  }
 
 
-      console.log(
-        resultado.agencyView
-      );
-    }
+  // ====================================================
+  // PROSPECT VIEW
+  // ====================================================
+
+  if (
+    resultado.prospectView
+  ) {
+
+    console.log(
+      "\n========================================"
+    );
+
+    console.log(
+      "🤖 PROSPECT VIEW"
+    );
+
+    console.log(
+      "========================================\n"
+    );
 
 
-    // ----------------------
-    // Prospect View
-    // ----------------------
-
-    if (
+    console.log(
       resultado.prospectView
-    ) {
-
-      console.log(
-        "\n========================================"
-      );
-
-      console.log(
-        "🤖 PROSPECT VIEW"
-      );
-
-      console.log(
-        "========================================\n"
-      );
+    );
+  }
 
 
-      console.log(
-        resultado.prospectView
-      );
-    }
+  // ====================================================
+  // ERROS DA IA
+  // ====================================================
+
+  if (
+    views.erro
+  ) {
+
+    console.log(
+      "\n🚨 ERRO NA IA:"
+    );
 
 
-    // ----------------------
-    // Erro da IA
-    // ----------------------
+    console.log(
+      views.erro
+    );
+
 
     if (
-      views.erro
+      views.respostaBruta
     ) {
 
       console.log(
-        "\n🚨 ERRO NA IA:"
+        "\nResposta bruta da Gemini:"
       );
 
 
       console.log(
-        views.erro
-      );
-
-
-      if (
         views.respostaBruta
-      ) {
-
-        console.log(
-          "\nResposta original:"
-        );
-
-
-        console.log(
-          views.respostaBruta
-        );
-      }
+      );
     }
   }
+
+
+  return resultado;
 }
 
 
 // ======================================================
-// EXECUTA
+// ENTRADA PELO TERMINAL
 // ======================================================
 
-analisarSites();
+const rl =
+  readline.createInterface({
+
+    input:
+      process.stdin,
+
+    output:
+      process.stdout
+  });
+
+
+rl.question(
+
+  "\n🌐 Digite a URL do site que deseja analisar:\n> ",
+
+  async (url) => {
+
+    url =
+      url.trim();
+
+
+    // Se você digitar:
+    //
+    // empresa.com
+    //
+    // o programa transforma em:
+    //
+    // https://empresa.com
+
+    if (
+      !url.startsWith("http://") &&
+      !url.startsWith("https://")
+    ) {
+
+      url =
+        `https://${url}`;
+    }
+
+
+    try {
+
+      await analisarSite(url);
+
+    } catch (erro) {
+
+      console.log(
+        "\n🚨 Erro inesperado:"
+      );
+
+      console.log(
+        erro.message
+      );
+
+    } finally {
+
+      rl.close();
+    }
+  }
+);

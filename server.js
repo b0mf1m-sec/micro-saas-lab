@@ -1,9 +1,22 @@
 const express = require("express");
 const path = require("path");
 
+const helmet = require("helmet");
+
+const {
+  rateLimit
+} = require("express-rate-limit");
+
+
 const {
   analisarSite
 } = require("./analisador");
+
+
+const {
+  validarUrlPublica,
+  ErroURLInsegura
+} = require("./seguranca");
 
 
 const app =
@@ -14,14 +27,102 @@ const PORT =
   3000;
 
 
-// Permite receber JSON
+// ======================================================
+// SEGURANÇA - HEADERS HTTP
+// ======================================================
+
+/*
+  Helmet adiciona diversos headers de segurança.
+
+  Por enquanto deixamos Content Security Policy
+  desativada porque nosso index.html ainda possui
+  JavaScript e CSS inline.
+
+  Posteriormente moveremos JS e CSS para arquivos
+  separados e ativaremos CSP de forma restritiva.
+*/
 
 app.use(
-  express.json()
+  helmet({
+    contentSecurityPolicy: false
+  })
 );
 
 
-// Serve os arquivos da interface
+// Não revela que estamos usando Express.
+
+app.disable(
+  "x-powered-by"
+);
+
+
+// ======================================================
+// LIMITE DO BODY
+// ======================================================
+
+/*
+  Nosso endpoint só precisa receber algo pequeno:
+
+  {
+    "url": "example.com"
+  }
+
+  Então não existe motivo para aceitar
+  payloads enormes.
+*/
+
+app.use(
+  express.json({
+    limit: "10kb"
+  })
+);
+
+
+// ======================================================
+// RATE LIMIT
+// ======================================================
+
+/*
+  Limita abuso do endpoint de análise.
+
+  Cada IP pode fazer até:
+
+  20 requisições a cada 15 minutos.
+
+  Isso ajuda contra:
+  - spam;
+  - abuso das APIs;
+  - consumo excessivo da Gemini;
+  - consumo excessivo do PageSpeed;
+  - DoS básico.
+*/
+
+const analisarLimiter =
+  rateLimit({
+
+    windowMs:
+      15 * 60 * 1000,
+
+    limit:
+      20,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+
+      erro:
+        "Muitas análises foram solicitadas. Tente novamente mais tarde."
+    }
+  });
+
+
+// ======================================================
+// INTERFACE WEB
+// ======================================================
 
 app.use(
   express.static(
@@ -33,7 +134,9 @@ app.use(
 );
 
 
-// Health check da API
+// ======================================================
+// HEALTH CHECK
+// ======================================================
 
 app.get(
   "/api/health",
@@ -41,7 +144,10 @@ app.get(
   (req, res) => {
 
     res.json({
-      status: "ok",
+
+      status:
+        "ok",
+
       mensagem:
         "Micro-SaaS API funcionando"
     });
@@ -56,6 +162,8 @@ app.get(
 app.post(
   "/analisar",
 
+  analisarLimiter,
+
   async (req, res) => {
 
     try {
@@ -63,6 +171,10 @@ app.post(
       let { url } =
         req.body;
 
+
+      // =================================================
+      // INPUT
+      // =================================================
 
       if (
         !url ||
@@ -72,24 +184,21 @@ app.post(
         return res
           .status(400)
           .json({
+
             erro:
               "A URL é obrigatória."
           });
       }
 
 
+      // =================================================
+      // VALIDAÇÃO / SSRF
+      // =================================================
+
       url =
-        url.trim();
-
-
-      if (
-        !url.startsWith("http://") &&
-        !url.startsWith("https://")
-      ) {
-
-        url =
-          `https://${url}`;
-      }
+        await validarUrlPublica(
+          url
+        );
 
 
       console.log(
@@ -97,8 +206,14 @@ app.post(
       );
 
 
+      // =================================================
+      // ANÁLISE
+      // =================================================
+
       const resultado =
-        await analisarSite(url);
+        await analisarSite(
+          url
+        );
 
 
       return res.json(
@@ -107,21 +222,58 @@ app.post(
 
     } catch (erro) {
 
+
+      // =================================================
+      // URL BLOQUEADA
+      // =================================================
+
+      if (
+        erro instanceof
+        ErroURLInsegura
+      ) {
+
+        console.log(
+          `🛡️ URL bloqueada: ${erro.message}`
+        );
+
+
+        return res
+          .status(400)
+          .json({
+
+            erro:
+              erro.message
+          });
+      }
+
+
+      // =================================================
+      // ERRO INTERNO
+      // =================================================
+
       console.error(
-        "Erro na API:",
+        "Erro interno:",
         erro
       );
 
+
+      /*
+        Não enviamos para o usuário:
+
+        erro.message
+        erro.stack
+        caminhos internos
+        nomes de arquivos
+        API keys
+        informações do servidor
+      */
 
       return res
         .status(500)
         .json({
 
           erro:
-            "Erro interno ao analisar o site.",
-
-          detalhe:
-            erro.message
+            "Erro interno ao analisar o site."
         });
     }
   }
@@ -129,7 +281,66 @@ app.post(
 
 
 // ======================================================
-// INICIA SERVIDOR
+// ERRO DE JSON / BODY
+// ======================================================
+
+app.use(
+  (erro, req, res, next) => {
+
+    // Payload maior que 10 KB.
+
+    if (
+      erro.type ===
+      "entity.too.large"
+    ) {
+
+      return res
+        .status(413)
+        .json({
+
+          erro:
+            "A requisição é muito grande."
+        });
+    }
+
+
+    // JSON quebrado/malformado.
+
+    if (
+      erro instanceof SyntaxError &&
+      erro.status === 400 &&
+      "body" in erro
+    ) {
+
+      return res
+        .status(400)
+        .json({
+
+          erro:
+            "JSON inválido."
+        });
+    }
+
+
+    console.error(
+      "Erro não tratado:",
+      erro
+    );
+
+
+    return res
+      .status(500)
+      .json({
+
+        erro:
+          "Erro interno do servidor."
+      });
+  }
+);
+
+
+// ======================================================
+// SERVIDOR
 // ======================================================
 
 app.listen(
@@ -141,5 +352,12 @@ app.listen(
       `\n🚀 Micro-SaaS rodando em http://localhost:${PORT}`
     );
 
+    console.log(
+      "🛡️ Security headers ativos"
+    );
+
+    console.log(
+      "🛡️ Rate limit: 20 análises / 15 min / IP"
+    );
   }
 );

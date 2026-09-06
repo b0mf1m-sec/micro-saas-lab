@@ -4,6 +4,12 @@ const cheerio = require("cheerio");
 const { GoogleGenAI } = require("@google/genai");
 const readline = require("readline");
 
+const {
+  fetchSeguro,
+  validarUrlPublica,
+  ErroURLInsegura
+} = require("./seguranca");
+
 const pagespeedApiKey = process.env.PAGESPEED_API_KEY;
 
 const ai = new GoogleGenAI({
@@ -65,6 +71,7 @@ async function analisarPageSpeed(url) {
 
 
       // Retry se o servidor do Google falhar
+
       if (resposta.status >= 500) {
 
         if (tentativa < maxTentativas) {
@@ -96,8 +103,8 @@ async function analisarPageSpeed(url) {
 
 
       // Recebe primeiro como texto.
-      // Isso evita quebrar se o Google devolver HTML
-      // em vez de JSON.
+      // Isso evita quebrar caso o Google
+      // devolva algo que não seja JSON.
 
       const textoResposta =
         await resposta.text();
@@ -285,8 +292,15 @@ async function analisarHTML(url) {
 
     try {
 
+      // =================================================
+      // SEGURANÇA
+      //
+      // Agora usamos fetchSeguro em vez de fetch.
+      // Ele valida IPs, redirects e destinos internos.
+      // =================================================
+
       const resposta =
-        await fetch(url, {
+        await fetchSeguro(url, {
 
           headers: {
 
@@ -392,6 +406,21 @@ async function analisarHTML(url) {
       return resultado;
 
     } catch (erro) {
+
+      // =================================================
+      // SEGURANÇA
+      //
+      // Um bloqueio de SSRF não é um erro temporário.
+      // Portanto NÃO fazemos retry.
+      // =================================================
+
+      if (
+        erro instanceof ErroURLInsegura
+      ) {
+
+        throw erro;
+      }
+
 
       if (tentativa < maxTentativas) {
 
@@ -1043,6 +1072,19 @@ ${JSON.stringify(
 // ======================================================
 
 async function analisarSite(url) {
+
+  // ====================================================
+  // SEGURANÇA
+  //
+  // Defesa em profundidade.
+  //
+  // Mesmo que analisarSite seja chamado sem passar
+  // pelo server.js, a URL ainda será validada.
+  // ====================================================
+
+  url =
+    await validarUrlPublica(url);
+
 
   console.log(
     "\n========================================"

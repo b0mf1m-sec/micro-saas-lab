@@ -3,6 +3,9 @@
     "@google/genai": "^2.21.0",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "ipaddr.js": "^2.5.0"
   }
 }

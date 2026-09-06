@@ -10,7 +10,14 @@ const {
   ErroURLInsegura
 } = require("./seguranca");
 
-const pagespeedApiKey = process.env.PAGESPEED_API_KEY;
+const {
+  obterCacheIA,
+  salvarCacheIA
+} = require("./cacheIA");
+
+const pagespeedApiKey =
+  process.env.PAGESPEED_API_KEY;
+
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
@@ -18,11 +25,13 @@ const ai = new GoogleGenAI({
 
 
 // ======================================================
-// UTILITÁRIO
+// UTILITY
 // ======================================================
 
 function esperar(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(
+    resolve => setTimeout(resolve, ms)
+  );
 }
 
 
@@ -33,6 +42,7 @@ function esperar(ms) {
 async function analisarPageSpeed(url) {
 
   const resultado = {
+
     score: null,
 
     lcp: null,
@@ -70,15 +80,22 @@ async function analisarPageSpeed(url) {
         await fetch(apiEndpoint);
 
 
-      // Retry se o servidor do Google falhar
+      // =================================================
+      // GOOGLE TEMPORARY ERROR
+      // =================================================
 
-      if (resposta.status >= 500) {
+      if (
+        resposta.status >= 500
+      ) {
 
-        if (tentativa < maxTentativas) {
+        if (
+          tentativa < maxTentativas
+        ) {
 
           console.log(
-            "⚠️ PageSpeed falhou. Tentando novamente em 2 segundos..."
+            "⚠️ PageSpeed failed. Retrying in 2 seconds..."
           );
+
 
           await esperar(2000);
 
@@ -89,22 +106,28 @@ async function analisarPageSpeed(url) {
         resultado.erro =
           `HTTP ${resposta.status}`;
 
+
         return resultado;
       }
 
+
+      // =================================================
+      // OTHER HTTP ERROR
+      // =================================================
 
       if (!resposta.ok) {
 
         resultado.erro =
           `HTTP ${resposta.status}`;
 
+
         return resultado;
       }
 
 
-      // Recebe primeiro como texto.
-      // Isso evita quebrar caso o Google
-      // devolva algo que não seja JSON.
+      // =================================================
+      // RESPONSE
+      // =================================================
 
       const textoResposta =
         await resposta.text();
@@ -116,28 +139,36 @@ async function analisarPageSpeed(url) {
       try {
 
         dados =
-          JSON.parse(textoResposta);
+          JSON.parse(
+            textoResposta
+          );
 
       } catch {
 
         resultado.erro =
-          "O PageSpeed retornou uma resposta inválida.";
+          "PageSpeed returned an invalid response.";
+
 
         return resultado;
       }
 
 
-      if (dados.error) {
+      if (
+        dados.error
+      ) {
 
         resultado.erro =
           dados.error.message;
+
 
         return resultado;
       }
 
 
       const audits =
-        dados.lighthouseResult?.audits;
+        dados
+          .lighthouseResult
+          ?.audits;
 
 
       const performanceScore =
@@ -154,7 +185,8 @@ async function analisarPageSpeed(url) {
       ) {
 
         resultado.erro =
-          "Dados do Lighthouse incompletos.";
+          "Incomplete Lighthouse data.";
+
 
         return resultado;
       }
@@ -238,11 +270,15 @@ async function analisarPageSpeed(url) {
 
     } catch (erro) {
 
-      if (tentativa < maxTentativas) {
+      if (
+        tentativa <
+        maxTentativas
+      ) {
 
         console.log(
-          "⚠️ Erro ao consultar PageSpeed. Tentando novamente..."
+          "⚠️ Error contacting PageSpeed. Retrying..."
         );
+
 
         await esperar(2000);
 
@@ -252,6 +288,7 @@ async function analisarPageSpeed(url) {
 
       resultado.erro =
         erro.message;
+
 
       return resultado;
     }
@@ -263,12 +300,13 @@ async function analisarPageSpeed(url) {
 
 
 // ======================================================
-// HTML
+// HTML ANALYSIS
 // ======================================================
 
 async function analisarHTML(url) {
 
   const resultado = {
+
     title: null,
 
     metaDescription: null,
@@ -281,7 +319,8 @@ async function analisarHTML(url) {
   };
 
 
-  const maxTentativas = 2;
+  const maxTentativas =
+    2;
 
 
   for (
@@ -292,40 +331,41 @@ async function analisarHTML(url) {
 
     try {
 
-      // =================================================
-      // SEGURANÇA
-      //
-      // Agora usamos fetchSeguro em vez de fetch.
-      // Ele valida IPs, redirects e destinos internos.
-      // =================================================
-
       const resposta =
-        await fetchSeguro(url, {
+        await fetchSeguro(
+          url,
+          {
 
-          headers: {
+            headers: {
 
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
 
-            "Accept":
-              "text/html,application/xhtml+xml"
+              "Accept":
+                "text/html,application/xhtml+xml"
+            }
           }
+        );
 
-        });
 
-
-      // Retry para erros temporários
+      // =================================================
+      // TEMPORARY SITE ERROR
+      // =================================================
 
       if (
         resposta.status === 429 ||
         resposta.status >= 500
       ) {
 
-        if (tentativa < maxTentativas) {
+        if (
+          tentativa <
+          maxTentativas
+        ) {
 
           console.log(
-            `⚠️ HTML respondeu HTTP ${resposta.status}. Tentando novamente em 2 segundos...`
+            `⚠️ HTML returned HTTP ${resposta.status}. Retrying in 2 seconds...`
           );
+
 
           await esperar(2000);
 
@@ -334,46 +374,59 @@ async function analisarHTML(url) {
       }
 
 
-      if (!resposta.ok) {
+      if (
+        !resposta.ok
+      ) {
 
         resultado.erro =
           `HTTP ${resposta.status}`;
 
+
         return resultado;
       }
 
+
+      // =================================================
+      // HTML
+      // =================================================
 
       const html =
         await resposta.text();
 
 
       const $ =
-        cheerio.load(html);
+        cheerio.load(
+          html
+        );
 
 
       // =================================================
       // TITLE
       // =================================================
 
-      resultado.title =
+      const title =
         $("title")
           .first()
           .text()
-          .trim()
-        ||
-        "Não encontrado";
+          .trim();
+
+
+      resultado.title =
+        title || null;
 
 
       // =================================================
       // META DESCRIPTION
       // =================================================
 
-      resultado.metaDescription =
+      const metaDescription =
         $('meta[name="description"]')
           .attr("content")
-          ?.trim()
-        ||
-        "Não encontrada";
+          ?.trim();
+
+
+      resultado.metaDescription =
+        metaDescription || null;
 
 
       // =================================================
@@ -385,7 +438,10 @@ async function analisarHTML(url) {
 
 
       $("h1").each(
-        (index, elemento) => {
+        (
+          index,
+          elemento
+        ) => {
 
           const texto =
             $(elemento)
@@ -393,11 +449,15 @@ async function analisarHTML(url) {
               .trim();
 
 
-          if (texto) {
+          if (
+            texto
+          ) {
 
             resultado
               .h1Textos
-              .push(texto);
+              .push(
+                texto
+              );
           }
         }
       );
@@ -407,26 +467,33 @@ async function analisarHTML(url) {
 
     } catch (erro) {
 
+
       // =================================================
-      // SEGURANÇA
-      //
-      // Um bloqueio de SSRF não é um erro temporário.
-      // Portanto NÃO fazemos retry.
+      // SECURITY ERRORS MUST NOT RETRY
       // =================================================
 
       if (
-        erro instanceof ErroURLInsegura
+        erro instanceof
+        ErroURLInsegura
       ) {
 
         throw erro;
       }
 
 
-      if (tentativa < maxTentativas) {
+      // =================================================
+      // NORMAL RETRY
+      // =================================================
+
+      if (
+        tentativa <
+        maxTentativas
+      ) {
 
         console.log(
-          "⚠️ Erro ao ler HTML. Tentando novamente em 2 segundos..."
+          "⚠️ Error reading HTML. Retrying in 2 seconds..."
         );
+
 
         await esperar(2000);
 
@@ -448,7 +515,7 @@ async function analisarHTML(url) {
 
 
 // ======================================================
-// FINDINGS VERIFICÁVEIS
+// VERIFIED FINDINGS
 // ======================================================
 
 function gerarFindings(
@@ -456,66 +523,72 @@ function gerarFindings(
   seo
 ) {
 
-  const findings = [];
+  const findings =
+    [];
 
 
   // ====================================================
   // SEO
   // ====================================================
 
-  if (!seo.erro) {
+  if (
+    !seo.erro
+  ) {
 
 
-    // TITLE AUSENTE
+    // ==================================================
+    // TITLE MISSING
+    // ==================================================
 
     if (
-      !seo.title ||
-      seo.title === "Não encontrado"
+      !seo.title
     ) {
 
       findings.push({
 
         codigo:
-          "TITLE_AUSENTE",
+          "TITLE_MISSING",
 
         categoria:
           "seo",
 
         severidade:
-          "alta",
+          "high",
 
         evidencia:
-          "Nenhum elemento title foi encontrado no HTML da página."
+          "No title element was found in the page HTML."
       });
     }
 
 
-    // META DESCRIPTION AUSENTE
+    // ==================================================
+    // META DESCRIPTION MISSING
+    // ==================================================
 
     if (
-      !seo.metaDescription ||
-      seo.metaDescription ===
-        "Não encontrada"
+      !seo.metaDescription
     ) {
 
       findings.push({
 
         codigo:
-          "META_DESCRIPTION_AUSENTE",
+          "META_DESCRIPTION_MISSING",
 
         categoria:
           "seo",
 
         severidade:
-          "media",
+          "medium",
 
         evidencia:
-          "Nenhuma meta description foi encontrada no HTML da página."
+          "No meta description was found in the page HTML."
       });
     }
 
 
-    // H1 AUSENTE
+    // ==================================================
+    // H1 MISSING
+    // ==================================================
 
     if (
       seo.h1Count === 0
@@ -524,16 +597,16 @@ function gerarFindings(
       findings.push({
 
         codigo:
-          "H1_AUSENTE",
+          "H1_MISSING",
 
         categoria:
           "seo",
 
         severidade:
-          "media",
+          "medium",
 
         evidencia:
-          "Nenhum elemento H1 foi encontrado no HTML da página."
+          "No H1 element was found in the page HTML."
       });
     }
   }
@@ -543,10 +616,14 @@ function gerarFindings(
   // PERFORMANCE
   // ====================================================
 
-  if (!performance.erro) {
+  if (
+    !performance.erro
+  ) {
 
 
-    // LCP ACIMA DO NOSSO LIMITE
+    // ==================================================
+    // HIGH LCP
+    // ==================================================
 
     if (
       performance.lcpMs !== null &&
@@ -556,21 +633,23 @@ function gerarFindings(
       findings.push({
 
         codigo:
-          "LCP_ALTO",
+          "LCP_HIGH",
 
         categoria:
           "performance",
 
         severidade:
-          "alta",
+          "high",
 
         evidencia:
-          `O Largest Contentful Paint medido foi de ${performance.lcp}.`
+          `The measured Largest Contentful Paint was ${performance.lcp}.`
       });
     }
 
 
-    // CLS ACIMA DO NOSSO LIMITE
+    // ==================================================
+    // HIGH CLS
+    // ==================================================
 
     if (
       performance.clsValor !== null &&
@@ -580,16 +659,16 @@ function gerarFindings(
       findings.push({
 
         codigo:
-          "CLS_ALTO",
+          "CLS_HIGH",
 
         categoria:
           "performance",
 
         severidade:
-          "alta",
+          "high",
 
         evidencia:
-          `O Cumulative Layout Shift medido foi de ${performance.clsValor}.`
+          `The measured Cumulative Layout Shift was ${performance.clsValor}.`
       });
     }
   }
@@ -609,7 +688,9 @@ async function gerarViewsComIA(
   findings
 ) {
 
-  // Sem findings = sem chamada de IA.
+  // ====================================================
+  // NO FINDINGS
+  // ====================================================
 
   if (
     !findings ||
@@ -625,13 +706,50 @@ async function gerarViewsComIA(
         null,
 
       status:
-        "sem_findings",
+        "no_findings",
 
       erro:
         null
     };
   }
 
+  // ====================================================
+  // AI CACHE
+  // ====================================================
+
+  const cache =
+    obterCacheIA(
+      url,
+      findings
+    );
+
+
+  if (cache) {
+
+    console.log(
+      "🧠 AI cache hit. Reusing previous response."
+    );
+
+
+    return {
+
+      agencyView:
+        cache.agencyView,
+
+      prospectView:
+        cache.prospectView,
+
+      status:
+        "cached",
+
+      erro:
+        null
+    };
+  }
+
+  // ====================================================
+  // PROMPT
+  // ====================================================
 
   const prompt = `
 You are assisting a Local SEO agency with prospecting.
@@ -987,6 +1105,10 @@ ${JSON.stringify(
 
   try {
 
+    // ==================================================
+    // GEMINI REQUEST
+    // ==================================================
+
     const resposta =
       await ai.interactions.create({
 
@@ -999,16 +1121,24 @@ ${JSON.stringify(
 
 
     const textoBruto =
-      resposta.output_text.trim();
+      resposta
+        .output_text
+        .trim();
 
 
     let dadosIA;
 
 
+    // ==================================================
+    // PARSE JSON
+    // ==================================================
+
     try {
 
       dadosIA =
-        JSON.parse(textoBruto);
+        JSON.parse(
+          textoBruto
+        );
 
     } catch {
 
@@ -1021,10 +1151,10 @@ ${JSON.stringify(
           null,
 
         status:
-          "erro_json",
+          "invalid_json",
 
         erro:
-          "A Gemini respondeu, mas não retornou JSON válido.",
+          "Gemini returned an invalid JSON response.",
 
         respostaBruta:
           textoBruto
@@ -1032,16 +1162,38 @@ ${JSON.stringify(
     }
 
 
-    return {
+    // ==================================================
+    // SUCCESS
+    // ==================================================
+
+        const resultadoIA = {
 
       agencyView:
         dadosIA.agencyView ?? null,
 
       prospectView:
-        dadosIA.prospectView ?? null,
+        dadosIA.prospectView ?? null
+    };
+
+
+    salvarCacheIA(
+      url,
+      findings,
+      resultadoIA
+    );
+
+
+    console.log(
+      "💾 AI response saved to cache."
+    );
+
+
+    return {
+
+      ...resultadoIA,
 
       status:
-        "gerado",
+        "generated",
 
       erro:
         null
@@ -1049,6 +1201,45 @@ ${JSON.stringify(
 
   } catch (erro) {
 
+    const mensagem =
+      erro?.message || "";
+
+
+    const mensagemLower =
+      mensagem.toLowerCase();
+
+
+    // ==================================================
+    // GEMINI RATE LIMIT / QUOTA
+    // ==================================================
+
+    if (
+      mensagem.includes("429") ||
+      mensagemLower.includes("quota") ||
+      mensagemLower.includes("rate limit")
+    ) {
+
+      return {
+
+        agencyView:
+          null,
+
+        prospectView:
+          null,
+
+        status:
+          "rate_limited",
+
+        erro:
+          "AI generation is temporarily rate limited."
+      };
+    }
+
+
+    // ==================================================
+    // OTHER AI ERROR
+    // ==================================================
+
     return {
 
       agencyView:
@@ -1058,41 +1249,40 @@ ${JSON.stringify(
         null,
 
       status:
-        "erro",
+        "error",
 
       erro:
-        erro.message
+        mensagem
     };
   }
 }
 
 
 // ======================================================
-// ANALISA UM SITE
+// ANALYZE SITE
 // ======================================================
 
 async function analisarSite(url) {
 
   // ====================================================
-  // SEGURANÇA
-  //
-  // Defesa em profundidade.
-  //
-  // Mesmo que analisarSite seja chamado sem passar
-  // pelo server.js, a URL ainda será validada.
+  // SECURITY VALIDATION
   // ====================================================
 
   url =
-    await validarUrlPublica(url);
+    await validarUrlPublica(
+      url
+    );
 
 
   console.log(
     "\n========================================"
   );
 
+
   console.log(
-    `🔎 Analisando: ${url}`
+    `🔎 Analyzing: ${url}`
   );
+
 
   console.log(
     "========================================"
@@ -1104,12 +1294,14 @@ async function analisarSite(url) {
   // ====================================================
 
   console.log(
-    "\nConsultando PageSpeed..."
+    "\nChecking PageSpeed..."
   );
 
 
   const performance =
-    await analisarPageSpeed(url);
+    await analisarPageSpeed(
+      url
+    );
 
 
   // ====================================================
@@ -1117,12 +1309,14 @@ async function analisarSite(url) {
   // ====================================================
 
   console.log(
-    "Lendo HTML do site..."
+    "Reading website HTML..."
   );
 
 
   const seo =
-    await analisarHTML(url);
+    await analisarHTML(
+      url
+    );
 
 
   // ====================================================
@@ -1130,7 +1324,7 @@ async function analisarSite(url) {
   // ====================================================
 
   console.log(
-    "Gerando findings..."
+    "Generating verified findings..."
   );
 
 
@@ -1142,7 +1336,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // IA
+  // AI
   // ====================================================
 
   let views;
@@ -1153,7 +1347,7 @@ async function analisarSite(url) {
   ) {
 
     console.log(
-      "🤖 Gerando Agency View e Prospect View..."
+      "🤖 Generating Agency View and Prospect View..."
     );
 
 
@@ -1166,7 +1360,7 @@ async function analisarSite(url) {
   } else {
 
     console.log(
-      "ℹ️ Nenhum finding verificável. Gemini não será chamada."
+      "ℹ️ No verified findings. Gemini will not be called."
     );
 
 
@@ -1179,7 +1373,7 @@ async function analisarSite(url) {
         null,
 
       status:
-        "sem_findings",
+        "no_findings",
 
       erro:
         null
@@ -1188,7 +1382,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // RESULTADO FINAL
+  // FINAL RESULT
   // ====================================================
 
   const resultado = {
@@ -1196,7 +1390,8 @@ async function analisarSite(url) {
     url,
 
     analisadoEm:
-      new Date().toISOString(),
+      new Date()
+        .toISOString(),
 
     performance,
 
@@ -1216,11 +1411,11 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // TERMINAL - RESULTADO TÉCNICO
+  // TERMINAL RESULT
   // ====================================================
 
   console.log(
-    "\n✅ RESULTADO TÉCNICO"
+    "\n✅ TECHNICAL RESULT"
   );
 
 
@@ -1238,7 +1433,6 @@ async function analisarSite(url) {
 
       findings:
         resultado.findings
-
     },
 
     {
@@ -1249,7 +1443,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // TERMINAL - AGENCY VIEW
+  // AGENCY VIEW
   // ====================================================
 
   if (
@@ -1260,9 +1454,11 @@ async function analisarSite(url) {
       "\n========================================"
     );
 
+
     console.log(
       "🏢 AGENCY VIEW"
     );
+
 
     console.log(
       "========================================\n"
@@ -1276,7 +1472,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // TERMINAL - PROSPECT VIEW
+  // PROSPECT VIEW
   // ====================================================
 
   if (
@@ -1287,9 +1483,11 @@ async function analisarSite(url) {
       "\n========================================"
     );
 
+
     console.log(
       "🤖 PROSPECT VIEW"
     );
+
 
     console.log(
       "========================================\n"
@@ -1303,7 +1501,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // ERROS DA IA
+  // AI ERROR
   // ====================================================
 
   if (
@@ -1311,7 +1509,7 @@ async function analisarSite(url) {
   ) {
 
     console.log(
-      "\n🚨 ERRO NA IA:"
+      "\n🚨 AI ERROR:"
     );
 
 
@@ -1325,7 +1523,7 @@ async function analisarSite(url) {
     ) {
 
       console.log(
-        "\nResposta bruta da Gemini:"
+        "\nRaw Gemini response:"
       );
 
 
@@ -1341,15 +1539,8 @@ async function analisarSite(url) {
 
 
 // ======================================================
-// TERMINAL
+// TERMINAL MODE
 // ======================================================
-
-// Essa parte só roda quando você executar:
-//
-// node analisador.js
-//
-// Quando server.js importa o analisador,
-// ela não será executada.
 
 if (
   require.main === module
@@ -1368,15 +1559,13 @@ if (
 
   rl.question(
 
-    "\n🌐 Digite a URL do site que deseja analisar:\n> ",
+    "\n🌐 Enter the website URL to analyze:\n> ",
 
     async (url) => {
 
       url =
         url.trim();
 
-
-      // Adiciona HTTPS automaticamente
 
       if (
         !url.startsWith("http://") &&
@@ -1390,13 +1579,16 @@ if (
 
       try {
 
-        await analisarSite(url);
+        await analisarSite(
+          url
+        );
 
       } catch (erro) {
 
         console.log(
-          "\n🚨 Erro inesperado:"
+          "\n🚨 Unexpected error:"
         );
+
 
         console.log(
           erro.message
@@ -1412,7 +1604,7 @@ if (
 
 
 // ======================================================
-// EXPORTA PARA O SERVER.JS
+// EXPORT
 // ======================================================
 
 module.exports = {

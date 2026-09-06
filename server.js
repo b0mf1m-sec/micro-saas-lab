@@ -28,28 +28,74 @@ const PORT =
 
 
 // ======================================================
-// SEGURANÇA - HEADERS HTTP
+// SECURITY HEADERS
 // ======================================================
-
-/*
-  Helmet adiciona diversos headers de segurança.
-
-  Por enquanto deixamos Content Security Policy
-  desativada porque nosso index.html ainda possui
-  JavaScript e CSS inline.
-
-  Posteriormente moveremos JS e CSS para arquivos
-  separados e ativaremos CSP de forma restritiva.
-*/
 
 app.use(
   helmet({
-    contentSecurityPolicy: false
+
+    contentSecurityPolicy: {
+
+      directives: {
+
+        defaultSrc: [
+          "'self'"
+        ],
+
+        scriptSrc: [
+          "'self'"
+        ],
+
+        styleSrc: [
+          "'self'"
+        ],
+
+        connectSrc: [
+          "'self'"
+        ],
+
+        imgSrc: [
+          "'self'",
+          "data:"
+        ],
+
+        fontSrc: [
+          "'self'"
+        ],
+
+        objectSrc: [
+          "'none'"
+        ],
+
+        baseUri: [
+          "'self'"
+        ],
+
+        frameAncestors: [
+          "'none'"
+        ],
+
+        formAction: [
+          "'self'"
+        ],
+
+        /*
+          Do NOT enable this while developing
+          through http://localhost.
+
+          Otherwise the browser may attempt to
+          upgrade local HTTP resources to HTTPS.
+        */
+
+        upgradeInsecureRequests:
+          null
+      }
+    }
   })
 );
 
 
-// Não revela que estamos usando Express.
+// Do not reveal Express.
 
 app.disable(
   "x-powered-by"
@@ -57,23 +103,13 @@ app.disable(
 
 
 // ======================================================
-// LIMITE DO BODY
+// BODY LIMIT
 // ======================================================
-
-/*
-  Nosso endpoint só precisa receber algo pequeno:
-
-  {
-    "url": "example.com"
-  }
-
-  Então não existe motivo para aceitar
-  payloads enormes.
-*/
 
 app.use(
   express.json({
-    limit: "10kb"
+    limit:
+      "10kb"
   })
 );
 
@@ -81,21 +117,6 @@ app.use(
 // ======================================================
 // RATE LIMIT
 // ======================================================
-
-/*
-  Limita abuso do endpoint de análise.
-
-  Cada IP pode fazer até:
-
-  20 requisições a cada 15 minutos.
-
-  Isso ajuda contra:
-  - spam;
-  - abuso das APIs;
-  - consumo excessivo da Gemini;
-  - consumo excessivo do PageSpeed;
-  - DoS básico.
-*/
 
 const analisarLimiter =
   rateLimit({
@@ -115,13 +136,13 @@ const analisarLimiter =
     message: {
 
       erro:
-        "Muitas análises foram solicitadas. Tente novamente mais tarde."
+        "Too many analyses were requested. Please try again later."
     }
   });
 
 
 // ======================================================
-// INTERFACE WEB
+// STATIC FRONTEND
 // ======================================================
 
 app.use(
@@ -148,15 +169,15 @@ app.get(
       status:
         "ok",
 
-      mensagem:
-        "Micro-SaaS API funcionando"
+      message:
+        "Micro-SaaS API is running."
     });
   }
 );
 
 
 // ======================================================
-// ANALISAR SITE
+// ANALYZE SITE
 // ======================================================
 
 app.post(
@@ -173,7 +194,7 @@ app.post(
 
 
       // =================================================
-      // INPUT
+      // INPUT VALIDATION
       // =================================================
 
       if (
@@ -186,13 +207,13 @@ app.post(
           .json({
 
             erro:
-              "A URL é obrigatória."
+              "A website URL is required."
           });
       }
 
 
       // =================================================
-      // VALIDAÇÃO / SSRF
+      // SSRF / URL VALIDATION
       // =================================================
 
       url =
@@ -202,12 +223,12 @@ app.post(
 
 
       console.log(
-        `\n📥 Recebida análise para: ${url}`
+        `\n📥 Analysis requested for: ${url}`
       );
 
 
       // =================================================
-      // ANÁLISE
+      // ANALYSIS
       // =================================================
 
       const resultado =
@@ -224,7 +245,7 @@ app.post(
 
 
       // =================================================
-      // URL BLOQUEADA
+      // UNSAFE URL
       // =================================================
 
       if (
@@ -233,7 +254,7 @@ app.post(
       ) {
 
         console.log(
-          `🛡️ URL bloqueada: ${erro.message}`
+          `🛡️ URL blocked: ${erro.message}`
         );
 
 
@@ -242,38 +263,27 @@ app.post(
           .json({
 
             erro:
-              erro.message
+              "This URL cannot be analyzed."
           });
       }
 
 
       // =================================================
-      // ERRO INTERNO
+      // INTERNAL ERROR
       // =================================================
 
       console.error(
-        "Erro interno:",
+        "Internal error:",
         erro
       );
 
-
-      /*
-        Não enviamos para o usuário:
-
-        erro.message
-        erro.stack
-        caminhos internos
-        nomes de arquivos
-        API keys
-        informações do servidor
-      */
 
       return res
         .status(500)
         .json({
 
           erro:
-            "Erro interno ao analisar o site."
+            "An internal error occurred while analyzing the website."
         });
     }
   }
@@ -281,13 +291,19 @@ app.post(
 
 
 // ======================================================
-// ERRO DE JSON / BODY
+// BODY / JSON ERROR HANDLER
 // ======================================================
 
 app.use(
-  (erro, req, res, next) => {
+  (
+    erro,
+    req,
+    res,
+    next
+  ) => {
 
-    // Payload maior que 10 KB.
+
+    // Payload larger than 10 KB
 
     if (
       erro.type ===
@@ -299,12 +315,12 @@ app.use(
         .json({
 
           erro:
-            "A requisição é muito grande."
+            "The request is too large."
         });
     }
 
 
-    // JSON quebrado/malformado.
+    // Invalid JSON
 
     if (
       erro instanceof SyntaxError &&
@@ -317,13 +333,13 @@ app.use(
         .json({
 
           erro:
-            "JSON inválido."
+            "Invalid JSON."
         });
     }
 
 
     console.error(
-      "Erro não tratado:",
+      "Unhandled error:",
       erro
     );
 
@@ -333,14 +349,14 @@ app.use(
       .json({
 
         erro:
-          "Erro interno do servidor."
+          "Internal server error."
       });
   }
 );
 
 
 // ======================================================
-// SERVIDOR
+// SERVER
 // ======================================================
 
 app.listen(
@@ -349,15 +365,19 @@ app.listen(
   () => {
 
     console.log(
-      `\n🚀 Micro-SaaS rodando em http://localhost:${PORT}`
+      `\n🚀 Micro-SaaS running at http://localhost:${PORT}`
     );
 
     console.log(
-      "🛡️ Security headers ativos"
+      "🛡️ Security headers enabled"
     );
 
     console.log(
-      "🛡️ Rate limit: 20 análises / 15 min / IP"
+      "🛡️ Content Security Policy enabled"
+    );
+
+    console.log(
+      "🛡️ Rate limit: 20 analyses / 15 min / IP"
     );
   }
 );

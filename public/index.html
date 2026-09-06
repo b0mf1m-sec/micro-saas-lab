@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -11,142 +12,33 @@
 
   <title>Prospect Analyzer</title>
 
-  <style>
+  <link
+    rel="stylesheet"
+    href="/style.css"
+  >
 
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f1115;
-      color: #f5f5f5;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    h1 {
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      color: #aaa;
-      margin-bottom: 30px;
-    }
-
-    .search-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-
-    input {
-      flex: 1;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #181b21;
-      color: white;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 14px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 15px;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .card {
-      background: #181b21;
-      border: 1px solid #2b2f37;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns:
-        repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
-    }
-
-    .metric {
-      background: #101217;
-      padding: 14px;
-      border-radius: 8px;
-    }
-
-    .metric-label {
-      color: #999;
-      font-size: 13px;
-    }
-
-    .metric-value {
-      font-size: 22px;
-      margin-top: 5px;
-      font-weight: bold;
-    }
-
-    .view-text {
-      white-space: pre-wrap;
-      line-height: 1.6;
-      color: #ddd;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #loading {
-      text-align: center;
-      padding: 30px;
-      color: #aaa;
-    }
-
-    #error {
-      background: #351717;
-      border: 1px solid #7a2929;
-    }
-
-    .finding {
-      padding: 12px;
-      background: #101217;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-
-    .finding strong {
-      display: block;
-      margin-bottom: 5px;
-    }
-
-  </style>
 </head>
 
 
 <body>
 
-  <div class="container">
+  <main class="container">
 
-    <h1>Prospect Analyzer</h1>
 
-    <div class="subtitle">
-      Turn verified website findings into personalized outreach.
+    <div class="header">
+
+      <h1>
+        Prospect Analyzer
+      </h1>
+
+      <div class="subtitle">
+        Turn verified website findings into personalized sales outreach.
+      </div>
+
     </div>
 
+
+    <!-- SEARCH -->
 
     <div class="search-box">
 
@@ -154,30 +46,50 @@
         id="urlInput"
         type="text"
         placeholder="example.com"
+        autocomplete="off"
       >
 
-      <button id="analyzeButton">
+      <button
+        id="analyzeButton"
+        type="button"
+      >
         Analyze
       </button>
 
     </div>
 
 
+    <!-- LOADING -->
+
     <div
       id="loading"
       class="hidden"
     >
-      Analyzing website...
+
+      <div class="spinner"></div>
+
+      <div class="loading-title">
+        Analyzing website...
+      </div>
+
+      <div class="loading-text">
+        Checking performance, SEO structure and verified findings.
+      </div>
+
     </div>
 
 
+    <!-- ERROR -->
+
     <div
       id="error"
-      class="card hidden"
+      class="hidden"
     ></div>
 
 
-    <div
+    <!-- RESULTS -->
+
+    <section
       id="results"
       class="hidden"
     >
@@ -187,78 +99,97 @@
 
       <div class="card">
 
-        <h2>Performance</h2>
+        <div class="card-header">
+
+          <h2>
+            Performance
+          </h2>
+
+        </div>
+
 
         <div class="metrics">
 
+
           <div class="metric">
+
             <div class="metric-label">
               Score
             </div>
 
             <div
-              class="metric-value"
               id="score"
+              class="metric-value"
             >
               -
             </div>
+
           </div>
 
 
           <div class="metric">
+
             <div class="metric-label">
               LCP
             </div>
 
             <div
-              class="metric-value"
               id="lcp"
+              class="metric-value"
             >
               -
             </div>
+
           </div>
 
 
           <div class="metric">
+
             <div class="metric-label">
               CLS
             </div>
 
             <div
-              class="metric-value"
               id="cls"
+              class="metric-value"
             >
               -
             </div>
+
           </div>
 
 
           <div class="metric">
+
             <div class="metric-label">
               FCP
             </div>
 
             <div
-              class="metric-value"
               id="fcp"
+              class="metric-value"
             >
               -
             </div>
+
           </div>
 
 
           <div class="metric">
+
             <div class="metric-label">
               Speed Index
             </div>
 
             <div
-              class="metric-value"
               id="speedIndex"
+              class="metric-value"
             >
               -
             </div>
+
           </div>
+
 
         </div>
 
@@ -269,22 +200,52 @@
 
       <div class="card">
 
-        <h2>SEO Structure</h2>
+        <div class="card-header">
 
-        <p>
-          <strong>Title:</strong>
-          <span id="title"></span>
-        </p>
+          <h2>
+            SEO Structure
+          </h2>
 
-        <p>
-          <strong>Meta Description:</strong>
-          <span id="metaDescription"></span>
-        </p>
+        </div>
 
-        <p>
-          <strong>H1 Count:</strong>
-          <span id="h1Count"></span>
-        </p>
+
+        <div class="seo-row">
+
+          <span class="seo-label">
+            Title
+          </span>
+
+          <span id="title">
+            -
+          </span>
+
+        </div>
+
+
+        <div class="seo-row">
+
+          <span class="seo-label">
+            Meta Description
+          </span>
+
+          <span id="metaDescription">
+            -
+          </span>
+
+        </div>
+
+
+        <div class="seo-row">
+
+          <span class="seo-label">
+            H1 Count
+          </span>
+
+          <span id="h1Count">
+            -
+          </span>
+
+        </div>
 
       </div>
 
@@ -293,7 +254,13 @@
 
       <div class="card">
 
-        <h2>Verified Findings</h2>
+        <div class="card-header">
+
+          <h2>
+            Verified Findings
+          </h2>
+
+        </div>
 
         <div id="findings"></div>
 
@@ -304,11 +271,26 @@
 
       <div class="card">
 
-        <h2>Agency View</h2>
+        <div class="card-header">
+
+          <h2>
+            Agency View
+          </h2>
+
+          <button
+            id="copyAgencyButton"
+            class="copy-button"
+            type="button"
+          >
+            Copy
+          </button>
+
+        </div>
+
 
         <div
-          class="view-text"
           id="agencyView"
+          class="view-text"
         ></div>
 
       </div>
@@ -318,304 +300,46 @@
 
       <div class="card">
 
-        <h2>Prospect View</h2>
+        <div class="card-header">
+
+          <h2>
+            Prospect View
+          </h2>
+
+          <button
+            id="copyProspectButton"
+            class="copy-button"
+            type="button"
+          >
+            Copy
+          </button>
+
+        </div>
+
 
         <div
-          class="view-text"
           id="prospectView"
+          class="view-text"
         ></div>
 
       </div>
 
-    </div>
 
-  </div>
+      <div
+        id="analysisStatus"
+        class="status-row"
+      ></div>
 
 
-  <script>
+    </section>
 
-    const urlInput =
-      document.getElementById("urlInput");
+  </main>
 
-    const analyzeButton =
-      document.getElementById("analyzeButton");
 
-    const loading =
-      document.getElementById("loading");
-
-    const results =
-      document.getElementById("results");
-
-    const errorBox =
-      document.getElementById("error");
-
-
-    async function analisar() {
-
-      const url =
-        urlInput.value.trim();
-
-
-      if (!url) {
-
-        alert(
-          "Enter a website URL."
-        );
-
-        return;
-      }
-
-
-      loading.classList.remove(
-        "hidden"
-      );
-
-      results.classList.add(
-        "hidden"
-      );
-
-      errorBox.classList.add(
-        "hidden"
-      );
-
-      analyzeButton.disabled =
-        true;
-
-
-      try {
-
-        const resposta =
-          await fetch(
-            "/analisar",
-            {
-
-              method:
-                "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
-
-              body:
-                JSON.stringify({
-                  url
-                })
-            }
-          );
-
-
-        const dados =
-          await resposta.json();
-
-
-        if (!resposta.ok) {
-
-          throw new Error(
-            dados.erro ||
-            "Analysis failed."
-          );
-        }
-
-
-        mostrarResultado(
-          dados
-        );
-
-      } catch (erro) {
-
-        errorBox.textContent =
-          erro.message;
-
-        errorBox.classList.remove(
-          "hidden"
-        );
-
-      } finally {
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        analyzeButton.disabled =
-          false;
-      }
-    }
-
-
-    function mostrarResultado(
-      dados
-    ) {
-
-      // PERFORMANCE
-
-      document.getElementById(
-        "score"
-      ).textContent =
-        dados.performance?.score ?? "-";
-
-
-      document.getElementById(
-        "lcp"
-      ).textContent =
-        dados.performance?.lcp ?? "-";
-
-
-      document.getElementById(
-        "cls"
-      ).textContent =
-        dados.performance?.cls ?? "-";
-
-
-      document.getElementById(
-        "fcp"
-      ).textContent =
-        dados.performance?.fcp ?? "-";
-
-
-      document.getElementById(
-        "speedIndex"
-      ).textContent =
-        dados.performance?.speedIndex ?? "-";
-
-
-      // SEO
-
-      document.getElementById(
-        "title"
-      ).textContent =
-        dados.seo?.title ?? "-";
-
-
-      document.getElementById(
-        "metaDescription"
-      ).textContent =
-        dados.seo?.metaDescription ?? "-";
-
-
-      document.getElementById(
-        "h1Count"
-      ).textContent =
-        dados.seo?.h1Count ?? "-";
-
-
-      // FINDINGS
-
-      const findingsContainer =
-        document.getElementById(
-          "findings"
-        );
-
-
-      findingsContainer.innerHTML =
-        "";
-
-
-      if (
-        !dados.findings ||
-        dados.findings.length === 0
-      ) {
-
-        findingsContainer.textContent =
-          "No verified issues detected.";
-
-      } else {
-
-        dados.findings.forEach(
-          finding => {
-
-            const div =
-              document.createElement(
-                "div"
-              );
-
-
-            div.className =
-              "finding";
-
-
-            const titulo =
-              document.createElement(
-                "strong"
-              );
-
-
-            titulo.textContent =
-              `${finding.codigo} — ${finding.severidade}`;
-
-
-            const evidencia =
-              document.createElement(
-                "span"
-              );
-
-
-            evidencia.textContent =
-              finding.evidencia;
-
-
-            div.appendChild(
-              titulo
-            );
-
-
-            div.appendChild(
-              evidencia
-            );
-
-
-            findingsContainer.appendChild(
-              div
-            );
-          }
-        );
-      }
-
-
-      // AGENCY VIEW
-
-      document.getElementById(
-        "agencyView"
-      ).textContent =
-        dados.agencyView ||
-        "No Agency View generated.";
-
-
-      // PROSPECT VIEW
-
-      document.getElementById(
-        "prospectView"
-      ).textContent =
-        dados.prospectView ||
-        "No Prospect View generated.";
-
-
-      results.classList.remove(
-        "hidden"
-      );
-    }
-
-
-    analyzeButton.addEventListener(
-      "click",
-      analisar
-    );
-
-
-    urlInput.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key === "Enter"
-        ) {
-
-          analisar();
-        }
-      }
-    );
-
-  </script>
+  <script
+    src="/app.js"
+    defer
+  ></script>
 
 </body>
 

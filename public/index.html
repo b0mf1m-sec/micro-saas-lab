@@ -10,7 +10,9 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Prospect Analyzer</title>
+  <title>
+    Prospect Analyzer
+  </title>
 
   <link
     rel="stylesheet"
@@ -25,6 +27,10 @@
   <main class="container">
 
 
+    <!-- ==================================================
+         HEADER
+         ================================================== -->
+
     <div class="header">
 
       <h1>
@@ -38,7 +44,9 @@
     </div>
 
 
-    <!-- SEARCH -->
+    <!-- ==================================================
+         SEARCH
+         ================================================== -->
 
     <div class="search-box">
 
@@ -59,7 +67,9 @@
     </div>
 
 
-    <!-- LOADING -->
+    <!-- ==================================================
+         LOADING
+         ================================================== -->
 
     <div
       id="loading"
@@ -73,13 +83,15 @@
       </div>
 
       <div class="loading-text">
-        Checking performance, SEO structure and verified findings.
+        Checking performance, indexability, crawling, SEO structure and verified findings.
       </div>
 
     </div>
 
 
-    <!-- ERROR -->
+    <!-- ==================================================
+         ERROR
+         ================================================== -->
 
     <div
       id="error"
@@ -87,7 +99,9 @@
     ></div>
 
 
-    <!-- RESULTS -->
+    <!-- ==================================================
+         RESULTS
+         ================================================== -->
 
     <section
       id="results"
@@ -95,15 +109,25 @@
     >
 
 
-      <!-- PERFORMANCE -->
+      <!-- ==================================================
+           PERFORMANCE
+           ================================================== -->
 
       <div class="card">
 
         <div class="card-header">
 
-          <h2>
-            Performance
-          </h2>
+          <div>
+
+            <h2>
+              Performance
+            </h2>
+
+            <div class="card-subtitle">
+              Lighthouse performance metrics from the analyzed page.
+            </div>
+
+          </div>
 
         </div>
 
@@ -196,15 +220,238 @@
       </div>
 
 
-      <!-- SEO -->
+      <!-- ==================================================
+           INDEXABILITY & CRAWLING
+           ================================================== -->
 
       <div class="card">
 
         <div class="card-header">
 
-          <h2>
-            SEO Structure
-          </h2>
+          <div>
+
+            <h2>
+              Indexability & Crawling
+            </h2>
+
+            <div class="card-subtitle">
+              Technical signals that affect how search engines can access and interpret the page.
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="technical-grid">
+
+
+          <!-- HTTP STATUS -->
+
+          <div class="technical-item">
+
+            <div class="technical-label">
+              HTTP Status
+            </div>
+
+            <div
+              id="httpStatus"
+              class="technical-status status-neutral"
+            >
+              -
+            </div>
+
+            <div class="technical-detail">
+              Final page response
+            </div>
+
+          </div>
+
+
+          <!-- HTTPS -->
+
+          <div class="technical-item">
+
+            <div class="technical-label">
+              HTTPS
+            </div>
+
+            <div
+              id="httpsStatus"
+              class="technical-status status-neutral"
+            >
+              -
+            </div>
+
+            <div
+              id="httpsDetail"
+              class="technical-detail"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <!-- INDEXING -->
+
+          <div class="technical-item">
+
+            <div class="technical-label">
+              Indexing
+            </div>
+
+            <div
+              id="indexingStatus"
+              class="technical-status status-neutral"
+            >
+              -
+            </div>
+
+            <div
+              id="indexingReason"
+              class="technical-detail"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <!-- META ROBOTS -->
+
+          <div class="technical-item technical-item-wide">
+
+            <div class="technical-label">
+              Meta Robots
+            </div>
+
+            <div
+              id="metaRobots"
+              class="technical-primary"
+            >
+              -
+            </div>
+
+            <div class="technical-secondary">
+
+              X-Robots-Tag:
+
+              <span id="xRobotsTag">
+                -
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- CANONICAL -->
+
+          <div class="technical-item technical-item-wide">
+
+            <div class="technical-label">
+              Canonical
+            </div>
+
+            <div
+              id="canonicalStatus"
+              class="technical-status status-neutral"
+            >
+              -
+            </div>
+
+            <div
+              id="canonicalUrl"
+              class="technical-url"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <!-- ROBOTS.TXT -->
+
+          <div class="technical-item technical-item-wide">
+
+            <div class="technical-label">
+              robots.txt
+            </div>
+
+            <div
+              id="robotsTxtStatus"
+              class="technical-status status-neutral"
+            >
+              -
+            </div>
+
+            <div
+              id="robotsTxtUrl"
+              class="technical-url"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <!-- SITEMAP -->
+
+          <div class="technical-item technical-item-wide">
+
+            <div class="technical-label">
+              Sitemap
+            </div>
+
+            <div
+              id="sitemapStatus"
+              class="technical-status status-neutral"
+            >
+              -
+            </div>
+
+            <div
+              id="sitemapUrl"
+              class="technical-url"
+            >
+              -
+            </div>
+
+            <div
+              id="sitemapSource"
+              class="technical-secondary"
+            >
+              -
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+      <!-- ==================================================
+           SEO STRUCTURE
+           ================================================== -->
+
+      <div class="card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h2>
+              SEO Structure
+            </h2>
+
+            <div class="card-subtitle">
+              Core on-page elements found in the page HTML.
+            </div>
+
+          </div>
 
         </div>
 
@@ -250,15 +497,25 @@
       </div>
 
 
-      <!-- FINDINGS -->
+      <!-- ==================================================
+           VERIFIED FINDINGS
+           ================================================== -->
 
       <div class="card">
 
         <div class="card-header">
 
-          <h2>
-            Verified Findings
-          </h2>
+          <div>
+
+            <h2>
+              Verified Findings
+            </h2>
+
+            <div class="card-subtitle">
+              Findings created only from evidence collected by the analyzer.
+            </div>
+
+          </div>
 
         </div>
 
@@ -267,15 +524,26 @@
       </div>
 
 
-      <!-- AGENCY VIEW -->
+      <!-- ==================================================
+           AGENCY VIEW
+           ================================================== -->
 
       <div class="card">
 
         <div class="card-header">
 
-          <h2>
-            Agency View
-          </h2>
+          <div>
+
+            <h2>
+              Agency View
+            </h2>
+
+            <div class="card-subtitle">
+              Technical summary for SEO review and internal use.
+            </div>
+
+          </div>
+
 
           <button
             id="copyAgencyButton"
@@ -296,15 +564,26 @@
       </div>
 
 
-      <!-- PROSPECT VIEW -->
+      <!-- ==================================================
+           PROSPECT VIEW
+           ================================================== -->
 
-      <div class="card">
+      <div class="card prospect-card">
 
         <div class="card-header">
 
-          <h2>
-            Prospect View
-          </h2>
+          <div>
+
+            <h2>
+              Prospect View
+            </h2>
+
+            <div class="card-subtitle">
+              Sales-ready outreach grounded in verified findings.
+            </div>
+
+          </div>
+
 
           <button
             id="copyProspectButton"
@@ -324,6 +603,10 @@
 
       </div>
 
+
+      <!-- ==================================================
+           STATUS
+           ================================================== -->
 
       <div
         id="analysisStatus"

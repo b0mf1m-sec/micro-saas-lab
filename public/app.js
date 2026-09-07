@@ -50,11 +50,14 @@ async function analisar() {
     urlInput.value.trim();
 
 
-  if (!url) {
+  if (
+    !url
+  ) {
 
     mostrarErro(
       "Enter a website URL."
     );
+
 
     return;
   }
@@ -247,7 +250,9 @@ function capitalizar(
   texto
 ) {
 
-  if (!texto) {
+  if (
+    !texto
+  ) {
 
     return "Unknown";
   }
@@ -270,36 +275,36 @@ function formatarStatusIA(
 
   const statusMap = {
 
-  generated:
-    "Generated",
+    generated:
+      "Generated",
 
-  cached:
-    "Cached",
+    cached:
+      "Cached",
 
-  no_findings:
-    "No findings",
+    no_findings:
+      "No findings",
 
-  rate_limited:
-    "Temporarily rate limited",
+    rate_limited:
+      "Temporarily rate limited",
 
-  error:
-    "Error",
+    error:
+      "Error",
 
-  invalid_json:
-    "Invalid AI response",
+    invalid_json:
+      "Invalid AI response",
 
-  gerado:
-    "Generated",
+    gerado:
+      "Generated",
 
-  sem_findings:
-    "No findings",
+    sem_findings:
+      "No findings",
 
-  erro:
-    "Error",
+    erro:
+      "Error",
 
-  erro_json:
-    "Invalid AI response"
-};
+    erro_json:
+      "Invalid AI response"
+  };
 
 
   return (
@@ -347,6 +352,635 @@ function textoIAIndisponivel(
 
 
 // ======================================================
+// SAFE TEXT SETTER
+// ======================================================
+
+function definirTexto(
+  id,
+  valor,
+  fallback = "-"
+) {
+
+  const elemento =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    !elemento
+  ) {
+
+    return;
+  }
+
+
+  const temValor =
+    valor !== null &&
+    valor !== undefined &&
+    valor !== "";
+
+
+  elemento.textContent =
+    temValor
+      ? String(valor)
+      : fallback;
+}
+
+
+// ======================================================
+// STATUS SETTER
+// ======================================================
+
+function definirStatus(
+  id,
+  texto,
+  tipo = "neutral"
+) {
+
+  const elemento =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    !elemento
+  ) {
+
+    return;
+  }
+
+
+  elemento.textContent =
+    texto;
+
+
+  elemento.classList.remove(
+    "status-success",
+    "status-warning",
+    "status-danger",
+    "status-neutral"
+  );
+
+
+  elemento.classList.add(
+    `status-${tipo}`
+  );
+}
+
+
+// ======================================================
+// URL COMPARISON
+// ======================================================
+
+function urlsEquivalentes(
+  urlA,
+  urlB
+) {
+
+  if (
+    !urlA ||
+    !urlB
+  ) {
+
+    return false;
+  }
+
+
+  try {
+
+    const normalizar =
+      valor => {
+
+        const url =
+          new URL(
+            valor
+          );
+
+
+        const path =
+          url.pathname === "/"
+            ? ""
+            : url.pathname.replace(
+                /\/$/,
+                ""
+              );
+
+
+        return (
+          `${url.protocol}//${url.host}${path}${url.search}`
+        );
+      };
+
+
+    return (
+      normalizar(urlA) ===
+      normalizar(urlB)
+    );
+
+  } catch {
+
+    return (
+      String(urlA)
+        .replace(
+          /\/$/,
+          ""
+        )
+      ===
+      String(urlB)
+        .replace(
+          /\/$/,
+          ""
+        )
+    );
+  }
+}
+
+
+// ======================================================
+// INDEXABILITY & CRAWLING
+// ======================================================
+
+function mostrarIndexability(
+  indexability
+) {
+
+  // ====================================================
+  // DATA UNAVAILABLE
+  // ====================================================
+
+  if (
+    !indexability ||
+    indexability.erro
+  ) {
+
+    definirStatus(
+      "httpStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirStatus(
+      "httpsStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirStatus(
+      "indexingStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirStatus(
+      "canonicalStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirStatus(
+      "robotsTxtStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirStatus(
+      "sitemapStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "indexingReason",
+      indexability?.erro ||
+      "Indexability data is unavailable."
+    );
+
+
+    definirTexto(
+      "metaRobots",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "xRobotsTag",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "canonicalUrl",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "robotsTxtUrl",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "sitemapUrl",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "sitemapSource",
+      null,
+      "Unavailable"
+    );
+
+
+    return;
+  }
+
+
+  // ====================================================
+  // HTTP STATUS
+  // ====================================================
+
+  const httpStatus =
+    indexability.httpStatus;
+
+
+  if (
+    typeof httpStatus ===
+    "number"
+  ) {
+
+    let tipo =
+      "neutral";
+
+
+    if (
+      httpStatus >= 200 &&
+      httpStatus < 300
+    ) {
+
+      tipo =
+        "success";
+
+    } else if (
+      httpStatus >= 300 &&
+      httpStatus < 400
+    ) {
+
+      tipo =
+        "warning";
+
+    } else if (
+      httpStatus >= 400
+    ) {
+
+      tipo =
+        "danger";
+    }
+
+
+    definirStatus(
+      "httpStatus",
+      httpStatus === 200
+        ? "200 OK"
+        : String(
+            httpStatus
+          ),
+      tipo
+    );
+
+  } else {
+
+    definirStatus(
+      "httpStatus",
+      "Unknown",
+      "neutral"
+    );
+  }
+
+
+  // ====================================================
+  // HTTPS
+  // ====================================================
+
+  if (
+    indexability.https === true
+  ) {
+
+    definirStatus(
+      "httpsStatus",
+      "Yes",
+      "success"
+    );
+
+
+    definirTexto(
+      "httpsDetail",
+      "Secure connection"
+    );
+
+  } else if (
+    indexability.https === false
+  ) {
+
+    definirStatus(
+      "httpsStatus",
+      "No",
+      "danger"
+    );
+
+
+    definirTexto(
+      "httpsDetail",
+      "HTTP connection"
+    );
+
+  } else {
+
+    definirStatus(
+      "httpsStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "httpsDetail",
+      "Could not determine protocol"
+    );
+  }
+
+
+  // ====================================================
+  // INDEXING DIRECTIVES
+  // ====================================================
+
+  if (
+    indexability.indexable === true
+  ) {
+
+    definirStatus(
+      "indexingStatus",
+      "Allowed",
+      "success"
+    );
+
+  } else if (
+    indexability.indexable === false
+  ) {
+
+    definirStatus(
+      "indexingStatus",
+      "Blocked",
+      "danger"
+    );
+
+  } else {
+
+    definirStatus(
+      "indexingStatus",
+      "Unknown",
+      "neutral"
+    );
+  }
+
+
+  definirTexto(
+    "indexingReason",
+    indexability.indexabilityReason,
+    "No indexability explanation available."
+  );
+
+
+  // ====================================================
+  // META ROBOTS
+  // ====================================================
+
+  definirTexto(
+    "metaRobots",
+    indexability.metaRobots,
+    "Not specified"
+  );
+
+
+  definirTexto(
+    "xRobotsTag",
+    indexability.xRobotsTag,
+    "Not specified"
+  );
+
+
+  // ====================================================
+  // CANONICAL
+  // ====================================================
+
+  if (
+    indexability.canonical
+  ) {
+
+    const selfReferencing =
+      urlsEquivalentes(
+        indexability.canonical,
+        indexability.finalUrl
+      );
+
+
+    definirStatus(
+      "canonicalStatus",
+      selfReferencing
+        ? "Self-referencing"
+        : "Specified",
+      selfReferencing
+        ? "success"
+        : "neutral"
+    );
+
+
+    definirTexto(
+      "canonicalUrl",
+      indexability.canonical
+    );
+
+  } else {
+
+    definirStatus(
+      "canonicalStatus",
+      "Not found",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "canonicalUrl",
+      null,
+      "No canonical URL detected"
+    );
+  }
+
+
+  // ====================================================
+  // ROBOTS.TXT
+  // ====================================================
+
+  if (
+    indexability.robotsTxt
+      ?.found === true
+  ) {
+
+    definirStatus(
+      "robotsTxtStatus",
+      "Found",
+      "success"
+    );
+
+
+    definirTexto(
+      "robotsTxtUrl",
+      indexability
+        .robotsTxt
+        .url
+    );
+
+  } else if (
+    indexability.robotsTxt
+      ?.found === false
+  ) {
+
+    definirStatus(
+      "robotsTxtStatus",
+      "Not found",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "robotsTxtUrl",
+      indexability
+        .robotsTxt
+        ?.url,
+      "No robots.txt detected"
+    );
+
+  } else {
+
+    definirStatus(
+      "robotsTxtStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "robotsTxtUrl",
+      null,
+      "robots.txt was not checked"
+    );
+  }
+
+
+  // ====================================================
+  // SITEMAP
+  // ====================================================
+
+  if (
+    indexability.sitemap
+      ?.found === true
+  ) {
+
+    definirStatus(
+      "sitemapStatus",
+      "Found",
+      "success"
+    );
+
+
+    definirTexto(
+      "sitemapUrl",
+      indexability
+        .sitemap
+        .url
+    );
+
+
+    const source =
+      indexability
+        .sitemap
+        .source;
+
+
+    definirTexto(
+      "sitemapSource",
+      source === "robots.txt"
+        ? "Detected via robots.txt"
+        : source === "common_path"
+          ? "Detected at a common sitemap path"
+          : "Sitemap detected"
+    );
+
+  } else if (
+    indexability.sitemap
+      ?.found === false
+  ) {
+
+    definirStatus(
+      "sitemapStatus",
+      "Not found",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "sitemapUrl",
+      null,
+      "No sitemap detected"
+    );
+
+
+    definirTexto(
+      "sitemapSource",
+      null,
+      "Checked declared and common sitemap locations"
+    );
+
+  } else {
+
+    definirStatus(
+      "sitemapStatus",
+      "Unknown",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "sitemapUrl",
+      null,
+      "Sitemap was not checked"
+    );
+
+
+    definirTexto(
+      "sitemapSource",
+      null,
+      "-"
+    );
+  }
+}
+
+
+// ======================================================
 // RESULT
 // ======================================================
 
@@ -363,58 +997,67 @@ function mostrarResultado(
   // PERFORMANCE
   // ====================================================
 
-  document.getElementById(
-    "score"
-  ).textContent =
-    dados.performance?.score ?? "-";
+  definirTexto(
+    "score",
+    dados.performance?.score
+  );
 
 
-  document.getElementById(
-    "lcp"
-  ).textContent =
-    dados.performance?.lcp ?? "-";
+  definirTexto(
+    "lcp",
+    dados.performance?.lcp
+  );
 
 
-  document.getElementById(
-    "cls"
-  ).textContent =
-    dados.performance?.cls ?? "-";
+  definirTexto(
+    "cls",
+    dados.performance?.cls
+  );
 
 
-  document.getElementById(
-    "fcp"
-  ).textContent =
-    dados.performance?.fcp ?? "-";
+  definirTexto(
+    "fcp",
+    dados.performance?.fcp
+  );
 
 
-  document.getElementById(
-    "speedIndex"
-  ).textContent =
-    dados.performance?.speedIndex ?? "-";
+  definirTexto(
+    "speedIndex",
+    dados.performance?.speedIndex
+  );
+
+
+  // ====================================================
+  // INDEXABILITY
+  // ====================================================
+
+  mostrarIndexability(
+    dados.indexability
+  );
 
 
   // ====================================================
   // SEO
   // ====================================================
 
-  document.getElementById(
-    "title"
-  ).textContent =
-    dados.seo?.title ||
-    "Not found";
+  definirTexto(
+    "title",
+    dados.seo?.title,
+    "Not found"
+  );
 
 
-  document.getElementById(
-    "metaDescription"
-  ).textContent =
-    dados.seo?.metaDescription ||
-    "Not found";
+  definirTexto(
+    "metaDescription",
+    dados.seo?.metaDescription,
+    "Not found"
+  );
 
 
-  document.getElementById(
-    "h1Count"
-  ).textContent =
-    dados.seo?.h1Count ?? "-";
+  definirTexto(
+    "h1Count",
+    dados.seo?.h1Count
+  );
 
 
   // ====================================================
@@ -475,7 +1118,8 @@ function mostrarResultado(
   // ====================================================
 
   const quantidade =
-    dados.findings?.length ?? 0;
+    dados.findings?.length ??
+    0;
 
 
   const status =
@@ -529,7 +1173,10 @@ function mostrarFindings(
 
 
   if (
-    !Array.isArray(findings) ||
+    !Array.isArray(
+      findings
+    )
+    ||
     findings.length === 0
   ) {
 
@@ -658,7 +1305,8 @@ function mostrarFindings(
         String(
           finding.severidade ||
           ""
-        ).toLowerCase();
+        )
+          .toLowerCase();
 
 
       if (

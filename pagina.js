@@ -1,0 +1,975 @@
+const cheerio = require("cheerio");
+
+const {
+  fetchSeguro,
+  ErroURLInsegura
+} = require("./seguranca");
+
+
+// ======================================================
+// UTILITY
+// ======================================================
+
+function esperar(ms) {
+
+  return new Promise(
+    resolve => setTimeout(resolve, ms)
+  );
+}
+
+
+// ======================================================
+// SAFE TEXT READER
+// ======================================================
+
+async function lerTextoLimitado(
+  resposta,
+  limiteCaracteres = 500000
+) {
+
+  const texto =
+    await resposta.text();
+
+
+  if (
+    texto.length >
+    limiteCaracteres
+  ) {
+
+    return texto.slice(
+      0,
+      limiteCaracteres
+    );
+  }
+
+
+  return texto;
+}
+
+
+// ======================================================
+// NORMALIZE ROBOTS DIRECTIVES
+// ======================================================
+
+function normalizarRobots(
+  valor
+) {
+
+  if (!valor) {
+
+    return null;
+  }
+
+
+  return valor
+    .toLowerCase()
+    .split(",")
+    .map(
+      item => item.trim()
+    )
+    .filter(Boolean)
+    .join(", ");
+}
+
+
+// ======================================================
+// DETECT NOINDEX
+// ======================================================
+
+function contemNoindex(
+  valor
+) {
+
+  if (!valor) {
+
+    return false;
+  }
+
+
+  return valor
+    .toLowerCase()
+    .split(/[,;]/)
+    .map(
+      item => item.trim()
+    )
+    .some(
+      item =>
+        item === "noindex" ||
+        item.startsWith(
+          "noindex:"
+        )
+    );
+}
+
+
+// ======================================================
+// CHECK ROBOTS.TXT
+// ======================================================
+
+async function verificarRobotsTxt(
+  finalUrl
+) {
+
+  const resultado = {
+
+    found:
+      false,
+
+    status:
+      null,
+
+    url:
+      null,
+
+    sitemapUrls:
+      [],
+
+    error:
+      null
+  };
+
+
+  try {
+
+    const base =
+      new URL(
+        finalUrl
+      );
+
+
+    const robotsUrl =
+      new URL(
+        "/robots.txt",
+        base.origin
+      ).toString();
+
+
+    resultado.url =
+      robotsUrl;
+
+
+    const resposta =
+      await fetchSeguro(
+        robotsUrl,
+        {
+
+          headers: {
+
+            "User-Agent":
+              "ProspectAnalyzer/1.0",
+
+            "Accept":
+              "text/plain,*/*"
+          }
+        }
+      );
+
+
+    resultado.status =
+      resposta.status;
+
+
+    if (
+      resposta.status !== 200
+    ) {
+
+      return resultado;
+    }
+
+
+    const texto =
+      await lerTextoLimitado(
+        resposta,
+        200000
+      );
+
+
+    resultado.found =
+      true;
+
+
+    // ================================================
+    // SITEMAP DIRECTIVES
+    // ================================================
+
+    const linhas =
+      texto.split(
+        /\r?\n/
+      );
+
+
+    for (
+      const linha of linhas
+    ) {
+
+      const match =
+        linha.match(
+          /^\s*sitemap\s*:\s*(.+)\s*$/i
+        );
+
+
+      if (!match) {
+
+        continue;
+      }
+
+
+      const sitemap =
+        match[1].trim();
+
+
+      try {
+
+        const parsed =
+          new URL(
+            sitemap
+          );
+
+
+        if (
+          parsed.protocol === "http:" ||
+          parsed.protocol === "https:"
+        ) {
+
+          resultado
+            .sitemapUrls
+            .push(
+              parsed.toString()
+            );
+        }
+
+      } catch {
+
+        // Invalid sitemap declaration.
+        // Ignore it.
+      }
+    }
+
+
+    return resultado;
+
+  } catch (erro) {
+
+    if (
+      erro instanceof
+      ErroURLInsegura
+    ) {
+
+      throw erro;
+    }
+
+
+    resultado.error =
+      erro.message;
+
+
+    return resultado;
+  }
+}
+
+
+// ======================================================
+// VERIFY A SITEMAP URL
+// ======================================================
+
+async function verificarSitemapUrl(
+  sitemapUrl
+) {
+
+  try {
+
+    const resposta =
+      await fetchSeguro(
+        sitemapUrl,
+        {
+
+          headers: {
+
+            "User-Agent":
+              "ProspectAnalyzer/1.0",
+
+            "Accept":
+              "application/xml,text/xml,*/*"
+          }
+        }
+      );
+
+
+    if (
+      resposta.status !== 200
+    ) {
+
+      return {
+        found: false,
+        status: resposta.status,
+        url: sitemapUrl
+      };
+    }
+
+
+    const texto =
+      await lerTextoLimitado(
+        resposta,
+        300000
+      );
+
+
+    const pareceSitemap =
+      /<urlset[\s>]/i.test(
+        texto
+      )
+      ||
+      /<sitemapindex[\s>]/i.test(
+        texto
+      );
+
+
+    return {
+
+      found:
+        pareceSitemap,
+
+      status:
+        resposta.status,
+
+      url:
+        sitemapUrl
+    };
+
+  } catch (erro) {
+
+    if (
+      erro instanceof
+      ErroURLInsegura
+    ) {
+
+      throw erro;
+    }
+
+
+    return {
+
+      found:
+        false,
+
+      status:
+        null,
+
+      url:
+        sitemapUrl
+    };
+  }
+}
+
+
+// ======================================================
+// FIND SITEMAP
+// ======================================================
+
+async function verificarSitemap(
+  finalUrl,
+  robots
+) {
+
+  const candidatos =
+    [];
+
+
+  // Sitemap declared in robots.txt gets priority.
+
+  if (
+    robots?.sitemapUrls?.length
+  ) {
+
+    candidatos.push(
+      ...robots.sitemapUrls.slice(
+        0,
+        3
+      )
+    );
+  }
+
+
+  const origin =
+    new URL(
+      finalUrl
+    ).origin;
+
+
+  // Common fallback locations.
+
+  candidatos.push(
+    `${origin}/sitemap.xml`
+  );
+
+
+  candidatos.push(
+    `${origin}/sitemap_index.xml`
+  );
+
+
+  // Remove duplicates.
+
+  const unicos =
+    [
+      ...new Set(
+        candidatos
+      )
+    ];
+
+
+  for (
+    const sitemapUrl of unicos
+  ) {
+
+    const resultado =
+      await verificarSitemapUrl(
+        sitemapUrl
+      );
+
+
+    if (
+      resultado.found
+    ) {
+
+      return {
+
+        found:
+          true,
+
+        status:
+          resultado.status,
+
+        url:
+          resultado.url,
+
+        source:
+          robots?.sitemapUrls
+            ?.includes(
+              resultado.url
+            )
+            ? "robots.txt"
+            : "common_path"
+      };
+    }
+  }
+
+
+  return {
+
+    found:
+      false,
+
+    status:
+      null,
+
+    url:
+      null,
+
+    source:
+      null
+  };
+}
+
+
+// ======================================================
+// ANALYZE PAGE
+// ======================================================
+
+async function analisarPagina(
+  url
+) {
+
+  const maxTentativas =
+    2;
+
+
+  for (
+    let tentativa = 1;
+    tentativa <= maxTentativas;
+    tentativa++
+  ) {
+
+    try {
+
+      const resposta =
+        await fetchSeguro(
+          url,
+          {
+
+            headers: {
+
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+
+              "Accept":
+                "text/html,application/xhtml+xml"
+            }
+          }
+        );
+
+
+      if (
+        (
+          resposta.status === 429 ||
+          resposta.status >= 500
+        )
+        &&
+        tentativa <
+          maxTentativas
+      ) {
+
+        console.log(
+          `⚠️ Page returned HTTP ${resposta.status}. Retrying in 2 seconds...`
+        );
+
+
+        await esperar(
+          2000
+        );
+
+
+        continue;
+      }
+
+
+      const finalUrl =
+        resposta.url ||
+        url;
+
+
+      // =================================================
+      // BASIC INDEXABILITY DATA
+      // =================================================
+
+      const httpStatus =
+        resposta.status;
+
+
+      const https =
+        new URL(
+          finalUrl
+        ).protocol ===
+        "https:";
+
+
+      const xRobotsTag =
+        normalizarRobots(
+          resposta.headers.get(
+            "x-robots-tag"
+          )
+        );
+
+
+      // =================================================
+      // NON-SUCCESS RESPONSE
+      // =================================================
+
+      if (
+        !resposta.ok
+      ) {
+
+        return {
+
+          seo: {
+
+            title:
+              null,
+
+            metaDescription:
+              null,
+
+            h1Count:
+              null,
+
+            h1Textos:
+              [],
+
+            erro:
+              `HTTP ${httpStatus}`
+          },
+
+
+          indexability: {
+
+            httpStatus,
+
+            finalUrl,
+
+            https,
+
+            indexable:
+              false,
+
+            indexabilityReason:
+              `The page returned HTTP ${httpStatus}.`,
+
+            metaRobots:
+              null,
+
+            xRobotsTag,
+
+            canonical:
+              null,
+
+            robotsTxt:
+              null,
+
+            sitemap:
+              null,
+
+            erro:
+              null
+          }
+        };
+      }
+
+
+      const html =
+        await lerTextoLimitado(
+          resposta
+        );
+
+
+      const $ =
+        cheerio.load(
+          html
+        );
+
+
+      // =================================================
+      // ON-PAGE SEO
+      // =================================================
+
+      const title =
+        $("title")
+          .first()
+          .text()
+          .trim()
+        ||
+        null;
+
+
+      const metaDescription =
+        $(
+          'meta[name="description"]'
+        )
+          .attr(
+            "content"
+          )
+          ?.trim()
+        ||
+        null;
+
+
+      const h1Textos =
+        [];
+
+
+      $("h1").each(
+        (
+          index,
+          elemento
+        ) => {
+
+          const texto =
+            $(elemento)
+              .text()
+              .trim();
+
+
+          if (texto) {
+
+            h1Textos.push(
+              texto
+            );
+          }
+        }
+      );
+
+
+      // =================================================
+      // META ROBOTS
+      // =================================================
+
+      const metaRobotsRaw =
+        $(
+          'meta[name="robots"]'
+        )
+          .attr(
+            "content"
+          );
+
+
+      const metaRobots =
+        normalizarRobots(
+          metaRobotsRaw
+        );
+
+
+      // =================================================
+      // CANONICAL
+      // =================================================
+
+      const canonicalHref =
+        $(
+          'link[rel="canonical"]'
+        )
+          .first()
+          .attr(
+            "href"
+          )
+          ?.trim();
+
+
+      let canonical =
+        null;
+
+
+      if (
+        canonicalHref
+      ) {
+
+        try {
+
+          canonical =
+            new URL(
+              canonicalHref,
+              finalUrl
+            ).toString();
+
+        } catch {
+
+          canonical =
+            canonicalHref;
+        }
+      }
+
+
+      // =================================================
+      // INDEXABLE
+      // =================================================
+
+      const noindexMeta =
+        contemNoindex(
+          metaRobots
+        );
+
+
+      const noindexHeader =
+        contemNoindex(
+          xRobotsTag
+        );
+
+
+      const explicitNoindex =
+        noindexMeta ||
+        noindexHeader;
+
+
+      const indexable =
+        !explicitNoindex;
+
+
+      const indexabilityReason =
+        explicitNoindex
+          ? "An explicit noindex directive was detected."
+          : "No explicit noindex directive was detected.";
+
+
+      // =================================================
+      // ROBOTS.TXT
+      // =================================================
+
+      const robots =
+        await verificarRobotsTxt(
+          finalUrl
+        );
+
+
+      // =================================================
+      // SITEMAP
+      // =================================================
+
+      const sitemap =
+        await verificarSitemap(
+          finalUrl,
+          robots
+        );
+
+
+      // =================================================
+      // RESULT
+      // =================================================
+
+      return {
+
+        seo: {
+
+          title,
+
+          metaDescription,
+
+          h1Count:
+            $("h1").length,
+
+          h1Textos,
+
+          erro:
+            null
+        },
+
+
+        indexability: {
+
+          httpStatus,
+
+          finalUrl,
+
+          https,
+
+          indexable,
+
+          indexabilityReason,
+
+          metaRobots:
+            metaRobots ||
+            "Not specified",
+
+          xRobotsTag:
+            xRobotsTag ||
+            "Not specified",
+
+          canonical,
+
+          robotsTxt: {
+
+            found:
+              robots.found,
+
+            status:
+              robots.status,
+
+            url:
+              robots.url
+          },
+
+          sitemap: {
+
+            found:
+              sitemap.found,
+
+            status:
+              sitemap.status,
+
+            url:
+              sitemap.url,
+
+            source:
+              sitemap.source
+          },
+
+          erro:
+            null
+        }
+      };
+
+    } catch (erro) {
+
+      if (
+        erro instanceof
+        ErroURLInsegura
+      ) {
+
+        throw erro;
+      }
+
+
+      if (
+        tentativa <
+        maxTentativas
+      ) {
+
+        console.log(
+          "⚠️ Error analyzing page. Retrying in 2 seconds..."
+        );
+
+
+        await esperar(
+          2000
+        );
+
+
+        continue;
+      }
+
+
+      return {
+
+        seo: {
+
+          title:
+            null,
+
+          metaDescription:
+            null,
+
+          h1Count:
+            null,
+
+          h1Textos:
+            [],
+
+          erro:
+            erro.message
+        },
+
+
+        indexability: {
+
+          httpStatus:
+            null,
+
+          finalUrl:
+            url,
+
+          https:
+            null,
+
+          indexable:
+            null,
+
+          indexabilityReason:
+            null,
+
+          metaRobots:
+            null,
+
+          xRobotsTag:
+            null,
+
+          canonical:
+            null,
+
+          robotsTxt:
+            null,
+
+          sitemap:
+            null,
+
+          erro:
+            erro.message
+        }
+      };
+    }
+  }
+}
+
+
+// ======================================================
+// EXPORT
+// ======================================================
+
+module.exports = {
+  analisarPagina
+};

@@ -74,6 +74,12 @@ h1 {
 }
 
 
+.hidden {
+  display:
+    none !important;
+}
+
+
 /* =====================================================
    SEARCH
    ===================================================== */
@@ -91,25 +97,26 @@ h1 {
 
 
 #urlInput {
-  flex: 1;
+  flex:
+    1;
 
   padding:
     15px 16px;
 
+  border:
+    1px solid #343942;
+
   border-radius:
     9px;
 
-  border:
-    1px solid #343942;
+  outline:
+    none;
 
   background:
     #181b21;
 
   color:
     #fff;
-
-  outline:
-    none;
 
   font-size:
     16px;
@@ -167,12 +174,6 @@ h1 {
 #analyzeButton:active:not(:disabled) {
   transform:
     scale(0.98);
-}
-
-
-.hidden {
-  display:
-    none !important;
 }
 
 
@@ -333,11 +334,35 @@ h2 {
 }
 
 
+.card-subtitle {
+  margin-top:
+    5px;
+
+  color:
+    #8f96a3;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.45;
+}
+
+
+.prospect-card {
+  border-color:
+    #35445e;
+}
+
+
 /* =====================================================
    COPY BUTTON
    ===================================================== */
 
 .copy-button {
+  flex-shrink:
+    0;
+
   padding:
     8px 13px;
 
@@ -365,7 +390,7 @@ h2 {
 }
 
 
-.copy-button:hover {
+.copy-button:hover:not(:disabled) {
   background:
     #232730;
 
@@ -375,11 +400,11 @@ h2 {
 
 
 .copy-button.copied {
-  background:
-    #173522;
-
   border-color:
     #286c3d;
+
+  background:
+    #173522;
 
   color:
     #adf0bf;
@@ -387,7 +412,7 @@ h2 {
 
 
 /* =====================================================
-   METRICS
+   PERFORMANCE
    ===================================================== */
 
 .metrics {
@@ -444,6 +469,192 @@ h2 {
 
   font-weight:
     bold;
+}
+
+
+/* =====================================================
+   INDEXABILITY & CRAWLING
+   ===================================================== */
+
+.technical-grid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    12px;
+}
+
+
+.technical-item {
+  min-width:
+    0;
+
+  padding:
+    15px;
+
+  border:
+    1px solid #242830;
+
+  border-radius:
+    9px;
+
+  background:
+    #101217;
+}
+
+
+.technical-item-wide {
+  grid-column:
+    span 1;
+}
+
+
+.technical-label {
+  margin-bottom:
+    9px;
+
+  color:
+    #999;
+
+  font-size:
+    12px;
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    0.5px;
+}
+
+
+.technical-status {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  min-height:
+    26px;
+
+  padding:
+    5px 9px;
+
+  border:
+    1px solid transparent;
+
+  border-radius:
+    999px;
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
+}
+
+
+.status-success {
+  border-color:
+    #245a38;
+
+  background:
+    #173522;
+
+  color:
+    #a9e8bb;
+}
+
+
+.status-warning {
+  border-color:
+    #6b5926;
+
+  background:
+    #40371d;
+
+  color:
+    #f0d589;
+}
+
+
+.status-danger {
+  border-color:
+    #6b3030;
+
+  background:
+    #402020;
+
+  color:
+    #ffb3b3;
+}
+
+
+.status-neutral {
+  border-color:
+    #3a3f49;
+
+  background:
+    #22262e;
+
+  color:
+    #c9ced6;
+}
+
+
+.technical-primary {
+  color:
+    #f0f0f0;
+
+  font-weight:
+    600;
+
+  line-height:
+    1.5;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+.technical-detail,
+.technical-secondary,
+.technical-url {
+  margin-top:
+    8px;
+
+  color:
+    #8f96a3;
+
+  font-size:
+    12px;
+
+  line-height:
+    1.45;
+}
+
+
+.technical-url {
+  color:
+    #b7bec9;
+
+  overflow-wrap:
+    anywhere;
+
+  word-break:
+    break-word;
+}
+
+
+.technical-secondary span {
+  color:
+    #b7bec9;
 }
 
 
@@ -662,6 +873,25 @@ h2 {
 
 
 /* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (
+  max-width: 850px
+) {
+
+  .technical-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+
+
+/* =====================================================
    MOBILE
    ===================================================== */
 
@@ -690,6 +920,12 @@ h2 {
   .card-header {
     align-items:
       flex-start;
+  }
+
+
+  .technical-grid {
+    grid-template-columns:
+      1fr;
   }
 
 

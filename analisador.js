@@ -1,19 +1,21 @@
 require("dotenv").config();
 
-const cheerio = require("cheerio");
 const { GoogleGenAI } = require("@google/genai");
 const readline = require("readline");
 
 const {
-  fetchSeguro,
-  validarUrlPublica,
-  ErroURLInsegura
+  validarUrlPublica
 } = require("./seguranca");
 
 const {
   obterCacheIA,
   salvarCacheIA
 } = require("./cacheIA");
+
+const {
+  analisarPagina
+} = require("./pagina");
+
 
 const pagespeedApiKey =
   process.env.PAGESPEED_API_KEY;
@@ -29,8 +31,13 @@ const ai = new GoogleGenAI({
 // ======================================================
 
 function esperar(ms) {
+
   return new Promise(
-    resolve => setTimeout(resolve, ms)
+    resolve =>
+      setTimeout(
+        resolve,
+        ms
+      )
   );
 }
 
@@ -39,25 +46,41 @@ function esperar(ms) {
 // PAGESPEED
 // ======================================================
 
-async function analisarPageSpeed(url) {
+async function analisarPageSpeed(
+  url
+) {
 
   const resultado = {
 
-    score: null,
+    score:
+      null,
 
-    lcp: null,
-    lcpMs: null,
+    lcp:
+      null,
 
-    cls: null,
-    clsValor: null,
+    lcpMs:
+      null,
 
-    fcp: null,
-    fcpMs: null,
+    cls:
+      null,
 
-    speedIndex: null,
-    speedIndexMs: null,
+    clsValor:
+      null,
 
-    erro: null
+    fcp:
+      null,
+
+    fcpMs:
+      null,
+
+    speedIndex:
+      null,
+
+    speedIndexMs:
+      null,
+
+    erro:
+      null
   };
 
 
@@ -65,7 +88,8 @@ async function analisarPageSpeed(url) {
     `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${pagespeedApiKey}`;
 
 
-  const maxTentativas = 2;
+  const maxTentativas =
+    2;
 
 
   for (
@@ -77,7 +101,9 @@ async function analisarPageSpeed(url) {
     try {
 
       const resposta =
-        await fetch(apiEndpoint);
+        await fetch(
+          apiEndpoint
+        );
 
 
       // =================================================
@@ -89,7 +115,8 @@ async function analisarPageSpeed(url) {
       ) {
 
         if (
-          tentativa < maxTentativas
+          tentativa <
+          maxTentativas
         ) {
 
           console.log(
@@ -97,7 +124,10 @@ async function analisarPageSpeed(url) {
           );
 
 
-          await esperar(2000);
+          await esperar(
+            2000
+          );
+
 
           continue;
         }
@@ -115,7 +145,9 @@ async function analisarPageSpeed(url) {
       // OTHER HTTP ERROR
       // =================================================
 
-      if (!resposta.ok) {
+      if (
+        !resposta.ok
+      ) {
 
         resultado.erro =
           `HTTP ${resposta.status}`;
@@ -181,7 +213,8 @@ async function analisarPageSpeed(url) {
 
       if (
         !audits ||
-        performanceScore === undefined
+        performanceScore ===
+          undefined
       ) {
 
         resultado.erro =
@@ -198,7 +231,8 @@ async function analisarPageSpeed(url) {
 
       resultado.score =
         Math.round(
-          performanceScore * 100
+          performanceScore *
+          100
         );
 
 
@@ -209,13 +243,17 @@ async function analisarPageSpeed(url) {
       resultado.lcp =
         audits[
           "largest-contentful-paint"
-        ]?.displayValue ?? null;
+        ]?.displayValue
+        ??
+        null;
 
 
       resultado.lcpMs =
         audits[
           "largest-contentful-paint"
-        ]?.numericValue ?? null;
+        ]?.numericValue
+        ??
+        null;
 
 
       // =================================================
@@ -225,13 +263,17 @@ async function analisarPageSpeed(url) {
       resultado.cls =
         audits[
           "cumulative-layout-shift"
-        ]?.displayValue ?? null;
+        ]?.displayValue
+        ??
+        null;
 
 
       resultado.clsValor =
         audits[
           "cumulative-layout-shift"
-        ]?.numericValue ?? null;
+        ]?.numericValue
+        ??
+        null;
 
 
       // =================================================
@@ -241,13 +283,17 @@ async function analisarPageSpeed(url) {
       resultado.fcp =
         audits[
           "first-contentful-paint"
-        ]?.displayValue ?? null;
+        ]?.displayValue
+        ??
+        null;
 
 
       resultado.fcpMs =
         audits[
           "first-contentful-paint"
-        ]?.numericValue ?? null;
+        ]?.numericValue
+        ??
+        null;
 
 
       // =================================================
@@ -257,13 +303,17 @@ async function analisarPageSpeed(url) {
       resultado.speedIndex =
         audits[
           "speed-index"
-        ]?.displayValue ?? null;
+        ]?.displayValue
+        ??
+        null;
 
 
       resultado.speedIndexMs =
         audits[
           "speed-index"
-        ]?.numericValue ?? null;
+        ]?.numericValue
+        ??
+        null;
 
 
       return resultado;
@@ -280,222 +330,10 @@ async function analisarPageSpeed(url) {
         );
 
 
-        await esperar(2000);
-
-        continue;
-      }
-
-
-      resultado.erro =
-        erro.message;
-
-
-      return resultado;
-    }
-  }
-
-
-  return resultado;
-}
-
-
-// ======================================================
-// HTML ANALYSIS
-// ======================================================
-
-async function analisarHTML(url) {
-
-  const resultado = {
-
-    title: null,
-
-    metaDescription: null,
-
-    h1Count: null,
-
-    h1Textos: [],
-
-    erro: null
-  };
-
-
-  const maxTentativas =
-    2;
-
-
-  for (
-    let tentativa = 1;
-    tentativa <= maxTentativas;
-    tentativa++
-  ) {
-
-    try {
-
-      const resposta =
-        await fetchSeguro(
-          url,
-          {
-
-            headers: {
-
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
-
-              "Accept":
-                "text/html,application/xhtml+xml"
-            }
-          }
+        await esperar(
+          2000
         );
 
-
-      // =================================================
-      // TEMPORARY SITE ERROR
-      // =================================================
-
-      if (
-        resposta.status === 429 ||
-        resposta.status >= 500
-      ) {
-
-        if (
-          tentativa <
-          maxTentativas
-        ) {
-
-          console.log(
-            `⚠️ HTML returned HTTP ${resposta.status}. Retrying in 2 seconds...`
-          );
-
-
-          await esperar(2000);
-
-          continue;
-        }
-      }
-
-
-      if (
-        !resposta.ok
-      ) {
-
-        resultado.erro =
-          `HTTP ${resposta.status}`;
-
-
-        return resultado;
-      }
-
-
-      // =================================================
-      // HTML
-      // =================================================
-
-      const html =
-        await resposta.text();
-
-
-      const $ =
-        cheerio.load(
-          html
-        );
-
-
-      // =================================================
-      // TITLE
-      // =================================================
-
-      const title =
-        $("title")
-          .first()
-          .text()
-          .trim();
-
-
-      resultado.title =
-        title || null;
-
-
-      // =================================================
-      // META DESCRIPTION
-      // =================================================
-
-      const metaDescription =
-        $('meta[name="description"]')
-          .attr("content")
-          ?.trim();
-
-
-      resultado.metaDescription =
-        metaDescription || null;
-
-
-      // =================================================
-      // H1
-      // =================================================
-
-      resultado.h1Count =
-        $("h1").length;
-
-
-      $("h1").each(
-        (
-          index,
-          elemento
-        ) => {
-
-          const texto =
-            $(elemento)
-              .text()
-              .trim();
-
-
-          if (
-            texto
-          ) {
-
-            resultado
-              .h1Textos
-              .push(
-                texto
-              );
-          }
-        }
-      );
-
-
-      return resultado;
-
-    } catch (erro) {
-
-
-      // =================================================
-      // SECURITY ERRORS MUST NOT RETRY
-      // =================================================
-
-      if (
-        erro instanceof
-        ErroURLInsegura
-      ) {
-
-        throw erro;
-      }
-
-
-      // =================================================
-      // NORMAL RETRY
-      // =================================================
-
-      if (
-        tentativa <
-        maxTentativas
-      ) {
-
-        console.log(
-          "⚠️ Error reading HTML. Retrying in 2 seconds..."
-        );
-
-
-        await esperar(2000);
 
         continue;
       }
@@ -713,6 +551,7 @@ async function gerarViewsComIA(
     };
   }
 
+
   // ====================================================
   // AI CACHE
   // ====================================================
@@ -724,7 +563,9 @@ async function gerarViewsComIA(
     );
 
 
-  if (cache) {
+  if (
+    cache
+  ) {
 
     console.log(
       "🧠 AI cache hit. Reusing previous response."
@@ -746,6 +587,7 @@ async function gerarViewsComIA(
         null
     };
   }
+
 
   // ====================================================
   // PROMPT
@@ -827,6 +669,23 @@ industry-standard,
 or used by all performance tools.
 
 Do NOT invent additional diagnostics.
+
+Do NOT speculate about root causes.
+
+For example, never claim or suggest:
+- render-blocking resources
+- oversized images
+- slow server response
+- JavaScript execution issues
+- CSS problems
+- hosting problems
+- third-party scripts
+- network latency
+
+unless that exact cause was explicitly verified and included
+in the VERIFIED FINDINGS.
+
+Describe WHAT was measured, not WHY it happened.
 
 Do NOT infer visitor behavior.
 
@@ -1021,24 +880,6 @@ WRITING STYLE
 
 - Avoid robotic wording.
 
-Avoid phrases such as:
-
-"this load timing"
-
-"standard benchmark threshold"
-
-"technical deficiency"
-
-
-Prefer natural wording such as:
-
-"how quickly the main content appears"
-
-"page loading performance"
-
-"one thing worth reviewing"
-
-
 - No fake urgency.
 
 - No fear-based selling.
@@ -1110,14 +951,16 @@ ${JSON.stringify(
     // ==================================================
 
     const resposta =
-      await ai.interactions.create({
+      await ai
+        .interactions
+        .create({
 
-        model:
-          "gemini-3.6-flash",
+          model:
+            "gemini-3.6-flash",
 
-        input:
-          prompt
-      });
+          input:
+            prompt
+        });
 
 
     const textoBruto =
@@ -1130,7 +973,7 @@ ${JSON.stringify(
 
 
     // ==================================================
-    // PARSE JSON
+    // JSON PARSE
     // ==================================================
 
     try {
@@ -1166,13 +1009,17 @@ ${JSON.stringify(
     // SUCCESS
     // ==================================================
 
-        const resultadoIA = {
+    const resultadoIA = {
 
       agencyView:
-        dadosIA.agencyView ?? null,
+        dadosIA.agencyView
+        ??
+        null,
 
       prospectView:
-        dadosIA.prospectView ?? null
+        dadosIA.prospectView
+        ??
+        null
     };
 
 
@@ -1202,7 +1049,9 @@ ${JSON.stringify(
   } catch (erro) {
 
     const mensagem =
-      erro?.message || "";
+      erro?.message
+      ||
+      "";
 
 
     const mensagemLower =
@@ -1210,13 +1059,21 @@ ${JSON.stringify(
 
 
     // ==================================================
-    // GEMINI RATE LIMIT / QUOTA
+    // GEMINI RATE LIMIT
     // ==================================================
 
     if (
-      mensagem.includes("429") ||
-      mensagemLower.includes("quota") ||
-      mensagemLower.includes("rate limit")
+      mensagem.includes(
+        "429"
+      )
+      ||
+      mensagemLower.includes(
+        "quota"
+      )
+      ||
+      mensagemLower.includes(
+        "rate limit"
+      )
     ) {
 
       return {
@@ -1262,7 +1119,9 @@ ${JSON.stringify(
 // ANALYZE SITE
 // ======================================================
 
-async function analisarSite(url) {
+async function analisarSite(
+  url
+) {
 
   // ====================================================
   // SECURITY VALIDATION
@@ -1290,7 +1149,7 @@ async function analisarSite(url) {
 
 
   // ====================================================
-  // PAGESPEED
+  // PAGESPEED + PAGE ANALYSIS
   // ====================================================
 
   console.log(
@@ -1298,25 +1157,50 @@ async function analisarSite(url) {
   );
 
 
-  const performance =
-    await analisarPageSpeed(
-      url
-    );
-
-
-  // ====================================================
-  // HTML
-  // ====================================================
-
   console.log(
-    "Reading website HTML..."
+    "Checking SEO structure and indexability..."
   );
 
 
+  /*
+    Run both operations in parallel.
+
+    PageSpeed:
+    - Lighthouse performance metrics
+
+    analisarPagina:
+    - HTML
+    - HTTP status
+    - HTTPS
+    - Meta Robots
+    - X-Robots-Tag
+    - Canonical
+    - robots.txt
+    - sitemap
+  */
+
+  const [
+    performance,
+    pagina
+  ] =
+    await Promise.all([
+
+      analisarPageSpeed(
+        url
+      ),
+
+      analisarPagina(
+        url
+      )
+    ]);
+
+
   const seo =
-    await analisarHTML(
-      url
-    );
+    pagina.seo;
+
+
+  const indexability =
+    pagina.indexability;
 
 
   // ====================================================
@@ -1395,6 +1279,8 @@ async function analisarSite(url) {
 
     performance,
 
+    indexability,
+
     seo,
 
     findings,
@@ -1427,6 +1313,9 @@ async function analisarSite(url) {
 
       performance:
         resultado.performance,
+
+      indexability:
+        resultado.indexability,
 
       seo:
         resultado.seo,
@@ -1543,18 +1432,20 @@ async function analisarSite(url) {
 // ======================================================
 
 if (
-  require.main === module
+  require.main ===
+  module
 ) {
 
   const rl =
-    readline.createInterface({
+    readline
+      .createInterface({
 
-      input:
-        process.stdin,
+        input:
+          process.stdin,
 
-      output:
-        process.stdout
-    });
+        output:
+          process.stdout
+      });
 
 
   rl.question(
@@ -1568,8 +1459,13 @@ if (
 
 
       if (
-        !url.startsWith("http://") &&
-        !url.startsWith("https://")
+        !url.startsWith(
+          "http://"
+        )
+        &&
+        !url.startsWith(
+          "https://"
+        )
       ) {
 
         url =

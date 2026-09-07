@@ -10,9 +10,12 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>
-    Prospect Analyzer
-  </title>
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
+
+  <title>Prospect Analyzer</title>
 
   <link
     rel="stylesheet"
@@ -24,599 +27,1260 @@
 
 <body>
 
-  <main class="container">
+  <div class="app-shell">
 
 
     <!-- ==================================================
-         HEADER
+         SIDEBAR
          ================================================== -->
 
-    <div class="header">
+    <aside class="sidebar">
 
-      <h1>
-        Prospect Analyzer
-      </h1>
 
-      <div class="subtitle">
-        Turn verified website findings into personalized sales outreach.
+      <div class="brand">
+
+        <div
+          class="brand-mark"
+          aria-hidden="true"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+
+        <div class="brand-copy">
+
+          <strong>
+            Prospect Analyzer
+          </strong>
+
+          <span>
+            v2
+          </span>
+
+        </div>
+
       </div>
 
-    </div>
 
-
-    <!-- ==================================================
-         SEARCH
-         ================================================== -->
-
-    <div class="search-box">
-
-      <input
-        id="urlInput"
-        type="text"
-        placeholder="example.com"
-        autocomplete="off"
+      <nav
+        class="nav"
+        aria-label="Primary navigation"
       >
 
-      <button
-        id="analyzeButton"
-        type="button"
-      >
-        Analyze
-      </button>
+        <button
+          class="nav-item active"
+          type="button"
+        >
 
-    </div>
+          <span class="nav-icon">
+            ⌕
+          </span>
 
+          <span>
+            Analyze Website
+          </span>
 
-    <!-- ==================================================
-         LOADING
-         ================================================== -->
-
-    <div
-      id="loading"
-      class="hidden"
-    >
-
-      <div class="spinner"></div>
-
-      <div class="loading-title">
-        Analyzing website...
-      </div>
-
-      <div class="loading-text">
-        Checking performance, indexability, crawling, SEO structure and verified findings.
-      </div>
-
-    </div>
+        </button>
 
 
-    <!-- ==================================================
-         ERROR
-         ================================================== -->
-
-    <div
-      id="error"
-      class="hidden"
-    ></div>
+        <div class="nav-divider"></div>
 
 
-    <!-- ==================================================
-         RESULTS
-         ================================================== -->
-
-    <section
-      id="results"
-      class="hidden"
-    >
+        <div class="nav-label">
+          Workspace
+        </div>
 
 
-      <!-- ==================================================
-           PERFORMANCE
-           ================================================== -->
+        <button
+          class="nav-item disabled"
+          type="button"
+          disabled
+        >
 
-      <div class="card">
+          <span class="nav-icon">
+            ◎
+          </span>
 
-        <div class="card-header">
+          <span>
+            Prospects
+          </span>
+
+          <span class="soon">
+            Soon
+          </span>
+
+        </button>
+
+
+        <button
+          class="nav-item disabled"
+          type="button"
+          disabled
+        >
+
+          <span class="nav-icon">
+            ▤
+          </span>
+
+          <span>
+            Reports
+          </span>
+
+          <span class="soon">
+            Soon
+          </span>
+
+        </button>
+
+      </nav>
+
+
+      <div class="sidebar-footer">
+
+        <div class="sidebar-note">
+
+          <span class="sidebar-note-icon">
+            ✓
+          </span>
 
           <div>
 
-            <h2>
-              Performance
-            </h2>
+            <strong>
+              Evidence-first
+            </strong>
 
-            <div class="card-subtitle">
-              Lighthouse performance metrics from the analyzed page.
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="metrics">
-
-
-          <div class="metric">
-
-            <div class="metric-label">
-              Score
-            </div>
-
-            <div
-              id="score"
-              class="metric-value"
-            >
-              -
-            </div>
+            <p>
+              Only verified data becomes a finding.
+            </p>
 
           </div>
-
-
-          <div class="metric">
-
-            <div class="metric-label">
-              LCP
-            </div>
-
-            <div
-              id="lcp"
-              class="metric-value"
-            >
-              -
-            </div>
-
-          </div>
-
-
-          <div class="metric">
-
-            <div class="metric-label">
-              CLS
-            </div>
-
-            <div
-              id="cls"
-              class="metric-value"
-            >
-              -
-            </div>
-
-          </div>
-
-
-          <div class="metric">
-
-            <div class="metric-label">
-              FCP
-            </div>
-
-            <div
-              id="fcp"
-              class="metric-value"
-            >
-              -
-            </div>
-
-          </div>
-
-
-          <div class="metric">
-
-            <div class="metric-label">
-              Speed Index
-            </div>
-
-            <div
-              id="speedIndex"
-              class="metric-value"
-            >
-              -
-            </div>
-
-          </div>
-
 
         </div>
 
       </div>
 
 
-      <!-- ==================================================
-           INDEXABILITY & CRAWLING
-           ================================================== -->
+    </aside>
 
-      <div class="card">
 
-        <div class="card-header">
+    <!-- ==================================================
+         MAIN
+         ================================================== -->
+
+    <main class="main-content">
+
+      <div class="page-container">
+
+
+        <!-- ==================================================
+             HERO
+             ================================================== -->
+
+        <header class="hero">
 
           <div>
 
-            <h2>
-              Indexability & Crawling
-            </h2>
 
-            <div class="card-subtitle">
-              Technical signals that affect how search engines can access and interpret the page.
-            </div>
+            <div class="eyebrow-row">
 
-          </div>
+              <span class="eyebrow-badge">
 
-        </div>
+                <span class="eyebrow-dot"></span>
 
+                AI Assisted
 
-        <div class="technical-grid">
+              </span>
 
-
-          <!-- HTTP STATUS -->
-
-          <div class="technical-item">
-
-            <div class="technical-label">
-              HTTP Status
-            </div>
-
-            <div
-              id="httpStatus"
-              class="technical-status status-neutral"
-            >
-              -
-            </div>
-
-            <div class="technical-detail">
-              Final page response
-            </div>
-
-          </div>
-
-
-          <!-- HTTPS -->
-
-          <div class="technical-item">
-
-            <div class="technical-label">
-              HTTPS
-            </div>
-
-            <div
-              id="httpsStatus"
-              class="technical-status status-neutral"
-            >
-              -
-            </div>
-
-            <div
-              id="httpsDetail"
-              class="technical-detail"
-            >
-              -
-            </div>
-
-          </div>
-
-
-          <!-- INDEXING -->
-
-          <div class="technical-item">
-
-            <div class="technical-label">
-              Indexing
-            </div>
-
-            <div
-              id="indexingStatus"
-              class="technical-status status-neutral"
-            >
-              -
-            </div>
-
-            <div
-              id="indexingReason"
-              class="technical-detail"
-            >
-              -
-            </div>
-
-          </div>
-
-
-          <!-- META ROBOTS -->
-
-          <div class="technical-item technical-item-wide">
-
-            <div class="technical-label">
-              Meta Robots
-            </div>
-
-            <div
-              id="metaRobots"
-              class="technical-primary"
-            >
-              -
-            </div>
-
-            <div class="technical-secondary">
-
-              X-Robots-Tag:
-
-              <span id="xRobotsTag">
-                -
+              <span class="eyebrow-text">
+                SEO prospecting workspace
               </span>
 
             </div>
 
-          </div>
+
+            <h1>
+              Prospect Analyzer
+            </h1>
 
 
-          <!-- CANONICAL -->
-
-          <div class="technical-item technical-item-wide">
-
-            <div class="technical-label">
-              Canonical
-            </div>
-
-            <div
-              id="canonicalStatus"
-              class="technical-status status-neutral"
-            >
-              -
-            </div>
-
-            <div
-              id="canonicalUrl"
-              class="technical-url"
-            >
-              -
-            </div>
+            <p class="subtitle">
+              Turn verified website findings into personalized sales outreach.
+            </p>
 
           </div>
 
 
-          <!-- ROBOTS.TXT -->
-
-          <div class="technical-item technical-item-wide">
-
-            <div class="technical-label">
-              robots.txt
-            </div>
-
-            <div
-              id="robotsTxtStatus"
-              class="technical-status status-neutral"
-            >
-              -
-            </div>
-
-            <div
-              id="robotsTxtUrl"
-              class="technical-url"
-            >
-              -
-            </div>
-
+          <div class="hero-note">
+            Find opportunities. Build better outreach.
           </div>
 
+        </header>
 
-          <!-- SITEMAP -->
 
-          <div class="technical-item technical-item-wide">
+        <!-- ==================================================
+             SEARCH
+             ================================================== -->
 
-            <div class="technical-label">
-              Sitemap
-            </div>
+        <section
+          class="search-panel"
+          aria-label="Website analysis"
+        >
 
-            <div
-              id="sitemapStatus"
-              class="technical-status status-neutral"
+          <div class="url-field-wrap">
+
+            <span
+              class="url-icon"
+              aria-hidden="true"
             >
-              -
-            </div>
+              ↗
+            </span>
 
-            <div
-              id="sitemapUrl"
-              class="technical-url"
+
+            <input
+              id="urlInput"
+              type="text"
+              placeholder="example.com"
+              autocomplete="off"
+              spellcheck="false"
             >
-              -
-            </div>
-
-            <div
-              id="sitemapSource"
-              class="technical-secondary"
-            >
-              -
-            </div>
-
-          </div>
-
-
-        </div>
-
-      </div>
-
-
-      <!-- ==================================================
-           SEO STRUCTURE
-           ================================================== -->
-
-      <div class="card">
-
-        <div class="card-header">
-
-          <div>
-
-            <h2>
-              SEO Structure
-            </h2>
-
-            <div class="card-subtitle">
-              Core on-page elements found in the page HTML.
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="seo-row">
-
-          <span class="seo-label">
-            Title
-          </span>
-
-          <span id="title">
-            -
-          </span>
-
-        </div>
-
-
-        <div class="seo-row">
-
-          <span class="seo-label">
-            Meta Description
-          </span>
-
-          <span id="metaDescription">
-            -
-          </span>
-
-        </div>
-
-
-        <div class="seo-row">
-
-          <span class="seo-label">
-            H1 Count
-          </span>
-
-          <span id="h1Count">
-            -
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- ==================================================
-           VERIFIED FINDINGS
-           ================================================== -->
-
-      <div class="card">
-
-        <div class="card-header">
-
-          <div>
-
-            <h2>
-              Verified Findings
-            </h2>
-
-            <div class="card-subtitle">
-              Findings created only from evidence collected by the analyzer.
-            </div>
-
-          </div>
-
-        </div>
-
-        <div id="findings"></div>
-
-      </div>
-
-
-      <!-- ==================================================
-           AGENCY VIEW
-           ================================================== -->
-
-      <div class="card">
-
-        <div class="card-header">
-
-          <div>
-
-            <h2>
-              Agency View
-            </h2>
-
-            <div class="card-subtitle">
-              Technical summary for SEO review and internal use.
-            </div>
 
           </div>
 
 
           <button
-            id="copyAgencyButton"
-            class="copy-button"
+            id="analyzeButton"
+            class="analyze-button"
             type="button"
           >
-            Copy
+
+            <span class="button-spark">
+              ✦
+            </span>
+
+            <span>
+              Analyze
+            </span>
+
           </button>
+
+        </section>
+
+
+        <div class="search-helper">
+
+          <span>
+            Example: yourwebsite.com
+          </span>
+
+          <span
+            id="lastAnalyzed"
+            class="last-analyzed hidden"
+          ></span>
 
         </div>
 
 
-        <div
-          id="agencyView"
-          class="view-text"
-        ></div>
+        <!-- ==================================================
+             LOADING
+             ================================================== -->
 
-      </div>
+        <section
+          id="loading"
+          class="loading-panel hidden"
+          aria-live="polite"
+        >
 
-
-      <!-- ==================================================
-           PROSPECT VIEW
-           ================================================== -->
-
-      <div class="card prospect-card">
-
-        <div class="card-header">
+          <div class="spinner"></div>
 
           <div>
 
-            <h2>
-              Prospect View
-            </h2>
+            <div class="loading-title">
+              Analyzing website...
+            </div>
 
-            <div class="card-subtitle">
-              Sales-ready outreach grounded in verified findings.
+            <div class="loading-text">
+              Checking performance, indexability, crawling, on-page SEO and verified opportunities.
             </div>
 
           </div>
 
+        </section>
 
-          <button
-            id="copyProspectButton"
-            class="copy-button"
-            type="button"
-          >
-            Copy
-          </button>
 
-        </div>
-
+        <!-- ==================================================
+             ERROR
+             ================================================== -->
 
         <div
-          id="prospectView"
-          class="view-text"
+          id="error"
+          class="error-box hidden"
+          role="alert"
         ></div>
+
+
+        <!-- ==================================================
+             RESULTS
+             ================================================== -->
+
+        <section
+          id="results"
+          class="results hidden"
+        >
+
+
+          <!-- ==================================================
+               OVERALL SNAPSHOT
+               ================================================== -->
+
+          <section class="panel snapshot-panel">
+
+            <div class="section-header">
+
+              <div>
+
+                <div class="section-title-row">
+
+                  <span class="section-icon">
+                    ▥
+                  </span>
+
+                  <h2>
+                    Overall Snapshot
+                  </h2>
+
+                </div>
+
+                <p>
+                  Quick view of the site's technical health and biggest prospecting opportunities.
+                </p>
+
+              </div>
+
+
+              <div class="analysis-meta">
+
+                <span class="pulse-dot"></span>
+
+                <span id="analysisFreshness">
+                  Analyzed just now
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="snapshot-grid">
+
+
+              <article
+                class="snapshot-card"
+                id="snapshotPerformanceCard"
+              >
+
+                <div
+                  class="snapshot-visual score-ring"
+                  id="snapshotScoreRing"
+                >
+
+                  <span id="snapshotScore">
+                    -
+                  </span>
+
+                </div>
+
+
+                <div>
+
+                  <span class="snapshot-label">
+                    Performance
+                  </span>
+
+                  <strong id="snapshotPerformance">
+                    Unknown
+                  </strong>
+
+                  <small id="snapshotPerformanceDetail">
+                    Waiting for data
+                  </small>
+
+                </div>
+
+              </article>
+
+
+              <article
+                class="snapshot-card"
+                id="snapshotIndexabilityCard"
+              >
+
+                <div class="snapshot-visual status-orb">
+                  ✓
+                </div>
+
+                <div>
+
+                  <span class="snapshot-label">
+                    Indexability
+                  </span>
+
+                  <strong id="snapshotIndexability">
+                    Unknown
+                  </strong>
+
+                  <small id="snapshotIndexabilityDetail">
+                    Waiting for data
+                  </small>
+
+                </div>
+
+              </article>
+
+
+              <article
+                class="snapshot-card"
+                id="snapshotOnPageCard"
+              >
+
+                <div class="snapshot-visual status-orb">
+                  ≡
+                </div>
+
+                <div>
+
+                  <span class="snapshot-label">
+                    On-Page SEO
+                  </span>
+
+                  <strong id="snapshotOnPage">
+                    Unknown
+                  </strong>
+
+                  <small id="snapshotOnPageDetail">
+                    Waiting for data
+                  </small>
+
+                </div>
+
+              </article>
+
+
+              <article
+                class="snapshot-card"
+                id="snapshotOpportunitiesCard"
+              >
+
+                <div class="snapshot-visual status-orb">
+                  ↗
+                </div>
+
+                <div>
+
+                  <span class="snapshot-label">
+                    Opportunities
+                  </span>
+
+                  <strong id="snapshotOpportunities">
+                    0 detected
+                  </strong>
+
+                  <small id="snapshotOpportunitiesDetail">
+                    No verified findings yet
+                  </small>
+
+                </div>
+
+              </article>
+
+
+            </div>
+
+          </section>
+
+
+          <!-- ==================================================
+               PERFORMANCE
+               ================================================== -->
+
+          <section class="panel">
+
+            <div class="section-header compact">
+
+              <div>
+
+                <div class="section-title-row">
+
+                  <span class="section-icon">
+                    ⚡
+                  </span>
+
+                  <h2>
+                    Performance
+                  </h2>
+
+                </div>
+
+                <p>
+                  Key Lighthouse loading and visual stability metrics.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="metrics-grid">
+
+
+              <article class="metric-card performance-score-card">
+
+                <div class="metric-topline">
+
+                  <span class="metric-icon">
+                    ◔
+                  </span>
+
+                  <span class="metric-label">
+                    Performance Score
+                  </span>
+
+                </div>
+
+
+                <div class="metric-main">
+
+                  <span
+                    id="score"
+                    class="metric-value"
+                  >
+                    -
+                  </span>
+
+                  <span class="metric-unit">
+                    / 100
+                  </span>
+
+                </div>
+
+
+                <div class="score-track">
+
+                  <span id="scoreBar"></span>
+
+                </div>
+
+
+                <span
+                  id="scoreStatus"
+                  class="metric-status neutral"
+                >
+                  Waiting
+                </span>
+
+              </article>
+
+
+              <article class="metric-card">
+
+                <div class="metric-topline">
+
+                  <span class="metric-icon">
+                    ◷
+                  </span>
+
+                  <span class="metric-label">
+                    LCP
+                  </span>
+
+                </div>
+
+
+                <div
+                  id="lcp"
+                  class="metric-value"
+                >
+                  -
+                </div>
+
+
+                <span
+                  id="lcpStatus"
+                  class="metric-status neutral"
+                >
+                  Waiting
+                </span>
+
+
+                <p>
+                  Largest Contentful Paint
+                </p>
+
+              </article>
+
+
+              <article class="metric-card">
+
+                <div class="metric-topline">
+
+                  <span class="metric-icon">
+                    ▦
+                  </span>
+
+                  <span class="metric-label">
+                    CLS
+                  </span>
+
+                </div>
+
+
+                <div
+                  id="cls"
+                  class="metric-value"
+                >
+                  -
+                </div>
+
+
+                <span
+                  id="clsStatus"
+                  class="metric-status neutral"
+                >
+                  Waiting
+                </span>
+
+
+                <p>
+                  Cumulative Layout Shift
+                </p>
+
+              </article>
+
+
+              <article class="metric-card">
+
+                <div class="metric-topline">
+
+                  <span class="metric-icon">
+                    ▣
+                  </span>
+
+                  <span class="metric-label">
+                    FCP
+                  </span>
+
+                </div>
+
+
+                <div
+                  id="fcp"
+                  class="metric-value"
+                >
+                  -
+                </div>
+
+
+                <span class="metric-status neutral">
+                  Measured
+                </span>
+
+
+                <p>
+                  First Contentful Paint
+                </p>
+
+              </article>
+
+
+              <article class="metric-card">
+
+                <div class="metric-topline">
+
+                  <span class="metric-icon">
+                    ◴
+                  </span>
+
+                  <span class="metric-label">
+                    Speed Index
+                  </span>
+
+                </div>
+
+
+                <div
+                  id="speedIndex"
+                  class="metric-value"
+                >
+                  -
+                </div>
+
+
+                <span class="metric-status neutral">
+                  Measured
+                </span>
+
+
+                <p>
+                  Visual loading progression
+                </p>
+
+              </article>
+
+
+            </div>
+
+          </section>
+
+
+          <!-- ==================================================
+               INDEXABILITY
+               ================================================== -->
+
+          <section class="panel">
+
+            <div class="section-header compact">
+
+              <div>
+
+                <div class="section-title-row">
+
+                  <span class="section-icon">
+                    ◉
+                  </span>
+
+                  <h2>
+                    Indexability & Crawling
+                  </h2>
+
+                </div>
+
+                <p>
+                  Signals that affect how search engines can access and interpret the page.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="technical-grid">
+
+
+              <article class="technical-card">
+
+                <span class="technical-label">
+                  HTTP Status
+                </span>
+
+                <div class="technical-value-row">
+
+                  <span
+                    id="httpStatus"
+                    class="status-pill neutral"
+                  >
+                    -
+                  </span>
+
+                </div>
+
+                <small>
+                  Final page response
+                </small>
+
+              </article>
+
+
+              <article class="technical-card">
+
+                <span class="technical-label">
+                  HTTPS
+                </span>
+
+                <div class="technical-value-row">
+
+                  <span
+                    id="httpsStatus"
+                    class="status-pill neutral"
+                  >
+                    -
+                  </span>
+
+                </div>
+
+                <small id="httpsDetail">
+                  -
+                </small>
+
+              </article>
+
+
+              <article class="technical-card">
+
+                <span class="technical-label">
+                  Indexing
+                </span>
+
+                <div class="technical-value-row">
+
+                  <span
+                    id="indexingStatus"
+                    class="status-pill neutral"
+                  >
+                    -
+                  </span>
+
+                </div>
+
+                <small id="indexingReason">
+                  -
+                </small>
+
+              </article>
+
+
+              <article class="technical-card meta-card">
+
+                <span class="technical-label">
+                  Meta Robots
+                </span>
+
+                <strong
+                  id="metaRobots"
+                  class="technical-text"
+                >
+                  -
+                </strong>
+
+                <small>
+                  X-Robots-Tag:
+                  <span id="xRobotsTag">
+                    -
+                  </span>
+                </small>
+
+              </article>
+
+
+              <article class="technical-card">
+
+                <span class="technical-label">
+                  Canonical
+                </span>
+
+                <div class="technical-value-row">
+
+                  <span
+                    id="canonicalStatus"
+                    class="status-pill neutral"
+                  >
+                    -
+                  </span>
+
+                </div>
+
+                <small
+                  id="canonicalUrl"
+                  class="breakable"
+                >
+                  -
+                </small>
+
+              </article>
+
+
+              <article class="technical-card">
+
+                <span class="technical-label">
+                  robots.txt
+                </span>
+
+                <div class="technical-value-row">
+
+                  <span
+                    id="robotsTxtStatus"
+                    class="status-pill neutral"
+                  >
+                    -
+                  </span>
+
+                </div>
+
+                <small
+                  id="robotsTxtUrl"
+                  class="breakable"
+                >
+                  -
+                </small>
+
+              </article>
+
+
+              <article class="technical-card">
+
+                <span class="technical-label">
+                  Sitemap
+                </span>
+
+                <div class="technical-value-row">
+
+                  <span
+                    id="sitemapStatus"
+                    class="status-pill neutral"
+                  >
+                    -
+                  </span>
+
+                </div>
+
+                <small
+                  id="sitemapUrl"
+                  class="breakable"
+                >
+                  -
+                </small>
+
+                <small
+                  id="sitemapSource"
+                  class="technical-footnote"
+                >
+                  -
+                </small>
+
+              </article>
+
+
+            </div>
+
+          </section>
+
+
+          <!-- ==================================================
+               ON-PAGE
+               ================================================== -->
+
+          <section class="panel">
+
+            <div class="section-header compact">
+
+              <div>
+
+                <div class="section-title-row">
+
+                  <span class="section-icon">
+                    ▤
+                  </span>
+
+                  <h2>
+                    On-Page SEO
+                  </h2>
+
+                </div>
+
+                <p>
+                  Core page elements that search engines and visitors can see.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="onpage-grid">
+
+
+              <article class="onpage-card title-card">
+
+                <div class="onpage-head">
+
+                  <span>
+                    Title
+                  </span>
+
+                  <span
+                    id="titleStatus"
+                    class="mini-check neutral"
+                  >
+                    •
+                  </span>
+
+                </div>
+
+                <strong id="title">
+                  -
+                </strong>
+
+              </article>
+
+
+              <article class="onpage-card description-card">
+
+                <div class="onpage-head">
+
+                  <span>
+                    Meta Description
+                  </span>
+
+                  <span
+                    id="metaDescriptionStatus"
+                    class="mini-check neutral"
+                  >
+                    •
+                  </span>
+
+                </div>
+
+                <p id="metaDescription">
+                  -
+                </p>
+
+              </article>
+
+
+              <article class="onpage-card h1-card">
+
+                <div class="onpage-head">
+
+                  <span>
+                    H1 Count
+                  </span>
+
+                  <span
+                    id="h1Status"
+                    class="mini-check neutral"
+                  >
+                    •
+                  </span>
+
+                </div>
+
+                <strong id="h1Count">
+                  -
+                </strong>
+
+                <small id="h1Detail">
+                  Headings detected
+                </small>
+
+              </article>
+
+
+            </div>
+
+          </section>
+
+
+          <!-- ==================================================
+               VERIFIED OPPORTUNITIES
+               ================================================== -->
+
+          <section class="panel opportunities-panel">
+
+            <div class="section-header compact opportunities-header">
+
+              <div>
+
+                <div class="section-title-row">
+
+                  <span class="section-icon">
+                    ✦
+                  </span>
+
+                  <h2>
+                    Verified Opportunities
+                  </h2>
+
+                </div>
+
+                <p>
+                  Actionable findings grounded in data collected from the website.
+                </p>
+
+              </div>
+
+
+              <div
+                class="finding-filters"
+                id="findingFilters"
+                aria-label="Finding filters"
+              >
+
+                <button
+                  type="button"
+                  class="filter-chip active"
+                  data-filter="all"
+                >
+                  All
+                  <span id="filterAllCount">0</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-chip high"
+                  data-filter="high"
+                >
+                  High
+                  <span id="filterHighCount">0</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-chip medium"
+                  data-filter="medium"
+                >
+                  Medium
+                  <span id="filterMediumCount">0</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-chip low"
+                  data-filter="low"
+                >
+                  Low
+                  <span id="filterLowCount">0</span>
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div
+              id="findings"
+              class="findings-list"
+            ></div>
+
+          </section>
+
+
+          <!-- ==================================================
+               VIEWS
+               ================================================== -->
+
+          <section class="views-grid">
+
+
+            <article class="panel view-panel agency-panel">
+
+              <div class="section-header compact">
+
+                <div>
+
+                  <div class="section-title-row">
+
+                    <span class="section-icon">
+                      ◎
+                    </span>
+
+                    <h2>
+                      Agency View
+                    </h2>
+
+                  </div>
+
+                  <p>
+                    Technical summary for SEO review and internal tracking.
+                  </p>
+
+                </div>
+
+
+                <button
+                  id="copyAgencyButton"
+                  class="copy-button"
+                  type="button"
+                >
+                  Copy
+                </button>
+
+              </div>
+
+
+              <div
+                id="agencyView"
+                class="view-text"
+              ></div>
+
+            </article>
+
+
+            <article class="panel view-panel prospect-panel">
+
+              <div class="section-header compact">
+
+                <div>
+
+                  <div class="section-title-row">
+
+                    <span class="section-icon">
+                      ✉
+                    </span>
+
+                    <h2>
+                      Prospect View
+                    </h2>
+
+                  </div>
+
+                  <p>
+                    Sales-ready message grounded in verified findings.
+                  </p>
+
+                </div>
+
+
+                <button
+                  id="copyProspectButton"
+                  class="copy-button primary-copy"
+                  type="button"
+                >
+                  Copy Outreach
+                </button>
+
+              </div>
+
+
+              <div
+                id="prospectView"
+                class="view-text prospect-text"
+              ></div>
+
+            </article>
+
+
+          </section>
+
+
+          <!-- ==================================================
+               FOOTER
+               ================================================== -->
+
+          <footer class="result-footer">
+
+            <span id="analysisStatus">
+              0 verified findings
+            </span>
+
+            <span class="footer-separator">
+              •
+            </span>
+
+            <span>
+              Evidence-first analysis
+            </span>
+
+          </footer>
+
+
+        </section>
+
 
       </div>
 
+    </main>
 
-      <!-- ==================================================
-           STATUS
-           ================================================== -->
-
-      <div
-        id="analysisStatus"
-        class="status-row"
-      ></div>
-
-
-    </section>
-
-  </main>
+  </div>
 
 
   <script

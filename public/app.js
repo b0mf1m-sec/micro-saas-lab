@@ -40,6 +40,20 @@ const copyProspectButton =
   );
 
 
+const findingFilters =
+  document.getElementById(
+    "findingFilters"
+  );
+
+
+let findingsAtuais =
+  [];
+
+
+let filtroFindingAtual =
+  "all";
+
+
 // ======================================================
 // ANALYZE
 // ======================================================
@@ -164,8 +178,8 @@ function iniciarLoading() {
     true;
 
 
-  analyzeButton.textContent =
-    "Analyzing...";
+  analyzeButton.innerHTML =
+    '<span class="button-spark">✦</span><span>Analyzing...</span>';
 }
 
 
@@ -184,8 +198,8 @@ function finalizarLoading() {
     false;
 
 
-  analyzeButton.textContent =
-    "Analyze";
+  analyzeButton.innerHTML =
+    '<span class="button-spark">✦</span><span>Analyze</span>';
 }
 
 
@@ -208,8 +222,196 @@ function mostrarErro(
 
 
 // ======================================================
-// FRIENDLY FINDING NAME
+// HELPERS
 // ======================================================
+
+function definirTexto(
+  id,
+  valor,
+  fallback = "-"
+) {
+
+  const elemento =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    !elemento
+  ) {
+
+    return;
+  }
+
+
+  const temValor =
+    valor !== null &&
+    valor !== undefined &&
+    valor !== "";
+
+
+  elemento.textContent =
+    temValor
+      ? String(valor)
+      : fallback;
+}
+
+
+function removerTons(
+  elemento
+) {
+
+  elemento.classList.remove(
+    "good",
+    "warning",
+    "bad",
+    "neutral"
+  );
+}
+
+
+function aplicarTom(
+  elemento,
+  tom = "neutral"
+) {
+
+  if (
+    !elemento
+  ) {
+
+    return;
+  }
+
+
+  removerTons(
+    elemento
+  );
+
+
+  elemento.classList.add(
+    tom
+  );
+}
+
+
+function definirStatus(
+  id,
+  texto,
+  tom = "neutral"
+) {
+
+  const elemento =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    !elemento
+  ) {
+
+    return;
+  }
+
+
+  elemento.textContent =
+    texto;
+
+
+  aplicarTom(
+    elemento,
+    tom
+  );
+}
+
+
+function definirTomCard(
+  id,
+  tom = "neutral"
+) {
+
+  const elemento =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    !elemento
+  ) {
+
+    return;
+  }
+
+
+  elemento.dataset.tone =
+    tom;
+}
+
+
+function capitalizar(
+  texto
+) {
+
+  if (
+    !texto
+  ) {
+
+    return "Unknown";
+  }
+
+
+  return (
+    texto.charAt(0).toUpperCase() +
+    texto.slice(1)
+  );
+}
+
+
+function normalizarSeveridade(
+  valor
+) {
+
+  const nivel =
+    String(
+      valor ||
+      ""
+    )
+      .toLowerCase();
+
+
+  if (
+    nivel === "alta"
+  ) {
+
+    return "high";
+  }
+
+
+  if (
+    nivel === "media" ||
+    nivel === "média"
+  ) {
+
+    return "medium";
+  }
+
+
+  if (
+    nivel === "baixa"
+  ) {
+
+    return "low";
+  }
+
+
+  return (
+    nivel ||
+    "low"
+  );
+}
+
 
 function nomeFinding(
   codigo
@@ -242,32 +444,19 @@ function nomeFinding(
 }
 
 
-// ======================================================
-// CAPITALIZE
-// ======================================================
-
-function capitalizar(
-  texto
+function categoriaFinding(
+  categoria
 ) {
 
-  if (
-    !texto
-  ) {
-
-    return "Unknown";
-  }
-
-
   return (
-    texto.charAt(0).toUpperCase() +
-    texto.slice(1)
+    categoria === "seo"
+      ? "SEO"
+      : capitalizar(
+          categoria
+        )
   );
 }
 
-
-// ======================================================
-// AI STATUS
-// ======================================================
 
 function formatarStatusIA(
   status
@@ -314,10 +503,6 @@ function formatarStatusIA(
 }
 
 
-// ======================================================
-// AI PLACEHOLDER
-// ======================================================
-
 function textoIAIndisponivel(
   status,
   tipo
@@ -350,89 +535,6 @@ function textoIAIndisponivel(
   );
 }
 
-
-// ======================================================
-// SAFE TEXT SETTER
-// ======================================================
-
-function definirTexto(
-  id,
-  valor,
-  fallback = "-"
-) {
-
-  const elemento =
-    document.getElementById(
-      id
-    );
-
-
-  if (
-    !elemento
-  ) {
-
-    return;
-  }
-
-
-  const temValor =
-    valor !== null &&
-    valor !== undefined &&
-    valor !== "";
-
-
-  elemento.textContent =
-    temValor
-      ? String(valor)
-      : fallback;
-}
-
-
-// ======================================================
-// STATUS SETTER
-// ======================================================
-
-function definirStatus(
-  id,
-  texto,
-  tipo = "neutral"
-) {
-
-  const elemento =
-    document.getElementById(
-      id
-    );
-
-
-  if (
-    !elemento
-  ) {
-
-    return;
-  }
-
-
-  elemento.textContent =
-    texto;
-
-
-  elemento.classList.remove(
-    "status-success",
-    "status-warning",
-    "status-danger",
-    "status-neutral"
-  );
-
-
-  elemento.classList.add(
-    `status-${tipo}`
-  );
-}
-
-
-// ======================================================
-// URL COMPARISON
-// ======================================================
 
 function urlsEquivalentes(
   urlA,
@@ -498,17 +600,318 @@ function urlsEquivalentes(
 }
 
 
-// ======================================================
-// INDEXABILITY & CRAWLING
-// ======================================================
-
-function mostrarIndexability(
-  indexability
+function textoTempoAnalise(
+  iso
 ) {
 
-  // ====================================================
-  // DATA UNAVAILABLE
-  // ====================================================
+  if (
+    !iso
+  ) {
+
+    return (
+      "Analyzed just now"
+    );
+  }
+
+
+  const data =
+    new Date(
+      iso
+    );
+
+
+  if (
+    Number.isNaN(
+      data.getTime()
+    )
+  ) {
+
+    return (
+      "Analyzed just now"
+    );
+  }
+
+
+  return (
+    `Analyzed ${data.toLocaleTimeString(
+      [],
+      {
+        hour:
+          "2-digit",
+
+        minute:
+          "2-digit"
+      }
+    )}`
+  );
+}
+
+
+// ======================================================
+// PERFORMANCE
+// ======================================================
+
+function atualizarPerformance(
+  performance = {}
+) {
+
+  definirTexto(
+    "score",
+    performance.score
+  );
+
+
+  definirTexto(
+    "lcp",
+    performance.lcp
+  );
+
+
+  definirTexto(
+    "cls",
+    performance.cls
+  );
+
+
+  definirTexto(
+    "fcp",
+    performance.fcp
+  );
+
+
+  definirTexto(
+    "speedIndex",
+    performance.speedIndex
+  );
+
+
+  const score =
+    Number(
+      performance.score
+    );
+
+
+  let scoreTom =
+    "neutral";
+
+
+  let scoreTexto =
+    "Unavailable";
+
+
+  if (
+    Number.isFinite(
+      score
+    )
+  ) {
+
+    if (
+      score >= 90
+    ) {
+
+      scoreTom =
+        "good";
+
+      scoreTexto =
+        "Good";
+
+    } else if (
+      score >= 50
+    ) {
+
+      scoreTom =
+        "warning";
+
+      scoreTexto =
+        "Needs attention";
+
+    } else {
+
+      scoreTom =
+        "bad";
+
+      scoreTexto =
+        "Poor";
+    }
+  }
+
+
+  definirStatus(
+    "scoreStatus",
+    scoreTexto,
+    scoreTom
+  );
+
+
+  const scoreBar =
+    document.getElementById(
+      "scoreBar"
+    );
+
+
+  if (
+    scoreBar
+  ) {
+
+    scoreBar.style.width =
+      Number.isFinite(
+        score
+      )
+        ? `${Math.max(
+            0,
+            Math.min(
+              score,
+              100
+            )
+          )}%`
+        : "0%";
+
+
+    scoreBar.style.background =
+      scoreTom === "good"
+        ? "#43d18b"
+        : scoreTom === "warning"
+          ? "#f2c94c"
+          : scoreTom === "bad"
+            ? "#ff6b78"
+            : "#6b7f98";
+  }
+
+
+  const lcpMs =
+    Number(
+      performance.lcpMs
+    );
+
+
+  let lcpTom =
+    "neutral";
+
+
+  let lcpTexto =
+    "Measured";
+
+
+  if (
+    Number.isFinite(
+      lcpMs
+    )
+  ) {
+
+    if (
+      lcpMs <= 2500
+    ) {
+
+      lcpTom =
+        "good";
+
+      lcpTexto =
+        "Good";
+
+    } else if (
+      lcpMs <= 4000
+    ) {
+
+      lcpTom =
+        "warning";
+
+      lcpTexto =
+        "Needs attention";
+
+    } else {
+
+      lcpTom =
+        "bad";
+
+      lcpTexto =
+        "Poor";
+    }
+  }
+
+
+  definirStatus(
+    "lcpStatus",
+    lcpTexto,
+    lcpTom
+  );
+
+
+  const cls =
+    Number(
+      performance.clsValor
+    );
+
+
+  let clsTom =
+    "neutral";
+
+
+  let clsTexto =
+    "Measured";
+
+
+  if (
+    Number.isFinite(
+      cls
+    )
+  ) {
+
+    if (
+      cls <= 0.1
+    ) {
+
+      clsTom =
+        "good";
+
+      clsTexto =
+        "Good";
+
+    } else if (
+      cls <= 0.25
+    ) {
+
+      clsTom =
+        "warning";
+
+      clsTexto =
+        "Needs attention";
+
+    } else {
+
+      clsTom =
+        "bad";
+
+      clsTexto =
+        "Poor";
+    }
+  }
+
+
+  definirStatus(
+    "clsStatus",
+    clsTexto,
+    clsTom
+  );
+
+
+  return {
+
+    score,
+
+    scoreTom,
+
+    scoreTexto
+  };
+}
+
+
+// ======================================================
+// INDEXABILITY
+// ======================================================
+
+function atualizarIndexability(
+  indexability
+) {
 
   if (
     !indexability ||
@@ -554,6 +957,12 @@ function mostrarIndexability(
       "sitemapStatus",
       "Unknown",
       "neutral"
+    );
+
+
+    definirTexto(
+      "httpsDetail",
+      "Could not determine protocol"
     );
 
 
@@ -606,13 +1015,19 @@ function mostrarIndexability(
     );
 
 
-    return;
+    return {
+
+      tom:
+        "neutral",
+
+      titulo:
+        "Unknown",
+
+      detalhe:
+        "Indexability data unavailable"
+    };
   }
 
-
-  // ====================================================
-  // HTTP STATUS
-  // ====================================================
 
   const httpStatus =
     indexability.httpStatus;
@@ -623,33 +1038,16 @@ function mostrarIndexability(
     "number"
   ) {
 
-    let tipo =
-      "neutral";
-
-
-    if (
+    const tom =
       httpStatus >= 200 &&
       httpStatus < 300
-    ) {
-
-      tipo =
-        "success";
-
-    } else if (
-      httpStatus >= 300 &&
-      httpStatus < 400
-    ) {
-
-      tipo =
-        "warning";
-
-    } else if (
-      httpStatus >= 400
-    ) {
-
-      tipo =
-        "danger";
-    }
+        ? "good"
+        : httpStatus >= 300 &&
+          httpStatus < 400
+          ? "warning"
+          : httpStatus >= 400
+            ? "bad"
+            : "neutral";
 
 
     definirStatus(
@@ -659,7 +1057,7 @@ function mostrarIndexability(
         : String(
             httpStatus
           ),
-      tipo
+      tom
     );
 
   } else {
@@ -672,10 +1070,6 @@ function mostrarIndexability(
   }
 
 
-  // ====================================================
-  // HTTPS
-  // ====================================================
-
   if (
     indexability.https === true
   ) {
@@ -683,7 +1077,7 @@ function mostrarIndexability(
     definirStatus(
       "httpsStatus",
       "Yes",
-      "success"
+      "good"
     );
 
 
@@ -699,7 +1093,7 @@ function mostrarIndexability(
     definirStatus(
       "httpsStatus",
       "No",
-      "danger"
+      "bad"
     );
 
 
@@ -724,10 +1118,6 @@ function mostrarIndexability(
   }
 
 
-  // ====================================================
-  // INDEXING DIRECTIVES
-  // ====================================================
-
   if (
     indexability.indexable === true
   ) {
@@ -735,7 +1125,7 @@ function mostrarIndexability(
     definirStatus(
       "indexingStatus",
       "Allowed",
-      "success"
+      "good"
     );
 
   } else if (
@@ -745,7 +1135,7 @@ function mostrarIndexability(
     definirStatus(
       "indexingStatus",
       "Blocked",
-      "danger"
+      "bad"
     );
 
   } else {
@@ -765,10 +1155,6 @@ function mostrarIndexability(
   );
 
 
-  // ====================================================
-  // META ROBOTS
-  // ====================================================
-
   definirTexto(
     "metaRobots",
     indexability.metaRobots,
@@ -782,10 +1168,6 @@ function mostrarIndexability(
     "Not specified"
   );
 
-
-  // ====================================================
-  // CANONICAL
-  // ====================================================
 
   if (
     indexability.canonical
@@ -804,7 +1186,7 @@ function mostrarIndexability(
         ? "Self-referencing"
         : "Specified",
       selfReferencing
-        ? "success"
+        ? "good"
         : "neutral"
     );
 
@@ -831,10 +1213,6 @@ function mostrarIndexability(
   }
 
 
-  // ====================================================
-  // ROBOTS.TXT
-  // ====================================================
-
   if (
     indexability.robotsTxt
       ?.found === true
@@ -843,7 +1221,7 @@ function mostrarIndexability(
     definirStatus(
       "robotsTxtStatus",
       "Found",
-      "success"
+      "good"
     );
 
 
@@ -891,10 +1269,6 @@ function mostrarIndexability(
   }
 
 
-  // ====================================================
-  // SITEMAP
-  // ====================================================
-
   if (
     indexability.sitemap
       ?.found === true
@@ -903,7 +1277,7 @@ function mostrarIndexability(
     definirStatus(
       "sitemapStatus",
       "Found",
-      "success"
+      "good"
     );
 
 
@@ -977,6 +1351,926 @@ function mostrarIndexability(
       "-"
     );
   }
+
+
+  if (
+    indexability.indexable ===
+    false
+  ) {
+
+    return {
+
+      tom:
+        "bad",
+
+      titulo:
+        "Blocked",
+
+      detalhe:
+        "Explicit noindex detected"
+    };
+  }
+
+
+  if (
+    typeof httpStatus ===
+    "number"
+    &&
+    httpStatus >= 400
+  ) {
+
+    return {
+
+      tom:
+        "bad",
+
+      titulo:
+        "Unavailable",
+
+      detalhe:
+        `HTTP ${httpStatus}`
+    };
+  }
+
+
+  if (
+    indexability.https ===
+    false
+  ) {
+
+    return {
+
+      tom:
+        "warning",
+
+      titulo:
+        "Review",
+
+      detalhe:
+        "Page is not using HTTPS"
+    };
+  }
+
+
+  if (
+    indexability.indexable ===
+    true
+  ) {
+
+    return {
+
+      tom:
+        "good",
+
+      titulo:
+        "Allowed",
+
+      detalhe:
+        "No explicit noindex detected"
+    };
+  }
+
+
+  return {
+
+    tom:
+      "neutral",
+
+    titulo:
+      "Unknown",
+
+    detalhe:
+      "Could not determine indexing directives"
+  };
+}
+
+
+// ======================================================
+// ON-PAGE
+// ======================================================
+
+function atualizarOnPage(
+  seo = {},
+  findings = []
+) {
+
+  definirTexto(
+    "title",
+    seo.title,
+    "Not found"
+  );
+
+
+  definirTexto(
+    "metaDescription",
+    seo.metaDescription,
+    "Not found"
+  );
+
+
+  definirTexto(
+    "h1Count",
+    seo.h1Count
+  );
+
+
+  const titleOk =
+    Boolean(
+      seo.title
+    );
+
+
+  const metaOk =
+    Boolean(
+      seo.metaDescription
+    );
+
+
+  const h1Ok =
+    Number(
+      seo.h1Count
+    ) > 0;
+
+
+  definirStatus(
+    "titleStatus",
+    titleOk
+      ? "✓"
+      : "!",
+    titleOk
+      ? "good"
+      : "bad"
+  );
+
+
+  definirStatus(
+    "metaDescriptionStatus",
+    metaOk
+      ? "✓"
+      : "!",
+    metaOk
+      ? "good"
+      : "warning"
+  );
+
+
+  definirStatus(
+    "h1Status",
+    h1Ok
+      ? "✓"
+      : "!",
+    h1Ok
+      ? "good"
+      : "warning"
+  );
+
+
+  definirTexto(
+    "h1Detail",
+    Number.isFinite(
+      Number(
+        seo.h1Count
+      )
+    )
+      ? `${seo.h1Count} heading${Number(seo.h1Count) === 1 ? "" : "s"} detected`
+      : "Heading count unavailable"
+  );
+
+
+  const onPageCodes =
+    new Set([
+      "TITLE_MISSING",
+      "META_DESCRIPTION_MISSING",
+      "H1_MISSING"
+    ]);
+
+
+  const issues =
+    findings.filter(
+      finding =>
+        onPageCodes.has(
+          finding.codigo
+        )
+    );
+
+
+  if (
+    issues.length === 0 &&
+    !seo.erro
+  ) {
+
+    return {
+
+      tom:
+        "good",
+
+      titulo:
+        "Core tags present",
+
+      detalhe:
+        "Title, meta description and H1 detected"
+    };
+  }
+
+
+  if (
+    issues.length > 0
+  ) {
+
+    const high =
+      issues.some(
+        finding =>
+          normalizarSeveridade(
+            finding.severidade
+          ) === "high"
+      );
+
+
+    return {
+
+      tom:
+        high
+          ? "bad"
+          : "warning",
+
+      titulo:
+        `${issues.length} issue${issues.length === 1 ? "" : "s"}`,
+
+      detalhe:
+        "Verified on-page findings detected"
+    };
+  }
+
+
+  return {
+
+    tom:
+      "neutral",
+
+    titulo:
+      "Unknown",
+
+    detalhe:
+      "On-page data unavailable"
+  };
+}
+
+
+// ======================================================
+// SNAPSHOT
+// ======================================================
+
+function atualizarSnapshot({
+  performanceInfo,
+  indexabilityInfo,
+  onPageInfo,
+  findings
+}) {
+
+  const score =
+    performanceInfo.score;
+
+
+  definirTexto(
+    "snapshotScore",
+    Number.isFinite(
+      score
+    )
+      ? score
+      : "-"
+  );
+
+
+  definirTexto(
+    "snapshotPerformance",
+    performanceInfo.scoreTexto
+  );
+
+
+  definirTexto(
+    "snapshotPerformanceDetail",
+    Number.isFinite(
+      score
+    )
+      ? `Lighthouse score ${score}/100`
+      : "Performance unavailable"
+  );
+
+
+  definirTomCard(
+    "snapshotPerformanceCard",
+    performanceInfo.scoreTom
+  );
+
+
+  const ring =
+    document.getElementById(
+      "snapshotScoreRing"
+    );
+
+
+  if (
+    ring
+  ) {
+
+    const bounded =
+      Number.isFinite(
+        score
+      )
+        ? Math.max(
+            0,
+            Math.min(
+              score,
+              100
+            )
+          )
+        : 0;
+
+
+    const color =
+      performanceInfo.scoreTom === "good"
+        ? "#43d18b"
+        : performanceInfo.scoreTom === "warning"
+          ? "#f2c94c"
+          : performanceInfo.scoreTom === "bad"
+            ? "#ff6b78"
+            : "#5b718e";
+
+
+    ring.style.setProperty(
+      "--score-angle",
+      `${bounded * 3.6}deg`
+    );
+
+
+    ring.style.setProperty(
+      "--score-color",
+      color
+    );
+  }
+
+
+  definirTexto(
+    "snapshotIndexability",
+    indexabilityInfo.titulo
+  );
+
+
+  definirTexto(
+    "snapshotIndexabilityDetail",
+    indexabilityInfo.detalhe
+  );
+
+
+  definirTomCard(
+    "snapshotIndexabilityCard",
+    indexabilityInfo.tom
+  );
+
+
+  definirTexto(
+    "snapshotOnPage",
+    onPageInfo.titulo
+  );
+
+
+  definirTexto(
+    "snapshotOnPageDetail",
+    onPageInfo.detalhe
+  );
+
+
+  definirTomCard(
+    "snapshotOnPageCard",
+    onPageInfo.tom
+  );
+
+
+  const quantidade =
+    findings.length;
+
+
+  const high =
+    findings.filter(
+      finding =>
+        normalizarSeveridade(
+          finding.severidade
+        ) === "high"
+    ).length;
+
+
+  const medium =
+    findings.filter(
+      finding =>
+        normalizarSeveridade(
+          finding.severidade
+        ) === "medium"
+    ).length;
+
+
+  let tom =
+    "good";
+
+
+  let titulo =
+    "No findings";
+
+
+  let detalhe =
+    "No verified opportunities detected";
+
+
+  if (
+    high > 0
+  ) {
+
+    tom =
+      "bad";
+
+
+    titulo =
+      `${high} high priority`;
+
+
+    detalhe =
+      `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
+
+  } else if (
+    medium > 0
+  ) {
+
+    tom =
+      "warning";
+
+
+    titulo =
+      `${medium} to review`;
+
+
+    detalhe =
+      `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
+
+  } else if (
+    quantidade > 0
+  ) {
+
+    tom =
+      "warning";
+
+
+    titulo =
+      `${quantidade} detected`;
+
+
+    detalhe =
+      "Verified opportunities available";
+  }
+
+
+  definirTexto(
+    "snapshotOpportunities",
+    titulo
+  );
+
+
+  definirTexto(
+    "snapshotOpportunitiesDetail",
+    detalhe
+  );
+
+
+  definirTomCard(
+    "snapshotOpportunitiesCard",
+    tom
+  );
+}
+
+
+// ======================================================
+// FINDINGS
+// ======================================================
+
+function atualizarContadoresFindings(
+  findings
+) {
+
+  const contadores = {
+
+    all:
+      findings.length,
+
+    high:
+      0,
+
+    medium:
+      0,
+
+    low:
+      0
+  };
+
+
+  findings.forEach(
+    finding => {
+
+      const nivel =
+        normalizarSeveridade(
+          finding.severidade
+        );
+
+
+      if (
+        contadores[nivel] !==
+        undefined
+      ) {
+
+        contadores[nivel] +=
+          1;
+      }
+    }
+  );
+
+
+  definirTexto(
+    "filterAllCount",
+    contadores.all,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterHighCount",
+    contadores.high,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterMediumCount",
+    contadores.medium,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterLowCount",
+    contadores.low,
+    "0"
+  );
+}
+
+
+function mostrarFindings(
+  findings,
+  filtro = "all"
+) {
+
+  const container =
+    document.getElementById(
+      "findings"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  const lista =
+    Array.isArray(
+      findings
+    )
+      ? findings
+      : [];
+
+
+  atualizarContadoresFindings(
+    lista
+  );
+
+
+  const filtrados =
+    filtro === "all"
+      ? lista
+      : lista.filter(
+          finding =>
+            normalizarSeveridade(
+              finding.severidade
+            ) === filtro
+        );
+
+
+  if (
+    filtrados.length === 0
+  ) {
+
+    const vazio =
+      document.createElement(
+        "div"
+      );
+
+
+    vazio.className =
+      "empty-state";
+
+
+    vazio.textContent =
+      lista.length === 0
+        ? "No verified issues were detected in this analysis."
+        : `No ${filtro} severity findings in this analysis.`;
+
+
+    container.appendChild(
+      vazio
+    );
+
+
+    return;
+  }
+
+
+  filtrados.forEach(
+    finding => {
+
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+
+      card.className =
+        "finding";
+
+
+      // MAIN
+
+      const main =
+        document.createElement(
+          "div"
+        );
+
+
+      main.className =
+        "finding-main";
+
+
+      const alert =
+        document.createElement(
+          "div"
+        );
+
+
+      alert.className =
+        "finding-alert";
+
+
+      alert.textContent =
+        "!";
+
+
+      const mainText =
+        document.createElement(
+          "div"
+        );
+
+
+      const titulo =
+        document.createElement(
+          "div"
+        );
+
+
+      titulo.className =
+        "finding-code";
+
+
+      titulo.textContent =
+        nomeFinding(
+          finding.codigo
+        );
+
+
+      const evidencia =
+        document.createElement(
+          "div"
+        );
+
+
+      evidencia.className =
+        "finding-evidence";
+
+
+      evidencia.textContent =
+        finding.evidencia ||
+        "No evidence provided.";
+
+
+      mainText.appendChild(
+        titulo
+      );
+
+
+      mainText.appendChild(
+        evidencia
+      );
+
+
+      main.appendChild(
+        alert
+      );
+
+
+      main.appendChild(
+        mainText
+      );
+
+
+      // EVIDENCE
+
+      const evidenceField =
+        document.createElement(
+          "div"
+        );
+
+
+      evidenceField.className =
+        "finding-field";
+
+
+      const evidenceLabel =
+        document.createElement(
+          "span"
+        );
+
+
+      evidenceLabel.className =
+        "finding-field-label";
+
+
+      evidenceLabel.textContent =
+        "Evidence";
+
+
+      const evidenceValue =
+        document.createElement(
+          "span"
+        );
+
+
+      evidenceValue.className =
+        "finding-field-value";
+
+
+      evidenceValue.textContent =
+        finding.evidencia ||
+        "Verified by analyzer";
+
+
+      evidenceField.appendChild(
+        evidenceLabel
+      );
+
+
+      evidenceField.appendChild(
+        evidenceValue
+      );
+
+
+      // CATEGORY
+
+      const categoryField =
+        document.createElement(
+          "div"
+        );
+
+
+      categoryField.className =
+        "finding-field";
+
+
+      const categoryLabel =
+        document.createElement(
+          "span"
+        );
+
+
+      categoryLabel.className =
+        "finding-field-label";
+
+
+      categoryLabel.textContent =
+        "Category";
+
+
+      const categoryValue =
+        document.createElement(
+          "span"
+        );
+
+
+      categoryValue.className =
+        "badge";
+
+
+      categoryValue.textContent =
+        categoriaFinding(
+          finding.categoria
+        );
+
+
+      categoryField.appendChild(
+        categoryLabel
+      );
+
+
+      categoryField.appendChild(
+        categoryValue
+      );
+
+
+      // SEVERITY
+
+      const severityField =
+        document.createElement(
+          "div"
+        );
+
+
+      severityField.className =
+        "finding-field";
+
+
+      const severityLabel =
+        document.createElement(
+          "span"
+        );
+
+
+      severityLabel.className =
+        "finding-field-label";
+
+
+      severityLabel.textContent =
+        "Severity";
+
+
+      const severityValue =
+        document.createElement(
+          "span"
+        );
+
+
+      const nivel =
+        normalizarSeveridade(
+          finding.severidade
+        );
+
+
+      severityValue.className =
+        `badge badge-${nivel}`;
+
+
+      severityValue.textContent =
+        capitalizar(
+          nivel
+        );
+
+
+      severityField.appendChild(
+        severityLabel
+      );
+
+
+      severityField.appendChild(
+        severityValue
+      );
+
+
+      card.appendChild(
+        main
+      );
+
+
+      card.appendChild(
+        evidenceField
+      );
+
+
+      card.appendChild(
+        categoryField
+      );
+
+
+      card.appendChild(
+        severityField
+      );
+
+
+      container.appendChild(
+        card
+      );
+    }
+  );
 }
 
 
@@ -993,85 +2287,65 @@ function mostrarResultado(
   );
 
 
-  // ====================================================
-  // PERFORMANCE
-  // ====================================================
+  const findings =
+    Array.isArray(
+      dados.findings
+    )
+      ? dados.findings
+      : [];
 
-  definirTexto(
-    "score",
-    dados.performance?.score
+
+  findingsAtuais =
+    findings;
+
+
+  filtroFindingAtual =
+    "all";
+
+
+  ativarFiltroVisual(
+    "all"
   );
 
 
-  definirTexto(
-    "lcp",
-    dados.performance?.lcp
-  );
+  const performanceInfo =
+    atualizarPerformance(
+      dados.performance ||
+      {}
+    );
 
 
-  definirTexto(
-    "cls",
-    dados.performance?.cls
-  );
+  const indexabilityInfo =
+    atualizarIndexability(
+      dados.indexability
+    );
 
 
-  definirTexto(
-    "fcp",
-    dados.performance?.fcp
-  );
+  const onPageInfo =
+    atualizarOnPage(
+      dados.seo ||
+      {},
+      findings
+    );
 
 
-  definirTexto(
-    "speedIndex",
-    dados.performance?.speedIndex
-  );
+  atualizarSnapshot({
 
+    performanceInfo,
 
-  // ====================================================
-  // INDEXABILITY
-  // ====================================================
+    indexabilityInfo,
 
-  mostrarIndexability(
-    dados.indexability
-  );
+    onPageInfo,
 
+    findings
+  });
 
-  // ====================================================
-  // SEO
-  // ====================================================
-
-  definirTexto(
-    "title",
-    dados.seo?.title,
-    "Not found"
-  );
-
-
-  definirTexto(
-    "metaDescription",
-    dados.seo?.metaDescription,
-    "Not found"
-  );
-
-
-  definirTexto(
-    "h1Count",
-    dados.seo?.h1Count
-  );
-
-
-  // ====================================================
-  // FINDINGS
-  // ====================================================
 
   mostrarFindings(
-    dados.findings
+    findings,
+    "all"
   );
 
-
-  // ====================================================
-  // AGENCY VIEW
-  // ====================================================
 
   const agencyView =
     dados.agencyView ||
@@ -1081,19 +2355,15 @@ function mostrarResultado(
     );
 
 
-  document.getElementById(
-    "agencyView"
-  ).textContent =
-    agencyView;
+  definirTexto(
+    "agencyView",
+    agencyView
+  );
 
 
   copyAgencyButton.disabled =
     !dados.agencyView;
 
-
-  // ====================================================
-  // PROSPECT VIEW
-  // ====================================================
 
   const prospectView =
     dados.prospectView ||
@@ -1103,40 +2373,59 @@ function mostrarResultado(
     );
 
 
-  document.getElementById(
-    "prospectView"
-  ).textContent =
-    prospectView;
+  definirTexto(
+    "prospectView",
+    prospectView
+  );
 
 
   copyProspectButton.disabled =
     !dados.prospectView;
 
 
-  // ====================================================
-  // STATUS
-  // ====================================================
-
   const quantidade =
-    dados.findings?.length ??
-    0;
+    findings.length;
 
 
-  const status =
+  const statusIA =
     formatarStatusIA(
       dados.iaStatus
     );
 
 
-  document.getElementById(
-    "analysisStatus"
-  ).textContent =
-    `${quantidade} verified finding${quantidade === 1 ? "" : "s"} · AI status: ${status}`;
+  definirTexto(
+    "analysisStatus",
+    `${quantidade} verified finding${quantidade === 1 ? "" : "s"} · AI status: ${statusIA}`
+  );
 
 
-  // ====================================================
-  // SHOW RESULTS
-  // ====================================================
+  const freshness =
+    textoTempoAnalise(
+      dados.analisadoEm
+    );
+
+
+  definirTexto(
+    "analysisFreshness",
+    freshness
+  );
+
+
+  definirTexto(
+    "lastAnalyzed",
+    freshness
+  );
+
+
+  document
+    .getElementById(
+      "lastAnalyzed"
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
+
 
   results.classList.remove(
     "hidden"
@@ -1155,259 +2444,46 @@ function mostrarResultado(
 
 
 // ======================================================
-// FINDINGS
+// FILTERS
 // ======================================================
 
-function mostrarFindings(
-  findings
+function ativarFiltroVisual(
+  filtro
 ) {
 
-  const container =
-    document.getElementById(
-      "findings"
-    );
-
-
-  container.innerHTML =
-    "";
-
-
-  if (
-    !Array.isArray(
-      findings
+  document
+    .querySelectorAll(
+      ".filter-chip"
     )
-    ||
-    findings.length === 0
-  ) {
+    .forEach(
+      botao => {
 
-    const vazio =
-      document.createElement(
-        "div"
-      );
-
-
-    vazio.className =
-      "empty-state";
-
-
-    vazio.textContent =
-      "No verified issues were detected in this analysis.";
-
-
-    container.appendChild(
-      vazio
-    );
-
-
-    return;
-  }
-
-
-  findings.forEach(
-    finding => {
-
-      const card =
-        document.createElement(
-          "div"
+        botao.classList.toggle(
+          "active",
+          botao.dataset.filter ===
+          filtro
         );
-
-
-      card.className =
-        "finding";
-
-
-      // ==================================================
-      // TOP
-      // ==================================================
-
-      const top =
-        document.createElement(
-          "div"
-        );
-
-
-      top.className =
-        "finding-top";
-
-
-      // ==================================================
-      // NAME
-      // ==================================================
-
-      const codigo =
-        document.createElement(
-          "div"
-        );
-
-
-      codigo.className =
-        "finding-code";
-
-
-      codigo.textContent =
-        nomeFinding(
-          finding.codigo
-        );
-
-
-      // ==================================================
-      // META
-      // ==================================================
-
-      const meta =
-        document.createElement(
-          "div"
-        );
-
-
-      meta.className =
-        "finding-meta";
-
-
-      // ==================================================
-      // CATEGORY
-      // ==================================================
-
-      const categoria =
-        document.createElement(
-          "span"
-        );
-
-
-      categoria.className =
-        "badge";
-
-
-      categoria.textContent =
-        finding.categoria ===
-        "seo"
-          ? "SEO"
-          : capitalizar(
-              finding.categoria
-            );
-
-
-      // ==================================================
-      // SEVERITY
-      // ==================================================
-
-      const severidade =
-        document.createElement(
-          "span"
-        );
-
-
-      severidade.className =
-        "badge";
-
-
-      const nivel =
-        String(
-          finding.severidade ||
-          ""
-        )
-          .toLowerCase();
-
-
-      if (
-        nivel === "high" ||
-        nivel === "alta"
-      ) {
-
-        severidade
-          .classList
-          .add(
-            "badge-high"
-          );
-
-      } else if (
-        nivel === "medium" ||
-        nivel === "media" ||
-        nivel === "média"
-      ) {
-
-        severidade
-          .classList
-          .add(
-            "badge-medium"
-          );
-
-      } else {
-
-        severidade
-          .classList
-          .add(
-            "badge-low"
-          );
       }
+    );
+}
 
 
-      severidade.textContent =
-        nivel === "alta"
-          ? "High"
-          : (
-              nivel === "media" ||
-              nivel === "média"
-            )
-            ? "Medium"
-            : capitalizar(
-                finding.severidade
-              );
+function filtrarFindings(
+  filtro
+) {
+
+  filtroFindingAtual =
+    filtro;
 
 
-      meta.appendChild(
-        categoria
-      );
+  ativarFiltroVisual(
+    filtro
+  );
 
 
-      meta.appendChild(
-        severidade
-      );
-
-
-      top.appendChild(
-        codigo
-      );
-
-
-      top.appendChild(
-        meta
-      );
-
-
-      // ==================================================
-      // EVIDENCE
-      // ==================================================
-
-      const evidencia =
-        document.createElement(
-          "div"
-        );
-
-
-      evidencia.className =
-        "finding-evidence";
-
-
-      evidencia.textContent =
-        finding.evidencia ||
-        "No evidence provided.";
-
-
-      card.appendChild(
-        top
-      );
-
-
-      card.appendChild(
-        evidencia
-      );
-
-
-      container.appendChild(
-        card
-      );
-    }
+  mostrarFindings(
+    findingsAtuais,
+    filtro
   );
 }
 
@@ -1429,8 +2505,8 @@ async function copiarTexto(
 
   const texto =
     elemento
-      .textContent
-      .trim();
+      ?.textContent
+      ?.trim();
 
 
   if (
@@ -1496,10 +2572,6 @@ async function copiarTexto(
   }
 }
 
-
-// ======================================================
-// COPY FEEDBACK
-// ======================================================
 
 function mostrarCopiado(
   botao
@@ -1579,6 +2651,32 @@ copyProspectButton.addEventListener(
     copiarTexto(
       "prospectView",
       copyProspectButton
+    );
+  }
+);
+
+
+findingFilters.addEventListener(
+  "click",
+  event => {
+
+    const botao =
+      event.target.closest(
+        ".filter-chip"
+      );
+
+
+    if (
+      !botao
+    ) {
+
+      return;
+    }
+
+
+    filtrarFindings(
+      botao.dataset.filter ||
+      "all"
     );
   }
 );

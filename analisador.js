@@ -1177,6 +1177,7 @@ async function analisarSite(
     - Canonical
     - robots.txt
     - sitemap
+    - Structured Data / JSON-LD
   */
 
   const [
@@ -1201,6 +1202,10 @@ async function analisarSite(
 
   const indexability =
     pagina.indexability;
+
+
+  const structuredData =
+    pagina.structuredData;
 
 
   // ====================================================
@@ -1281,6 +1286,8 @@ async function analisarSite(
 
     indexability,
 
+    structuredData,
+
     seo,
 
     findings,
@@ -1316,6 +1323,9 @@ async function analisarSite(
 
       indexability:
         resultado.indexability,
+
+      structuredData:
+        resultado.structuredData,
 
       seo:
         resultado.seo,

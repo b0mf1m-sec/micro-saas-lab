@@ -473,6 +473,277 @@ async function verificarSitemap(
 
 
 // ======================================================
+// STRUCTURED DATA / JSON-LD
+// ======================================================
+
+function coletarTiposSchema(
+  valor,
+  tipos
+) {
+
+  if (
+    valor === null ||
+    valor === undefined
+  ) {
+
+    return;
+  }
+
+
+  if (
+    Array.isArray(
+      valor
+    )
+  ) {
+
+    for (
+      const item of valor
+    ) {
+
+      coletarTiposSchema(
+        item,
+        tipos
+      );
+    }
+
+
+    return;
+  }
+
+
+  if (
+    typeof valor !==
+    "object"
+  ) {
+
+    return;
+  }
+
+
+  const tipo =
+    valor["@type"];
+
+
+  if (
+    typeof tipo ===
+    "string"
+  ) {
+
+    const limpo =
+      tipo.trim();
+
+
+    if (
+      limpo
+    ) {
+
+      tipos.add(
+        limpo
+      );
+    }
+
+  } else if (
+    Array.isArray(
+      tipo
+    )
+  ) {
+
+    for (
+      const item of tipo
+    ) {
+
+      if (
+        typeof item !==
+        "string"
+      ) {
+
+        continue;
+      }
+
+
+      const limpo =
+        item.trim();
+
+
+      if (
+        limpo
+      ) {
+
+        tipos.add(
+          limpo
+        );
+      }
+    }
+  }
+
+
+  for (
+    const filho of
+    Object.values(
+      valor
+    )
+  ) {
+
+    coletarTiposSchema(
+      filho,
+      tipos
+    );
+  }
+}
+
+
+function analisarStructuredData(
+  $
+) {
+
+  const resultado = {
+
+    found:
+      false,
+
+    scriptCount:
+      0,
+
+    validScripts:
+      0,
+
+    invalidScripts:
+      0,
+
+    types:
+      [],
+
+    erro:
+      null
+  };
+
+
+  const tipos =
+    new Set();
+
+
+  $("script").each(
+    (
+      index,
+      elemento
+    ) => {
+
+      const type =
+        $(elemento)
+          .attr(
+            "type"
+          )
+          ?.trim()
+          .toLowerCase();
+
+
+      if (
+        type !==
+        "application/ld+json"
+      ) {
+
+        return;
+      }
+
+
+      resultado.scriptCount +=
+        1;
+
+
+      const conteudo =
+        (
+          $(elemento)
+            .html()
+          ||
+          ""
+        )
+          .replace(
+            /^\uFEFF/,
+            ""
+          )
+          .trim();
+
+
+      if (
+        !conteudo
+      ) {
+
+        resultado.invalidScripts +=
+          1;
+
+        return;
+      }
+
+
+      try {
+
+        const dados =
+          JSON.parse(
+            conteudo
+          );
+
+
+        resultado.validScripts +=
+          1;
+
+
+        coletarTiposSchema(
+          dados,
+          tipos
+        );
+
+      } catch {
+
+        resultado.invalidScripts +=
+          1;
+      }
+    }
+  );
+
+
+  resultado.found =
+    resultado.scriptCount >
+    0;
+
+
+  resultado.types =
+    [
+      ...tipos
+    ];
+
+
+  return resultado;
+}
+
+
+function structuredDataIndisponivel(
+  mensagem = null
+) {
+
+  return {
+
+    found:
+      false,
+
+    scriptCount:
+      0,
+
+    validScripts:
+      0,
+
+    invalidScripts:
+      0,
+
+    types:
+      [],
+
+    erro:
+      mensagem
+  };
+}
+
+
+// ======================================================
 // ANALYZE PAGE
 // ======================================================
 
@@ -590,6 +861,12 @@ async function analisarPagina(
           },
 
 
+          structuredData:
+            structuredDataIndisponivel(
+              `HTML was not analyzed because the page returned HTTP ${httpStatus}.`
+            ),
+
+
           indexability: {
 
             httpStatus,
@@ -634,6 +911,16 @@ async function analisarPagina(
       const $ =
         cheerio.load(
           html
+        );
+
+
+      // =================================================
+      // STRUCTURED DATA / JSON-LD
+      // =================================================
+
+      const structuredData =
+        analisarStructuredData(
+          $
         );
 
 
@@ -820,6 +1107,9 @@ async function analisarPagina(
         },
 
 
+        structuredData,
+
+
         indexability: {
 
           httpStatus,
@@ -923,6 +1213,12 @@ async function analisarPagina(
           erro:
             erro.message
         },
+
+
+        structuredData:
+          structuredDataIndisponivel(
+            erro.message
+          ),
 
 
         indexability: {

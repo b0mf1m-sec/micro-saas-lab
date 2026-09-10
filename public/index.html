@@ -14,208 +14,1386 @@
         <span class="brand-mark" aria-hidden="true">
           <span></span><span></span><span></span>
         </span>
-        <span class="brand-name">Prospect Analyzer</span>
-        <span class="version-badge">V2.1</span>
+
+        <span class="brand-name">
+          Prospect Analyzer
+        </span>
+
+        <span class="version-badge">
+          V2.1
+        </span>
       </a>
 
       <div class="topbar-actions">
-        <span class="evidence-chip"><span class="dot"></span>Evidence-first</span>
-        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
-          <span id="themeIcon" aria-hidden="true">☾</span>
-          <span id="themeLabel">Dark</span>
+        <span class="evidence-chip">
+          <span class="dot"></span>
+          Evidence-first
+        </span>
+
+        <button
+          id="themeToggle"
+          class="theme-toggle"
+          type="button"
+          aria-label="Switch theme"
+          title="Switch theme"
+        >
+          <span
+            id="themeIcon"
+            aria-hidden="true"
+          >
+            ☾
+          </span>
+
+          <span id="themeLabel">
+            Dark
+          </span>
         </button>
       </div>
     </header>
 
+
     <main class="workspace">
+
+      <!-- ==================================================
+           HERO
+           ================================================== -->
+
       <section class="hero">
         <div>
-          <div class="kicker">SEO prospecting workspace</div>
-          <h1>Website Analysis</h1>
-          <p>Turn verified website findings into personalized sales outreach.</p>
-        </div>
-        <p class="hero-note">Find opportunities. Build better outreach.</p>
-      </section>
-
-      <section class="search-area" aria-label="Website analysis">
-        <div class="search-row">
-          <div class="url-field">
-            <span class="url-symbol" aria-hidden="true">↗</span>
-            <input id="urlInput" type="text" placeholder="dcwashingtonplumber.com" autocomplete="off" spellcheck="false">
+          <div class="kicker">
+            SEO prospecting workspace
           </div>
-          <button id="analyzeButton" class="primary-button" type="button">
-            <span>Analyze</span><span aria-hidden="true">→</span>
+
+          <h1>
+            Website Analysis
+          </h1>
+
+          <p>
+            Turn verified website findings into personalized sales outreach.
+          </p>
+        </div>
+
+        <p class="hero-note">
+          Find opportunities. Build better outreach.
+        </p>
+      </section>
+
+
+      <!-- ==================================================
+           SEARCH
+           ================================================== -->
+
+      <section
+        class="search-area"
+        aria-label="Website analysis"
+      >
+
+        <div class="search-row">
+
+          <div class="url-field">
+
+            <span
+              class="url-symbol"
+              aria-hidden="true"
+            >
+              ↗
+            </span>
+
+            <input
+              id="urlInput"
+              type="text"
+              placeholder="Enter a prospect domain, e.g. example.com"
+              autocomplete="off"
+              spellcheck="false"
+            >
+
+          </div>
+
+
+          <button
+            id="analyzeButton"
+            class="primary-button"
+            type="button"
+          >
+            <span>
+              Analyze
+            </span>
+
+            <span aria-hidden="true">
+              →
+            </span>
           </button>
+
         </div>
+
+
         <div class="search-meta">
-          <span>Enter a domain, subdomain, or full URL.</span>
-          <span id="lastAnalyzed" class="hidden"></span>
+
+          <span>
+            Enter a domain, subdomain, or full URL.
+          </span>
+
+          <span
+            id="lastAnalyzed"
+            class="hidden"
+          ></span>
+
         </div>
+
       </section>
 
-      <section id="loading" class="loading-panel hidden" aria-live="polite">
-        <span class="spinner" aria-hidden="true"></span>
+
+      <!-- ==================================================
+           LOADING
+           ================================================== -->
+
+      <section
+        id="loading"
+        class="loading-panel hidden"
+        aria-live="polite"
+      >
+
+        <span
+          class="spinner"
+          aria-hidden="true"
+        ></span>
+
         <div>
-          <strong>Analyzing website…</strong>
-          <span>Checking performance, indexability, crawling, on-page SEO and verified opportunities.</span>
+
+          <strong>
+            Analyzing website…
+          </strong>
+
+          <span>
+            Checking performance, indexability, crawling, structured data, on-page SEO and verified opportunities.
+          </span>
+
         </div>
+
       </section>
 
-      <div id="error" class="error-box hidden" role="alert"></div>
 
-      <section id="results" class="results hidden">
-        <nav class="tabs" aria-label="Analysis sections">
-          <button class="tab-button active" type="button" data-tab="overview">Overview</button>
-          <button class="tab-button" type="button" data-tab="technical">Technical</button>
-          <button class="tab-button" type="button" data-tab="opportunities">Opportunities <span id="tabOpportunityCount" class="tab-count">0</span></button>
-          <button class="tab-button" type="button" data-tab="outreach">Outreach</button>
+      <!-- ==================================================
+           ERROR
+           ================================================== -->
+
+      <div
+        id="error"
+        class="error-box hidden"
+        role="alert"
+      ></div>
+
+
+      <!-- ==================================================
+           RESULTS
+           ================================================== -->
+
+      <section
+        id="results"
+        class="results hidden"
+      >
+
+
+        <!-- ==================================================
+             TABS
+             ================================================== -->
+
+        <nav
+          class="tabs"
+          aria-label="Analysis sections"
+        >
+
+          <button
+            class="tab-button active"
+            type="button"
+            data-tab="overview"
+          >
+            Overview
+          </button>
+
+
+          <button
+            class="tab-button"
+            type="button"
+            data-tab="technical"
+          >
+            Technical
+          </button>
+
+
+          <button
+            class="tab-button"
+            type="button"
+            data-tab="opportunities"
+          >
+            Opportunities
+
+            <span
+              id="tabOpportunityCount"
+              class="tab-count"
+            >
+              0
+            </span>
+          </button>
+
+
+          <button
+            class="tab-button"
+            type="button"
+            data-tab="outreach"
+          >
+            Outreach
+          </button>
+
         </nav>
 
-        <!-- OVERVIEW -->
-        <div class="tab-panel active" data-panel="overview">
-          <section class="section-block overview-block">
+
+        <!-- ==================================================
+             OVERVIEW
+             ================================================== -->
+
+        <div
+          class="tab-panel active"
+          data-panel="overview"
+        >
+
+
+          <section
+            class="section-block overview-block"
+          >
+
             <div class="section-heading">
+
               <div>
-                <span class="section-kicker">At a glance</span>
-                <h2>Overall Snapshot</h2>
-                <p>Quick view of the site's technical health and highest-priority findings.</p>
+
+                <span class="section-kicker">
+                  At a glance
+                </span>
+
+                <h2>
+                  Overall Snapshot
+                </h2>
+
+                <p>
+                  Quick view of the site's technical health and highest-priority findings.
+                </p>
+
               </div>
-              <div class="freshness"><span class="dot"></span><span id="analysisFreshness">Analyzed just now</span></div>
+
+
+              <div class="freshness">
+
+                <span class="dot"></span>
+
+                <span id="analysisFreshness">
+                  Analyzed just now
+                </span>
+
+              </div>
+
             </div>
+
 
             <div class="snapshot-grid">
-              <article class="snapshot-item" id="snapshotPerformanceCard">
-                <div class="score-ring" id="snapshotScoreRing"><span id="snapshotScore">-</span></div>
-                <div><span class="label">Performance</span><strong id="snapshotPerformance">Unknown</strong><small id="snapshotPerformanceDetail">Waiting for data</small></div>
+
+
+              <article
+                class="snapshot-item"
+                id="snapshotPerformanceCard"
+              >
+
+                <div
+                  class="score-ring"
+                  id="snapshotScoreRing"
+                >
+                  <span id="snapshotScore">
+                    -
+                  </span>
+                </div>
+
+                <div>
+
+                  <span class="label">
+                    Performance
+                  </span>
+
+                  <strong id="snapshotPerformance">
+                    Unknown
+                  </strong>
+
+                  <small id="snapshotPerformanceDetail">
+                    Waiting for data
+                  </small>
+
+                </div>
+
               </article>
-              <article class="snapshot-item" id="snapshotIndexabilityCard">
-                <div class="status-icon">✓</div>
-                <div><span class="label">Indexability</span><strong id="snapshotIndexability">Unknown</strong><small id="snapshotIndexabilityDetail">Waiting for data</small></div>
+
+
+              <article
+                class="snapshot-item"
+                id="snapshotIndexabilityCard"
+              >
+
+                <div class="status-icon">
+                  ✓
+                </div>
+
+                <div>
+
+                  <span class="label">
+                    Indexability
+                  </span>
+
+                  <strong id="snapshotIndexability">
+                    Unknown
+                  </strong>
+
+                  <small id="snapshotIndexabilityDetail">
+                    Waiting for data
+                  </small>
+
+                </div>
+
               </article>
-              <article class="snapshot-item" id="snapshotOnPageCard">
-                <div class="status-icon">≡</div>
-                <div><span class="label">On-Page SEO</span><strong id="snapshotOnPage">Unknown</strong><small id="snapshotOnPageDetail">Waiting for data</small></div>
+
+
+              <article
+                class="snapshot-item"
+                id="snapshotOnPageCard"
+              >
+
+                <div class="status-icon">
+                  ≡
+                </div>
+
+                <div>
+
+                  <span class="label">
+                    On-Page SEO
+                  </span>
+
+                  <strong id="snapshotOnPage">
+                    Unknown
+                  </strong>
+
+                  <small id="snapshotOnPageDetail">
+                    Waiting for data
+                  </small>
+
+                </div>
+
               </article>
-              <article class="snapshot-item" id="snapshotOpportunitiesCard">
-                <div class="status-icon">↗</div>
-                <div><span class="label">Opportunities</span><strong id="snapshotOpportunities">0 detected</strong><small id="snapshotOpportunitiesDetail">No verified findings yet</small></div>
+
+
+              <article
+                class="snapshot-item"
+                id="snapshotOpportunitiesCard"
+              >
+
+                <div class="status-icon">
+                  ↗
+                </div>
+
+                <div>
+
+                  <span class="label">
+                    Opportunities
+                  </span>
+
+                  <strong id="snapshotOpportunities">
+                    0 detected
+                  </strong>
+
+                  <small id="snapshotOpportunitiesDetail">
+                    No verified findings yet
+                  </small>
+
+                </div>
+
               </article>
+
+
             </div>
+
           </section>
+
 
           <div class="overview-grid">
+
+
             <section class="section-block">
-              <div class="section-heading compact">
-                <div><span class="section-kicker">Performance</span><h2>Core Web Signals</h2></div>
-                <button class="text-action" type="button" data-go-tab="technical">View technical →</button>
-              </div>
-              <div class="overview-metrics">
-                <div><span>Score</span><strong id="overviewScore">-</strong></div>
-                <div><span>LCP</span><strong id="overviewLcp">-</strong></div>
-                <div><span>CLS</span><strong id="overviewCls">-</strong></div>
-                <div><span>FCP</span><strong id="overviewFcp">-</strong></div>
-              </div>
-            </section>
 
-            <section class="section-block top-opportunity-block">
               <div class="section-heading compact">
-                <div><span class="section-kicker">Evidence-first</span><h2>Top Opportunity</h2></div>
-                <button class="text-action" type="button" data-go-tab="opportunities">View all →</button>
-              </div>
-              <div id="topOpportunity" class="top-opportunity empty-opportunity">
-                <div class="opportunity-marker">✓</div>
+
                 <div>
-                  <strong id="topOpportunityTitle">No verified findings</strong>
-                  <p id="topOpportunityEvidence">Run an analysis to review verified opportunities.</p>
+
+                  <span class="section-kicker">
+                    Performance
+                  </span>
+
+                  <h2>
+                    Core Web Signals
+                  </h2>
+
                 </div>
-                <span id="topOpportunitySeverity" class="status-pill neutral">—</span>
+
+
+                <button
+                  class="text-action"
+                  type="button"
+                  data-go-tab="technical"
+                >
+                  View technical →
+                </button>
+
               </div>
+
+
+              <div class="overview-metrics">
+
+                <div>
+                  <span>
+                    Score
+                  </span>
+
+                  <strong id="overviewScore">
+                    -
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>
+                    LCP
+                  </span>
+
+                  <strong id="overviewLcp">
+                    -
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>
+                    CLS
+                  </span>
+
+                  <strong id="overviewCls">
+                    -
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>
+                    FCP
+                  </span>
+
+                  <strong id="overviewFcp">
+                    -
+                  </strong>
+                </div>
+
+              </div>
+
             </section>
+
+
+            <section
+              class="section-block top-opportunity-block"
+            >
+
+              <div class="section-heading compact">
+
+                <div>
+
+                  <span class="section-kicker">
+                    Evidence-first
+                  </span>
+
+                  <h2>
+                    Top Opportunity
+                  </h2>
+
+                </div>
+
+
+                <button
+                  class="text-action"
+                  type="button"
+                  data-go-tab="opportunities"
+                >
+                  View all →
+                </button>
+
+              </div>
+
+
+              <div
+                id="topOpportunity"
+                class="top-opportunity empty-opportunity"
+              >
+
+                <div class="opportunity-marker">
+                  ✓
+                </div>
+
+
+                <div>
+
+                  <strong id="topOpportunityTitle">
+                    No verified findings
+                  </strong>
+
+                  <p id="topOpportunityEvidence">
+                    Run an analysis to review verified opportunities.
+                  </p>
+
+                </div>
+
+
+                <span
+                  id="topOpportunitySeverity"
+                  class="status-pill neutral"
+                >
+                  —
+                </span>
+
+              </div>
+
+            </section>
+
           </div>
+
         </div>
 
-        <!-- TECHNICAL -->
-        <div class="tab-panel" data-panel="technical">
+
+        <!-- ==================================================
+             TECHNICAL
+             ================================================== -->
+
+        <div
+          class="tab-panel"
+          data-panel="technical"
+        >
+
+
+          <!-- ==================================================
+               PERFORMANCE
+               ================================================== -->
+
           <section class="section-block">
+
             <div class="section-heading">
-              <div><span class="section-kicker">Lighthouse</span><h2>Performance</h2><p>Measured loading and visual stability signals.</p></div>
+
+              <div>
+
+                <span class="section-kicker">
+                  Lighthouse
+                </span>
+
+                <h2>
+                  Performance
+                </h2>
+
+                <p>
+                  Measured loading and visual stability signals.
+                </p>
+
+              </div>
+
             </div>
+
+
             <div class="metrics-grid">
-              <article class="metric-item"><span class="label">Performance Score</span><div class="metric-main"><strong id="score">-</strong><small>/ 100</small></div><div class="score-track"><span id="scoreBar"></span></div><span id="scoreStatus" class="status-pill neutral">Waiting</span></article>
-              <article class="metric-item"><span class="label">LCP</span><strong id="lcp" class="metric-number">-</strong><span id="lcpStatus" class="status-pill neutral">Waiting</span><small>Largest Contentful Paint</small></article>
-              <article class="metric-item"><span class="label">CLS</span><strong id="cls" class="metric-number">-</strong><span id="clsStatus" class="status-pill neutral">Waiting</span><small>Cumulative Layout Shift</small></article>
-              <article class="metric-item"><span class="label">FCP</span><strong id="fcp" class="metric-number">-</strong><span class="status-pill neutral">Measured</span><small>First Contentful Paint</small></article>
-              <article class="metric-item"><span class="label">Speed Index</span><strong id="speedIndex" class="metric-number">-</strong><span class="status-pill neutral">Measured</span><small>Visual loading progression</small></article>
+
+
+              <article class="metric-item">
+
+                <span class="label">
+                  Performance Score
+                </span>
+
+                <div class="metric-main">
+
+                  <strong id="score">
+                    -
+                  </strong>
+
+                  <small>
+                    / 100
+                  </small>
+
+                </div>
+
+                <div class="score-track">
+                  <span id="scoreBar"></span>
+                </div>
+
+                <span
+                  id="scoreStatus"
+                  class="status-pill neutral"
+                >
+                  Waiting
+                </span>
+
+              </article>
+
+
+              <article class="metric-item">
+
+                <span class="label">
+                  LCP
+                </span>
+
+                <strong
+                  id="lcp"
+                  class="metric-number"
+                >
+                  -
+                </strong>
+
+                <span
+                  id="lcpStatus"
+                  class="status-pill neutral"
+                >
+                  Waiting
+                </span>
+
+                <small>
+                  Largest Contentful Paint
+                </small>
+
+              </article>
+
+
+              <article class="metric-item">
+
+                <span class="label">
+                  CLS
+                </span>
+
+                <strong
+                  id="cls"
+                  class="metric-number"
+                >
+                  -
+                </strong>
+
+                <span
+                  id="clsStatus"
+                  class="status-pill neutral"
+                >
+                  Waiting
+                </span>
+
+                <small>
+                  Cumulative Layout Shift
+                </small>
+
+              </article>
+
+
+              <article class="metric-item">
+
+                <span class="label">
+                  FCP
+                </span>
+
+                <strong
+                  id="fcp"
+                  class="metric-number"
+                >
+                  -
+                </strong>
+
+                <span class="status-pill neutral">
+                  Measured
+                </span>
+
+                <small>
+                  First Contentful Paint
+                </small>
+
+              </article>
+
+
+              <article class="metric-item">
+
+                <span class="label">
+                  Speed Index
+                </span>
+
+                <strong
+                  id="speedIndex"
+                  class="metric-number"
+                >
+                  -
+                </strong>
+
+                <span class="status-pill neutral">
+                  Measured
+                </span>
+
+                <small>
+                  Visual loading progression
+                </small>
+
+              </article>
+
+
             </div>
+
           </section>
 
+
+          <!-- ==================================================
+               INDEXABILITY
+               ================================================== -->
+
           <section class="section-block">
-            <div class="section-heading"><div><span class="section-kicker">Search access</span><h2>Indexability & Crawling</h2><p>Signals that affect how search engines can access and interpret the page.</p></div></div>
+
+            <div class="section-heading">
+
+              <div>
+
+                <span class="section-kicker">
+                  Search access
+                </span>
+
+                <h2>
+                  Indexability & Crawling
+                </h2>
+
+                <p>
+                  Signals that affect how search engines can access and interpret the page.
+                </p>
+
+              </div>
+
+            </div>
+
+
             <div class="technical-table">
-              <div class="technical-row"><span>HTTP Status</span><span id="httpStatus" class="status-pill neutral">-</span><small>Final page response</small></div>
-              <div class="technical-row"><span>HTTPS</span><span id="httpsStatus" class="status-pill neutral">-</span><small id="httpsDetail">-</small></div>
-              <div class="technical-row"><span>Indexing</span><span id="indexingStatus" class="status-pill neutral">-</span><small id="indexingReason">-</small></div>
-              <div class="technical-row"><span>Meta Robots</span><strong id="metaRobots" class="technical-code">-</strong><small>X-Robots-Tag: <span id="xRobotsTag">-</span></small></div>
-              <div class="technical-row"><span>Canonical</span><span id="canonicalStatus" class="status-pill neutral">-</span><small id="canonicalUrl" class="breakable">-</small></div>
-              <div class="technical-row"><span>robots.txt</span><span id="robotsTxtStatus" class="status-pill neutral">-</span><small id="robotsTxtUrl" class="breakable">-</small></div>
-              <div class="technical-row"><span>Sitemap</span><span id="sitemapStatus" class="status-pill neutral">-</span><small><span id="sitemapUrl" class="breakable">-</span><br><span id="sitemapSource" class="muted-line">-</span></small></div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  HTTP Status
+                </span>
+
+                <span
+                  id="httpStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small>
+                  Final page response
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  HTTPS
+                </span>
+
+                <span
+                  id="httpsStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="httpsDetail">
+                  -
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  Indexing
+                </span>
+
+                <span
+                  id="indexingStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="indexingReason">
+                  -
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  Meta Robots
+                </span>
+
+                <strong
+                  id="metaRobots"
+                  class="technical-code"
+                >
+                  -
+                </strong>
+
+                <small>
+                  X-Robots-Tag:
+                  <span id="xRobotsTag">
+                    -
+                  </span>
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  Canonical
+                </span>
+
+                <span
+                  id="canonicalStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small
+                  id="canonicalUrl"
+                  class="breakable"
+                >
+                  -
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  robots.txt
+                </span>
+
+                <span
+                  id="robotsTxtStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small
+                  id="robotsTxtUrl"
+                  class="breakable"
+                >
+                  -
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  Sitemap
+                </span>
+
+                <span
+                  id="sitemapStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small>
+
+                  <span
+                    id="sitemapUrl"
+                    class="breakable"
+                  >
+                    -
+                  </span>
+
+                  <br>
+
+                  <span
+                    id="sitemapSource"
+                    class="muted-line"
+                  >
+                    -
+                  </span>
+
+                </small>
+
+              </div>
+
+
             </div>
+
           </section>
 
+
+          <!-- ==================================================
+               STRUCTURED DATA
+               ================================================== -->
+
           <section class="section-block">
-            <div class="section-heading"><div><span class="section-kicker">HTML signals</span><h2>On-Page SEO</h2><p>Core page elements found in the analyzed HTML.</p></div></div>
+
+            <div class="section-heading">
+
+              <div>
+
+                <span class="section-kicker">
+                  Structured data
+                </span>
+
+                <h2>
+                  Schema / JSON-LD
+                </h2>
+
+                <p>
+                  Structured data detected in the analyzed HTML. Detection does not by itself confirm Schema.org validity or eligibility for rich results.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="technical-table">
+
+
+              <div class="technical-row">
+
+                <span>
+                  JSON-LD
+                </span>
+
+                <span
+                  id="schemaStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="schemaSummary">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  JSON parsing
+                </span>
+
+                <span
+                  id="schemaParsingStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="schemaParsingDetail">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+              <div class="technical-row">
+
+                <span>
+                  Main types
+                </span>
+
+                <strong
+                  id="schemaMainTypes"
+                  class="technical-code"
+                >
+                  -
+                </strong>
+
+                <small
+                  id="schemaOtherTypes"
+                  class="breakable"
+                >
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+            </div>
+
+          </section>
+
+
+          <!-- ==================================================
+               ON-PAGE
+               ================================================== -->
+
+          <section class="section-block">
+
+            <div class="section-heading">
+
+              <div>
+
+                <span class="section-kicker">
+                  HTML signals
+                </span>
+
+                <h2>
+                  On-Page SEO
+                </h2>
+
+                <p>
+                  Core page elements found in the analyzed HTML.
+                </p>
+
+              </div>
+
+            </div>
+
+
             <div class="onpage-list">
-              <div class="onpage-row"><div><span class="label">Title</span><strong id="title">-</strong></div><span id="titleStatus" class="mini-status neutral">•</span></div>
-              <div class="onpage-row"><div><span class="label">Meta Description</span><p id="metaDescription">-</p></div><span id="metaDescriptionStatus" class="mini-status neutral">•</span></div>
-              <div class="onpage-row"><div><span class="label">H1 Count</span><strong id="h1Count">-</strong><small id="h1Detail">Headings detected</small></div><span id="h1Status" class="mini-status neutral">•</span></div>
+
+
+              <div class="onpage-row">
+
+                <div>
+
+                  <span class="label">
+                    Title
+                  </span>
+
+                  <strong id="title">
+                    -
+                  </strong>
+
+                </div>
+
+                <span
+                  id="titleStatus"
+                  class="mini-status neutral"
+                >
+                  •
+                </span>
+
+              </div>
+
+
+              <div class="onpage-row">
+
+                <div>
+
+                  <span class="label">
+                    Meta Description
+                  </span>
+
+                  <p id="metaDescription">
+                    -
+                  </p>
+
+                </div>
+
+                <span
+                  id="metaDescriptionStatus"
+                  class="mini-status neutral"
+                >
+                  •
+                </span>
+
+              </div>
+
+
+              <div class="onpage-row">
+
+                <div>
+
+                  <span class="label">
+                    H1 Count
+                  </span>
+
+                  <strong id="h1Count">
+                    -
+                  </strong>
+
+                  <small id="h1Detail">
+                    Headings detected
+                  </small>
+
+                </div>
+
+                <span
+                  id="h1Status"
+                  class="mini-status neutral"
+                >
+                  •
+                </span>
+
+              </div>
+
+
             </div>
+
           </section>
+
         </div>
 
-        <!-- OPPORTUNITIES -->
-        <div class="tab-panel" data-panel="opportunities">
+
+        <!-- ==================================================
+             OPPORTUNITIES
+             ================================================== -->
+
+        <div
+          class="tab-panel"
+          data-panel="opportunities"
+        >
+
           <section class="section-block">
-            <div class="section-heading opportunities-heading">
-              <div><span class="section-kicker">Verified evidence</span><h2>Opportunities</h2><p>Only findings backed by data collected by the analyzer appear here.</p></div>
-              <div id="findingFilters" class="finding-filters" aria-label="Finding filters">
-                <button type="button" class="filter-chip active" data-filter="all">All <span id="filterAllCount">0</span></button>
-                <button type="button" class="filter-chip" data-filter="high">High <span id="filterHighCount">0</span></button>
-                <button type="button" class="filter-chip" data-filter="medium">Medium <span id="filterMediumCount">0</span></button>
-                <button type="button" class="filter-chip" data-filter="low">Low <span id="filterLowCount">0</span></button>
+
+
+            <div
+              class="section-heading opportunities-heading"
+            >
+
+              <div>
+
+                <span class="section-kicker">
+                  Verified evidence
+                </span>
+
+                <h2>
+                  Opportunities
+                </h2>
+
+                <p>
+                  Only findings backed by data collected by the analyzer appear here.
+                </p>
+
               </div>
+
+
+              <div
+                id="findingFilters"
+                class="finding-filters"
+                aria-label="Finding filters"
+              >
+
+                <button
+                  type="button"
+                  class="filter-chip active"
+                  data-filter="all"
+                >
+                  All
+                  <span id="filterAllCount">
+                    0
+                  </span>
+                </button>
+
+
+                <button
+                  type="button"
+                  class="filter-chip"
+                  data-filter="high"
+                >
+                  High
+                  <span id="filterHighCount">
+                    0
+                  </span>
+                </button>
+
+
+                <button
+                  type="button"
+                  class="filter-chip"
+                  data-filter="medium"
+                >
+                  Medium
+                  <span id="filterMediumCount">
+                    0
+                  </span>
+                </button>
+
+
+                <button
+                  type="button"
+                  class="filter-chip"
+                  data-filter="low"
+                >
+                  Low
+                  <span id="filterLowCount">
+                    0
+                  </span>
+                </button>
+
+              </div>
+
             </div>
-            <div id="findings" class="findings-list"></div>
+
+
+            <div
+              id="findings"
+              class="findings-list"
+            ></div>
+
+
           </section>
+
         </div>
 
-        <!-- OUTREACH -->
-        <div class="tab-panel" data-panel="outreach">
+
+        <!-- ==================================================
+             OUTREACH
+             ================================================== -->
+
+        <div
+          class="tab-panel"
+          data-panel="outreach"
+        >
+
           <div class="outreach-grid">
-            <section class="section-block outreach-card">
+
+
+            <section
+              class="section-block outreach-card"
+            >
+
               <div class="section-heading compact">
-                <div><span class="section-kicker">Internal</span><h2>Agency View</h2><p>Technical summary for SEO review.</p></div>
-                <button id="copyAgencyButton" class="secondary-button" type="button">Copy</button>
+
+                <div>
+
+                  <span class="section-kicker">
+                    Internal
+                  </span>
+
+                  <h2>
+                    Agency View
+                  </h2>
+
+                  <p>
+                    Technical summary for SEO review.
+                  </p>
+
+                </div>
+
+
+                <button
+                  id="copyAgencyButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  Copy
+                </button>
+
               </div>
-              <div id="agencyView" class="message-box"></div>
+
+
+              <div
+                id="agencyView"
+                class="message-box"
+              ></div>
+
             </section>
 
-            <section class="section-block outreach-card prospect-card">
+
+            <section
+              class="section-block outreach-card prospect-card"
+            >
+
               <div class="section-heading compact">
-                <div><span class="section-kicker">Ready to send</span><h2>Prospect View</h2><p>Consultative outreach grounded in verified findings.</p></div>
-                <button id="copyProspectButton" class="primary-button small" type="button">Copy Outreach</button>
+
+                <div>
+
+                  <span class="section-kicker">
+                    Ready to send
+                  </span>
+
+                  <h2>
+                    Prospect View
+                  </h2>
+
+                  <p>
+                    Consultative outreach grounded in verified findings.
+                  </p>
+
+                </div>
+
+
+                <button
+                  id="copyProspectButton"
+                  class="primary-button small"
+                  type="button"
+                >
+                  Copy Outreach
+                </button>
+
               </div>
-              <div id="prospectView" class="message-box prospect-message"></div>
+
+
+              <div
+                id="prospectView"
+                class="message-box prospect-message"
+              ></div>
+
             </section>
+
+
           </div>
+
         </div>
+
+
+        <!-- ==================================================
+             FOOTER
+             ================================================== -->
 
         <footer class="result-footer">
-          <span id="analysisStatus">0 verified findings</span><span>•</span><span>Evidence-first analysis</span>
+
+          <span id="analysisStatus">
+            0 verified findings
+          </span>
+
+          <span>
+            •
+          </span>
+
+          <span>
+            Evidence-first analysis
+          </span>
+
         </footer>
+
+
       </section>
+
     </main>
+
   </div>
 
-  <script src="/app.js" defer></script>
+
+  <script
+    src="/app.js"
+    defer
+  ></script>
+
 </body>
 </html>

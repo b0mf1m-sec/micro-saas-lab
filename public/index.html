@@ -1,1293 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="dark">
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="color-scheme"
-    content="dark"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
   <title>Prospect Analyzer</title>
-
-  <link
-    rel="stylesheet"
-    href="/style.css"
-  >
-
+  <link rel="stylesheet" href="/style.css">
 </head>
-
-
 <body>
-
   <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Prospect Analyzer home">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="brand-name">Prospect Analyzer</span>
+        <span class="version-badge">V2.1</span>
+      </a>
 
-
-    <!-- ==================================================
-         SIDEBAR
-         ================================================== -->
-
-    <aside class="sidebar">
-
-
-      <div class="brand">
-
-        <div
-          class="brand-mark"
-          aria-hidden="true"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-
-
-        <div class="brand-copy">
-
-          <strong>
-            Prospect Analyzer
-          </strong>
-
-          <span>
-            v2
-          </span>
-
-        </div>
-
+      <div class="topbar-actions">
+        <span class="evidence-chip"><span class="dot"></span>Evidence-first</span>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
+          <span id="themeIcon" aria-hidden="true">☾</span>
+          <span id="themeLabel">Dark</span>
+        </button>
       </div>
+    </header>
 
-
-      <nav
-        class="nav"
-        aria-label="Primary navigation"
-      >
-
-        <button
-          class="nav-item active"
-          type="button"
-        >
-
-          <span class="nav-icon">
-            ⌕
-          </span>
-
-          <span>
-            Analyze Website
-          </span>
-
-        </button>
-
-
-        <div class="nav-divider"></div>
-
-
-        <div class="nav-label">
-          Workspace
+    <main class="workspace">
+      <section class="hero">
+        <div>
+          <div class="kicker">SEO prospecting workspace</div>
+          <h1>Website Analysis</h1>
+          <p>Turn verified website findings into personalized sales outreach.</p>
         </div>
+        <p class="hero-note">Find opportunities. Build better outreach.</p>
+      </section>
 
-
-        <button
-          class="nav-item disabled"
-          type="button"
-          disabled
-        >
-
-          <span class="nav-icon">
-            ◎
-          </span>
-
-          <span>
-            Prospects
-          </span>
-
-          <span class="soon">
-            Soon
-          </span>
-
-        </button>
-
-
-        <button
-          class="nav-item disabled"
-          type="button"
-          disabled
-        >
-
-          <span class="nav-icon">
-            ▤
-          </span>
-
-          <span>
-            Reports
-          </span>
-
-          <span class="soon">
-            Soon
-          </span>
-
-        </button>
-
-      </nav>
-
-
-      <div class="sidebar-footer">
-
-        <div class="sidebar-note">
-
-          <span class="sidebar-note-icon">
-            ✓
-          </span>
-
-          <div>
-
-            <strong>
-              Evidence-first
-            </strong>
-
-            <p>
-              Only verified data becomes a finding.
-            </p>
-
+      <section class="search-area" aria-label="Website analysis">
+        <div class="search-row">
+          <div class="url-field">
+            <span class="url-symbol" aria-hidden="true">↗</span>
+            <input id="urlInput" type="text" placeholder="dcwashingtonplumber.com" autocomplete="off" spellcheck="false">
           </div>
-
-        </div>
-
-      </div>
-
-
-    </aside>
-
-
-    <!-- ==================================================
-         MAIN
-         ================================================== -->
-
-    <main class="main-content">
-
-      <div class="page-container">
-
-
-        <!-- ==================================================
-             HERO
-             ================================================== -->
-
-        <header class="hero">
-
-          <div>
-
-
-            <div class="eyebrow-row">
-
-              <span class="eyebrow-badge">
-
-                <span class="eyebrow-dot"></span>
-
-                AI Assisted
-
-              </span>
-
-              <span class="eyebrow-text">
-                SEO prospecting workspace
-              </span>
-
-            </div>
-
-
-            <h1>
-              Prospect Analyzer
-            </h1>
-
-
-            <p class="subtitle">
-              Turn verified website findings into personalized sales outreach.
-            </p>
-
-          </div>
-
-
-          <div class="hero-note">
-            Find opportunities. Build better outreach.
-          </div>
-
-        </header>
-
-
-        <!-- ==================================================
-             SEARCH
-             ================================================== -->
-
-        <section
-          class="search-panel"
-          aria-label="Website analysis"
-        >
-
-          <div class="url-field-wrap">
-
-            <span
-              class="url-icon"
-              aria-hidden="true"
-            >
-              ↗
-            </span>
-
-
-            <input
-              id="urlInput"
-              type="text"
-              placeholder="example.com"
-              autocomplete="off"
-              spellcheck="false"
-            >
-
-          </div>
-
-
-          <button
-            id="analyzeButton"
-            class="analyze-button"
-            type="button"
-          >
-
-            <span class="button-spark">
-              ✦
-            </span>
-
-            <span>
-              Analyze
-            </span>
-
+          <button id="analyzeButton" class="primary-button" type="button">
+            <span>Analyze</span><span aria-hidden="true">→</span>
           </button>
-
-        </section>
-
-
-        <div class="search-helper">
-
-          <span>
-            Example: yourwebsite.com
-          </span>
-
-          <span
-            id="lastAnalyzed"
-            class="last-analyzed hidden"
-          ></span>
-
         </div>
+        <div class="search-meta">
+          <span>Enter a domain, subdomain, or full URL.</span>
+          <span id="lastAnalyzed" class="hidden"></span>
+        </div>
+      </section>
 
+      <section id="loading" class="loading-panel hidden" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <div>
+          <strong>Analyzing website…</strong>
+          <span>Checking performance, indexability, crawling, on-page SEO and verified opportunities.</span>
+        </div>
+      </section>
 
-        <!-- ==================================================
-             LOADING
-             ================================================== -->
+      <div id="error" class="error-box hidden" role="alert"></div>
 
-        <section
-          id="loading"
-          class="loading-panel hidden"
-          aria-live="polite"
-        >
+      <section id="results" class="results hidden">
+        <nav class="tabs" aria-label="Analysis sections">
+          <button class="tab-button active" type="button" data-tab="overview">Overview</button>
+          <button class="tab-button" type="button" data-tab="technical">Technical</button>
+          <button class="tab-button" type="button" data-tab="opportunities">Opportunities <span id="tabOpportunityCount" class="tab-count">0</span></button>
+          <button class="tab-button" type="button" data-tab="outreach">Outreach</button>
+        </nav>
 
-          <div class="spinner"></div>
-
-          <div>
-
-            <div class="loading-title">
-              Analyzing website...
-            </div>
-
-            <div class="loading-text">
-              Checking performance, indexability, crawling, on-page SEO and verified opportunities.
-            </div>
-
-          </div>
-
-        </section>
-
-
-        <!-- ==================================================
-             ERROR
-             ================================================== -->
-
-        <div
-          id="error"
-          class="error-box hidden"
-          role="alert"
-        ></div>
-
-
-        <!-- ==================================================
-             RESULTS
-             ================================================== -->
-
-        <section
-          id="results"
-          class="results hidden"
-        >
-
-
-          <!-- ==================================================
-               OVERALL SNAPSHOT
-               ================================================== -->
-
-          <section class="panel snapshot-panel">
-
-            <div class="section-header">
-
+        <!-- OVERVIEW -->
+        <div class="tab-panel active" data-panel="overview">
+          <section class="section-block overview-block">
+            <div class="section-heading">
               <div>
-
-                <div class="section-title-row">
-
-                  <span class="section-icon">
-                    ▥
-                  </span>
-
-                  <h2>
-                    Overall Snapshot
-                  </h2>
-
-                </div>
-
-                <p>
-                  Quick view of the site's technical health and biggest prospecting opportunities.
-                </p>
-
+                <span class="section-kicker">At a glance</span>
+                <h2>Overall Snapshot</h2>
+                <p>Quick view of the site's technical health and highest-priority findings.</p>
               </div>
-
-
-              <div class="analysis-meta">
-
-                <span class="pulse-dot"></span>
-
-                <span id="analysisFreshness">
-                  Analyzed just now
-                </span>
-
-              </div>
-
+              <div class="freshness"><span class="dot"></span><span id="analysisFreshness">Analyzed just now</span></div>
             </div>
-
 
             <div class="snapshot-grid">
-
-
-              <article
-                class="snapshot-card"
-                id="snapshotPerformanceCard"
-              >
-
-                <div
-                  class="snapshot-visual score-ring"
-                  id="snapshotScoreRing"
-                >
-
-                  <span id="snapshotScore">
-                    -
-                  </span>
-
-                </div>
-
-
-                <div>
-
-                  <span class="snapshot-label">
-                    Performance
-                  </span>
-
-                  <strong id="snapshotPerformance">
-                    Unknown
-                  </strong>
-
-                  <small id="snapshotPerformanceDetail">
-                    Waiting for data
-                  </small>
-
-                </div>
-
+              <article class="snapshot-item" id="snapshotPerformanceCard">
+                <div class="score-ring" id="snapshotScoreRing"><span id="snapshotScore">-</span></div>
+                <div><span class="label">Performance</span><strong id="snapshotPerformance">Unknown</strong><small id="snapshotPerformanceDetail">Waiting for data</small></div>
               </article>
-
-
-              <article
-                class="snapshot-card"
-                id="snapshotIndexabilityCard"
-              >
-
-                <div class="snapshot-visual status-orb">
-                  ✓
-                </div>
-
-                <div>
-
-                  <span class="snapshot-label">
-                    Indexability
-                  </span>
-
-                  <strong id="snapshotIndexability">
-                    Unknown
-                  </strong>
-
-                  <small id="snapshotIndexabilityDetail">
-                    Waiting for data
-                  </small>
-
-                </div>
-
+              <article class="snapshot-item" id="snapshotIndexabilityCard">
+                <div class="status-icon">✓</div>
+                <div><span class="label">Indexability</span><strong id="snapshotIndexability">Unknown</strong><small id="snapshotIndexabilityDetail">Waiting for data</small></div>
               </article>
-
-
-              <article
-                class="snapshot-card"
-                id="snapshotOnPageCard"
-              >
-
-                <div class="snapshot-visual status-orb">
-                  ≡
-                </div>
-
-                <div>
-
-                  <span class="snapshot-label">
-                    On-Page SEO
-                  </span>
-
-                  <strong id="snapshotOnPage">
-                    Unknown
-                  </strong>
-
-                  <small id="snapshotOnPageDetail">
-                    Waiting for data
-                  </small>
-
-                </div>
-
+              <article class="snapshot-item" id="snapshotOnPageCard">
+                <div class="status-icon">≡</div>
+                <div><span class="label">On-Page SEO</span><strong id="snapshotOnPage">Unknown</strong><small id="snapshotOnPageDetail">Waiting for data</small></div>
               </article>
-
-
-              <article
-                class="snapshot-card"
-                id="snapshotOpportunitiesCard"
-              >
-
-                <div class="snapshot-visual status-orb">
-                  ↗
-                </div>
-
-                <div>
-
-                  <span class="snapshot-label">
-                    Opportunities
-                  </span>
-
-                  <strong id="snapshotOpportunities">
-                    0 detected
-                  </strong>
-
-                  <small id="snapshotOpportunitiesDetail">
-                    No verified findings yet
-                  </small>
-
-                </div>
-
+              <article class="snapshot-item" id="snapshotOpportunitiesCard">
+                <div class="status-icon">↗</div>
+                <div><span class="label">Opportunities</span><strong id="snapshotOpportunities">0 detected</strong><small id="snapshotOpportunitiesDetail">No verified findings yet</small></div>
               </article>
-
-
             </div>
-
           </section>
 
-
-          <!-- ==================================================
-               PERFORMANCE
-               ================================================== -->
-
-          <section class="panel">
-
-            <div class="section-header compact">
-
-              <div>
-
-                <div class="section-title-row">
-
-                  <span class="section-icon">
-                    ⚡
-                  </span>
-
-                  <h2>
-                    Performance
-                  </h2>
-
-                </div>
-
-                <p>
-                  Key Lighthouse loading and visual stability metrics.
-                </p>
-
+          <div class="overview-grid">
+            <section class="section-block">
+              <div class="section-heading compact">
+                <div><span class="section-kicker">Performance</span><h2>Core Web Signals</h2></div>
+                <button class="text-action" type="button" data-go-tab="technical">View technical →</button>
               </div>
+              <div class="overview-metrics">
+                <div><span>Score</span><strong id="overviewScore">-</strong></div>
+                <div><span>LCP</span><strong id="overviewLcp">-</strong></div>
+                <div><span>CLS</span><strong id="overviewCls">-</strong></div>
+                <div><span>FCP</span><strong id="overviewFcp">-</strong></div>
+              </div>
+            </section>
 
+            <section class="section-block top-opportunity-block">
+              <div class="section-heading compact">
+                <div><span class="section-kicker">Evidence-first</span><h2>Top Opportunity</h2></div>
+                <button class="text-action" type="button" data-go-tab="opportunities">View all →</button>
+              </div>
+              <div id="topOpportunity" class="top-opportunity empty-opportunity">
+                <div class="opportunity-marker">✓</div>
+                <div>
+                  <strong id="topOpportunityTitle">No verified findings</strong>
+                  <p id="topOpportunityEvidence">Run an analysis to review verified opportunities.</p>
+                </div>
+                <span id="topOpportunitySeverity" class="status-pill neutral">—</span>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TECHNICAL -->
+        <div class="tab-panel" data-panel="technical">
+          <section class="section-block">
+            <div class="section-heading">
+              <div><span class="section-kicker">Lighthouse</span><h2>Performance</h2><p>Measured loading and visual stability signals.</p></div>
             </div>
-
-
             <div class="metrics-grid">
-
-
-              <article class="metric-card performance-score-card">
-
-                <div class="metric-topline">
-
-                  <span class="metric-icon">
-                    ◔
-                  </span>
-
-                  <span class="metric-label">
-                    Performance Score
-                  </span>
-
-                </div>
-
-
-                <div class="metric-main">
-
-                  <span
-                    id="score"
-                    class="metric-value"
-                  >
-                    -
-                  </span>
-
-                  <span class="metric-unit">
-                    / 100
-                  </span>
-
-                </div>
-
-
-                <div class="score-track">
-
-                  <span id="scoreBar"></span>
-
-                </div>
-
-
-                <span
-                  id="scoreStatus"
-                  class="metric-status neutral"
-                >
-                  Waiting
-                </span>
-
-              </article>
-
-
-              <article class="metric-card">
-
-                <div class="metric-topline">
-
-                  <span class="metric-icon">
-                    ◷
-                  </span>
-
-                  <span class="metric-label">
-                    LCP
-                  </span>
-
-                </div>
-
-
-                <div
-                  id="lcp"
-                  class="metric-value"
-                >
-                  -
-                </div>
-
-
-                <span
-                  id="lcpStatus"
-                  class="metric-status neutral"
-                >
-                  Waiting
-                </span>
-
-
-                <p>
-                  Largest Contentful Paint
-                </p>
-
-              </article>
-
-
-              <article class="metric-card">
-
-                <div class="metric-topline">
-
-                  <span class="metric-icon">
-                    ▦
-                  </span>
-
-                  <span class="metric-label">
-                    CLS
-                  </span>
-
-                </div>
-
-
-                <div
-                  id="cls"
-                  class="metric-value"
-                >
-                  -
-                </div>
-
-
-                <span
-                  id="clsStatus"
-                  class="metric-status neutral"
-                >
-                  Waiting
-                </span>
-
-
-                <p>
-                  Cumulative Layout Shift
-                </p>
-
-              </article>
-
-
-              <article class="metric-card">
-
-                <div class="metric-topline">
-
-                  <span class="metric-icon">
-                    ▣
-                  </span>
-
-                  <span class="metric-label">
-                    FCP
-                  </span>
-
-                </div>
-
-
-                <div
-                  id="fcp"
-                  class="metric-value"
-                >
-                  -
-                </div>
-
-
-                <span class="metric-status neutral">
-                  Measured
-                </span>
-
-
-                <p>
-                  First Contentful Paint
-                </p>
-
-              </article>
-
-
-              <article class="metric-card">
-
-                <div class="metric-topline">
-
-                  <span class="metric-icon">
-                    ◴
-                  </span>
-
-                  <span class="metric-label">
-                    Speed Index
-                  </span>
-
-                </div>
-
-
-                <div
-                  id="speedIndex"
-                  class="metric-value"
-                >
-                  -
-                </div>
-
-
-                <span class="metric-status neutral">
-                  Measured
-                </span>
-
-
-                <p>
-                  Visual loading progression
-                </p>
-
-              </article>
-
-
+              <article class="metric-item"><span class="label">Performance Score</span><div class="metric-main"><strong id="score">-</strong><small>/ 100</small></div><div class="score-track"><span id="scoreBar"></span></div><span id="scoreStatus" class="status-pill neutral">Waiting</span></article>
+              <article class="metric-item"><span class="label">LCP</span><strong id="lcp" class="metric-number">-</strong><span id="lcpStatus" class="status-pill neutral">Waiting</span><small>Largest Contentful Paint</small></article>
+              <article class="metric-item"><span class="label">CLS</span><strong id="cls" class="metric-number">-</strong><span id="clsStatus" class="status-pill neutral">Waiting</span><small>Cumulative Layout Shift</small></article>
+              <article class="metric-item"><span class="label">FCP</span><strong id="fcp" class="metric-number">-</strong><span class="status-pill neutral">Measured</span><small>First Contentful Paint</small></article>
+              <article class="metric-item"><span class="label">Speed Index</span><strong id="speedIndex" class="metric-number">-</strong><span class="status-pill neutral">Measured</span><small>Visual loading progression</small></article>
             </div>
-
           </section>
 
-
-          <!-- ==================================================
-               INDEXABILITY
-               ================================================== -->
-
-          <section class="panel">
-
-            <div class="section-header compact">
-
-              <div>
-
-                <div class="section-title-row">
-
-                  <span class="section-icon">
-                    ◉
-                  </span>
-
-                  <h2>
-                    Indexability & Crawling
-                  </h2>
-
-                </div>
-
-                <p>
-                  Signals that affect how search engines can access and interpret the page.
-                </p>
-
-              </div>
-
+          <section class="section-block">
+            <div class="section-heading"><div><span class="section-kicker">Search access</span><h2>Indexability & Crawling</h2><p>Signals that affect how search engines can access and interpret the page.</p></div></div>
+            <div class="technical-table">
+              <div class="technical-row"><span>HTTP Status</span><span id="httpStatus" class="status-pill neutral">-</span><small>Final page response</small></div>
+              <div class="technical-row"><span>HTTPS</span><span id="httpsStatus" class="status-pill neutral">-</span><small id="httpsDetail">-</small></div>
+              <div class="technical-row"><span>Indexing</span><span id="indexingStatus" class="status-pill neutral">-</span><small id="indexingReason">-</small></div>
+              <div class="technical-row"><span>Meta Robots</span><strong id="metaRobots" class="technical-code">-</strong><small>X-Robots-Tag: <span id="xRobotsTag">-</span></small></div>
+              <div class="technical-row"><span>Canonical</span><span id="canonicalStatus" class="status-pill neutral">-</span><small id="canonicalUrl" class="breakable">-</small></div>
+              <div class="technical-row"><span>robots.txt</span><span id="robotsTxtStatus" class="status-pill neutral">-</span><small id="robotsTxtUrl" class="breakable">-</small></div>
+              <div class="technical-row"><span>Sitemap</span><span id="sitemapStatus" class="status-pill neutral">-</span><small><span id="sitemapUrl" class="breakable">-</span><br><span id="sitemapSource" class="muted-line">-</span></small></div>
             </div>
-
-
-            <div class="technical-grid">
-
-
-              <article class="technical-card">
-
-                <span class="technical-label">
-                  HTTP Status
-                </span>
-
-                <div class="technical-value-row">
-
-                  <span
-                    id="httpStatus"
-                    class="status-pill neutral"
-                  >
-                    -
-                  </span>
-
-                </div>
-
-                <small>
-                  Final page response
-                </small>
-
-              </article>
-
-
-              <article class="technical-card">
-
-                <span class="technical-label">
-                  HTTPS
-                </span>
-
-                <div class="technical-value-row">
-
-                  <span
-                    id="httpsStatus"
-                    class="status-pill neutral"
-                  >
-                    -
-                  </span>
-
-                </div>
-
-                <small id="httpsDetail">
-                  -
-                </small>
-
-              </article>
-
-
-              <article class="technical-card">
-
-                <span class="technical-label">
-                  Indexing
-                </span>
-
-                <div class="technical-value-row">
-
-                  <span
-                    id="indexingStatus"
-                    class="status-pill neutral"
-                  >
-                    -
-                  </span>
-
-                </div>
-
-                <small id="indexingReason">
-                  -
-                </small>
-
-              </article>
-
-
-              <article class="technical-card meta-card">
-
-                <span class="technical-label">
-                  Meta Robots
-                </span>
-
-                <strong
-                  id="metaRobots"
-                  class="technical-text"
-                >
-                  -
-                </strong>
-
-                <small>
-                  X-Robots-Tag:
-                  <span id="xRobotsTag">
-                    -
-                  </span>
-                </small>
-
-              </article>
-
-
-              <article class="technical-card">
-
-                <span class="technical-label">
-                  Canonical
-                </span>
-
-                <div class="technical-value-row">
-
-                  <span
-                    id="canonicalStatus"
-                    class="status-pill neutral"
-                  >
-                    -
-                  </span>
-
-                </div>
-
-                <small
-                  id="canonicalUrl"
-                  class="breakable"
-                >
-                  -
-                </small>
-
-              </article>
-
-
-              <article class="technical-card">
-
-                <span class="technical-label">
-                  robots.txt
-                </span>
-
-                <div class="technical-value-row">
-
-                  <span
-                    id="robotsTxtStatus"
-                    class="status-pill neutral"
-                  >
-                    -
-                  </span>
-
-                </div>
-
-                <small
-                  id="robotsTxtUrl"
-                  class="breakable"
-                >
-                  -
-                </small>
-
-              </article>
-
-
-              <article class="technical-card">
-
-                <span class="technical-label">
-                  Sitemap
-                </span>
-
-                <div class="technical-value-row">
-
-                  <span
-                    id="sitemapStatus"
-                    class="status-pill neutral"
-                  >
-                    -
-                  </span>
-
-                </div>
-
-                <small
-                  id="sitemapUrl"
-                  class="breakable"
-                >
-                  -
-                </small>
-
-                <small
-                  id="sitemapSource"
-                  class="technical-footnote"
-                >
-                  -
-                </small>
-
-              </article>
-
-
-            </div>
-
           </section>
 
-
-          <!-- ==================================================
-               ON-PAGE
-               ================================================== -->
-
-          <section class="panel">
-
-            <div class="section-header compact">
-
-              <div>
-
-                <div class="section-title-row">
-
-                  <span class="section-icon">
-                    ▤
-                  </span>
-
-                  <h2>
-                    On-Page SEO
-                  </h2>
-
-                </div>
-
-                <p>
-                  Core page elements that search engines and visitors can see.
-                </p>
-
-              </div>
-
+          <section class="section-block">
+            <div class="section-heading"><div><span class="section-kicker">HTML signals</span><h2>On-Page SEO</h2><p>Core page elements found in the analyzed HTML.</p></div></div>
+            <div class="onpage-list">
+              <div class="onpage-row"><div><span class="label">Title</span><strong id="title">-</strong></div><span id="titleStatus" class="mini-status neutral">•</span></div>
+              <div class="onpage-row"><div><span class="label">Meta Description</span><p id="metaDescription">-</p></div><span id="metaDescriptionStatus" class="mini-status neutral">•</span></div>
+              <div class="onpage-row"><div><span class="label">H1 Count</span><strong id="h1Count">-</strong><small id="h1Detail">Headings detected</small></div><span id="h1Status" class="mini-status neutral">•</span></div>
             </div>
+          </section>
+        </div>
 
-
-            <div class="onpage-grid">
-
-
-              <article class="onpage-card title-card">
-
-                <div class="onpage-head">
-
-                  <span>
-                    Title
-                  </span>
-
-                  <span
-                    id="titleStatus"
-                    class="mini-check neutral"
-                  >
-                    •
-                  </span>
-
-                </div>
-
-                <strong id="title">
-                  -
-                </strong>
-
-              </article>
-
-
-              <article class="onpage-card description-card">
-
-                <div class="onpage-head">
-
-                  <span>
-                    Meta Description
-                  </span>
-
-                  <span
-                    id="metaDescriptionStatus"
-                    class="mini-check neutral"
-                  >
-                    •
-                  </span>
-
-                </div>
-
-                <p id="metaDescription">
-                  -
-                </p>
-
-              </article>
-
-
-              <article class="onpage-card h1-card">
-
-                <div class="onpage-head">
-
-                  <span>
-                    H1 Count
-                  </span>
-
-                  <span
-                    id="h1Status"
-                    class="mini-check neutral"
-                  >
-                    •
-                  </span>
-
-                </div>
-
-                <strong id="h1Count">
-                  -
-                </strong>
-
-                <small id="h1Detail">
-                  Headings detected
-                </small>
-
-              </article>
-
-
+        <!-- OPPORTUNITIES -->
+        <div class="tab-panel" data-panel="opportunities">
+          <section class="section-block">
+            <div class="section-heading opportunities-heading">
+              <div><span class="section-kicker">Verified evidence</span><h2>Opportunities</h2><p>Only findings backed by data collected by the analyzer appear here.</p></div>
+              <div id="findingFilters" class="finding-filters" aria-label="Finding filters">
+                <button type="button" class="filter-chip active" data-filter="all">All <span id="filterAllCount">0</span></button>
+                <button type="button" class="filter-chip" data-filter="high">High <span id="filterHighCount">0</span></button>
+                <button type="button" class="filter-chip" data-filter="medium">Medium <span id="filterMediumCount">0</span></button>
+                <button type="button" class="filter-chip" data-filter="low">Low <span id="filterLowCount">0</span></button>
+              </div>
             </div>
-
+            <div id="findings" class="findings-list"></div>
           </section>
+        </div>
 
-
-          <!-- ==================================================
-               VERIFIED OPPORTUNITIES
-               ================================================== -->
-
-          <section class="panel opportunities-panel">
-
-            <div class="section-header compact opportunities-header">
-
-              <div>
-
-                <div class="section-title-row">
-
-                  <span class="section-icon">
-                    ✦
-                  </span>
-
-                  <h2>
-                    Verified Opportunities
-                  </h2>
-
-                </div>
-
-                <p>
-                  Actionable findings grounded in data collected from the website.
-                </p>
-
+        <!-- OUTREACH -->
+        <div class="tab-panel" data-panel="outreach">
+          <div class="outreach-grid">
+            <section class="section-block outreach-card">
+              <div class="section-heading compact">
+                <div><span class="section-kicker">Internal</span><h2>Agency View</h2><p>Technical summary for SEO review.</p></div>
+                <button id="copyAgencyButton" class="secondary-button" type="button">Copy</button>
               </div>
+              <div id="agencyView" class="message-box"></div>
+            </section>
 
-
-              <div
-                class="finding-filters"
-                id="findingFilters"
-                aria-label="Finding filters"
-              >
-
-                <button
-                  type="button"
-                  class="filter-chip active"
-                  data-filter="all"
-                >
-                  All
-                  <span id="filterAllCount">0</span>
-                </button>
-
-                <button
-                  type="button"
-                  class="filter-chip high"
-                  data-filter="high"
-                >
-                  High
-                  <span id="filterHighCount">0</span>
-                </button>
-
-                <button
-                  type="button"
-                  class="filter-chip medium"
-                  data-filter="medium"
-                >
-                  Medium
-                  <span id="filterMediumCount">0</span>
-                </button>
-
-                <button
-                  type="button"
-                  class="filter-chip low"
-                  data-filter="low"
-                >
-                  Low
-                  <span id="filterLowCount">0</span>
-                </button>
-
+            <section class="section-block outreach-card prospect-card">
+              <div class="section-heading compact">
+                <div><span class="section-kicker">Ready to send</span><h2>Prospect View</h2><p>Consultative outreach grounded in verified findings.</p></div>
+                <button id="copyProspectButton" class="primary-button small" type="button">Copy Outreach</button>
               </div>
+              <div id="prospectView" class="message-box prospect-message"></div>
+            </section>
+          </div>
+        </div>
 
-            </div>
-
-
-            <div
-              id="findings"
-              class="findings-list"
-            ></div>
-
-          </section>
-
-
-          <!-- ==================================================
-               VIEWS
-               ================================================== -->
-
-          <section class="views-grid">
-
-
-            <article class="panel view-panel agency-panel">
-
-              <div class="section-header compact">
-
-                <div>
-
-                  <div class="section-title-row">
-
-                    <span class="section-icon">
-                      ◎
-                    </span>
-
-                    <h2>
-                      Agency View
-                    </h2>
-
-                  </div>
-
-                  <p>
-                    Technical summary for SEO review and internal tracking.
-                  </p>
-
-                </div>
-
-
-                <button
-                  id="copyAgencyButton"
-                  class="copy-button"
-                  type="button"
-                >
-                  Copy
-                </button>
-
-              </div>
-
-
-              <div
-                id="agencyView"
-                class="view-text"
-              ></div>
-
-            </article>
-
-
-            <article class="panel view-panel prospect-panel">
-
-              <div class="section-header compact">
-
-                <div>
-
-                  <div class="section-title-row">
-
-                    <span class="section-icon">
-                      ✉
-                    </span>
-
-                    <h2>
-                      Prospect View
-                    </h2>
-
-                  </div>
-
-                  <p>
-                    Sales-ready message grounded in verified findings.
-                  </p>
-
-                </div>
-
-
-                <button
-                  id="copyProspectButton"
-                  class="copy-button primary-copy"
-                  type="button"
-                >
-                  Copy Outreach
-                </button>
-
-              </div>
-
-
-              <div
-                id="prospectView"
-                class="view-text prospect-text"
-              ></div>
-
-            </article>
-
-
-          </section>
-
-
-          <!-- ==================================================
-               FOOTER
-               ================================================== -->
-
-          <footer class="result-footer">
-
-            <span id="analysisStatus">
-              0 verified findings
-            </span>
-
-            <span class="footer-separator">
-              •
-            </span>
-
-            <span>
-              Evidence-first analysis
-            </span>
-
-          </footer>
-
-
-        </section>
-
-
-      </div>
-
+        <footer class="result-footer">
+          <span id="analysisStatus">0 verified findings</span><span>•</span><span>Evidence-first analysis</span>
+        </footer>
+      </section>
     </main>
-
   </div>
 
-
-  <script
-    src="/app.js"
-    defer
-  ></script>
-
+  <script src="/app.js" defer></script>
 </body>
-
 </html>

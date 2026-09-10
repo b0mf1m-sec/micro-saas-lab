@@ -1,97 +1,112 @@
-const urlInput =
-  document.getElementById(
-    "urlInput"
+const urlInput = document.getElementById("urlInput");
+const analyzeButton = document.getElementById("analyzeButton");
+const loading = document.getElementById("loading");
+const results = document.getElementById("results");
+const errorBox = document.getElementById("error");
+const copyAgencyButton = document.getElementById("copyAgencyButton");
+const copyProspectButton = document.getElementById("copyProspectButton");
+const findingFilters = document.getElementById("findingFilters");
+const themeToggle = document.getElementById("themeToggle");
+
+let findingsAtuais = [];
+let filtroFindingAtual = "all";
+
+// =====================================================
+// THEME
+// =====================================================
+
+function aplicarTema(theme) {
+  const finalTheme = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = finalTheme;
+  localStorage.setItem("prospect-analyzer-theme", finalTheme);
+
+  const icon = document.getElementById("themeIcon");
+  const label = document.getElementById("themeLabel");
+
+  if (icon) icon.textContent = finalTheme === "dark" ? "☾" : "☀";
+  if (label) label.textContent = finalTheme === "dark" ? "Dark" : "Light";
+}
+
+function iniciarTema() {
+  const salvo = localStorage.getItem("prospect-analyzer-theme");
+
+  if (salvo === "light" || salvo === "dark") {
+    aplicarTema(salvo);
+    return;
+  }
+
+  const prefereClaro =
+    window.matchMedia?.("(prefers-color-scheme: light)").matches;
+
+  aplicarTema(
+    prefereClaro
+      ? "light"
+      : "dark"
   );
+}
 
+function alternarTema() {
+  const atual =
+    document.documentElement.dataset.theme;
 
-const analyzeButton =
-  document.getElementById(
-    "analyzeButton"
+  aplicarTema(
+    atual === "dark"
+      ? "light"
+      : "dark"
   );
+}
 
+// =====================================================
+// TABS
+// =====================================================
 
-const loading =
-  document.getElementById(
-    "loading"
-  );
+function ativarAba(nome) {
+  document
+    .querySelectorAll(".tab-button")
+    .forEach((botao) => {
+      botao.classList.toggle(
+        "active",
+        botao.dataset.tab === nome
+      );
+    });
 
+  document
+    .querySelectorAll(".tab-panel")
+    .forEach((painel) => {
+      painel.classList.toggle(
+        "active",
+        painel.dataset.panel === nome
+      );
+    });
+}
 
-const results =
-  document.getElementById(
-    "results"
-  );
-
-
-const errorBox =
-  document.getElementById(
-    "error"
-  );
-
-
-const copyAgencyButton =
-  document.getElementById(
-    "copyAgencyButton"
-  );
-
-
-const copyProspectButton =
-  document.getElementById(
-    "copyProspectButton"
-  );
-
-
-const findingFilters =
-  document.getElementById(
-    "findingFilters"
-  );
-
-
-let findingsAtuais =
-  [];
-
-
-let filtroFindingAtual =
-  "all";
-
-
-// ======================================================
+// =====================================================
 // ANALYZE
-// ======================================================
+// =====================================================
 
 async function analisar() {
-
   const url =
     urlInput.value.trim();
 
-
-  if (
-    !url
-  ) {
-
+  if (!url) {
     mostrarErro(
       "Enter a website URL."
     );
 
-
     return;
   }
 
-
   iniciarLoading();
 
-
   try {
-
     const resposta =
       await fetch(
         "/analisar",
         {
-
           method:
             "POST",
 
           headers: {
-
             "Content-Type":
               "application/json"
           },
@@ -103,153 +118,119 @@ async function analisar() {
         }
       );
 
-
     let dados;
 
-
     try {
-
       dados =
         await resposta.json();
 
     } catch {
-
       throw new Error(
         "The server returned an invalid response."
       );
     }
 
-
-    if (
-      !resposta.ok
-    ) {
-
+    if (!resposta.ok) {
       throw new Error(
         dados.erro ||
         "Analysis failed."
       );
     }
 
-
     mostrarResultado(
       dados
     );
 
   } catch (erro) {
-
     mostrarErro(
       erro.message ||
       "Something went wrong."
     );
 
   } finally {
-
     finalizarLoading();
   }
 }
 
-
-// ======================================================
+// =====================================================
 // LOADING
-// ======================================================
+// =====================================================
 
 function iniciarLoading() {
-
   errorBox.classList.add(
     "hidden"
   );
-
 
   results.classList.add(
     "hidden"
   );
 
-
   loading.classList.remove(
     "hidden"
   );
 
-
   analyzeButton.disabled =
     true;
-
 
   urlInput.disabled =
     true;
 
-
   analyzeButton.innerHTML =
-    '<span class="button-spark">✦</span><span>Analyzing...</span>';
+    "<span>Analyzing…</span>";
 }
 
-
 function finalizarLoading() {
-
   loading.classList.add(
     "hidden"
   );
 
-
   analyzeButton.disabled =
     false;
-
 
   urlInput.disabled =
     false;
 
-
   analyzeButton.innerHTML =
-    '<span class="button-spark">✦</span><span>Analyze</span>';
+    '<span>Analyze</span><span aria-hidden="true">→</span>';
 }
 
-
-// ======================================================
+// =====================================================
 // ERROR
-// ======================================================
+// =====================================================
 
 function mostrarErro(
   mensagem
 ) {
-
   errorBox.textContent =
     mensagem;
-
 
   errorBox.classList.remove(
     "hidden"
   );
 }
 
-
-// ======================================================
+// =====================================================
 // HELPERS
-// ======================================================
+// =====================================================
 
 function definirTexto(
   id,
   valor,
   fallback = "-"
 ) {
-
   const elemento =
     document.getElementById(
       id
     );
 
-
-  if (
-    !elemento
-  ) {
-
+  if (!elemento) {
     return;
   }
-
 
   const temValor =
     valor !== null &&
     valor !== undefined &&
     valor !== "";
-
 
   elemento.textContent =
     temValor
@@ -257,12 +238,10 @@ function definirTexto(
       : fallback;
 }
 
-
 function removerTons(
   elemento
 ) {
-
-  elemento.classList.remove(
+  elemento?.classList.remove(
     "good",
     "warning",
     "bad",
@@ -270,54 +249,39 @@ function removerTons(
   );
 }
 
-
 function aplicarTom(
   elemento,
   tom = "neutral"
 ) {
-
-  if (
-    !elemento
-  ) {
-
+  if (!elemento) {
     return;
   }
-
 
   removerTons(
     elemento
   );
-
 
   elemento.classList.add(
     tom
   );
 }
 
-
 function definirStatus(
   id,
   texto,
   tom = "neutral"
 ) {
-
   const elemento =
     document.getElementById(
       id
     );
 
-
-  if (
-    !elemento
-  ) {
-
+  if (!elemento) {
     return;
   }
 
-
   elemento.textContent =
     texto;
-
 
   aplicarTom(
     elemento,
@@ -325,42 +289,27 @@ function definirStatus(
   );
 }
 
-
 function definirTomCard(
   id,
   tom = "neutral"
 ) {
-
   const elemento =
     document.getElementById(
       id
     );
 
-
-  if (
-    !elemento
-  ) {
-
-    return;
+  if (elemento) {
+    elemento.dataset.tone =
+      tom;
   }
-
-
-  elemento.dataset.tone =
-    tom;
 }
-
 
 function capitalizar(
   texto
 ) {
-
-  if (
-    !texto
-  ) {
-
+  if (!texto) {
     return "Unknown";
   }
-
 
   return (
     texto.charAt(0).toUpperCase() +
@@ -368,11 +317,9 @@ function capitalizar(
   );
 }
 
-
 function normalizarSeveridade(
   valor
 ) {
-
   const nivel =
     String(
       valor ||
@@ -380,31 +327,24 @@ function normalizarSeveridade(
     )
       .toLowerCase();
 
-
   if (
     nivel === "alta"
   ) {
-
     return "high";
   }
-
 
   if (
     nivel === "media" ||
     nivel === "média"
   ) {
-
     return "medium";
   }
-
 
   if (
     nivel === "baixa"
   ) {
-
     return "low";
   }
-
 
   return (
     nivel ||
@@ -412,13 +352,10 @@ function normalizarSeveridade(
   );
 }
 
-
 function nomeFinding(
   codigo
 ) {
-
   const nomes = {
-
     LCP_HIGH:
       "High Largest Contentful Paint",
 
@@ -435,7 +372,6 @@ function nomeFinding(
       "Missing H1 Heading"
   };
 
-
   return (
     nomes[codigo] ||
     codigo ||
@@ -443,11 +379,9 @@ function nomeFinding(
   );
 }
 
-
 function categoriaFinding(
   categoria
 ) {
-
   return (
     categoria === "seo"
       ? "SEO"
@@ -457,13 +391,10 @@ function categoriaFinding(
   );
 }
 
-
 function formatarStatusIA(
   status
 ) {
-
   const statusMap = {
-
     generated:
       "Generated",
 
@@ -495,71 +426,57 @@ function formatarStatusIA(
       "Invalid AI response"
   };
 
-
   return (
     statusMap[status] ||
     "Unknown"
   );
 }
 
-
 function textoIAIndisponivel(
   status,
   tipo
 ) {
-
   if (
     status ===
     "rate_limited"
   ) {
-
     return (
       "AI generation is temporarily unavailable due to rate limits. Please try again shortly."
     );
   }
 
-
   if (
     status ===
     "no_findings"
   ) {
-
     return (
       `No ${tipo} was generated because no verified findings were detected.`
     );
   }
-
 
   return (
     `No ${tipo} was generated.`
   );
 }
 
-
 function urlsEquivalentes(
   urlA,
   urlB
 ) {
-
   if (
     !urlA ||
     !urlB
   ) {
-
     return false;
   }
 
-
   try {
-
     const normalizar =
-      valor => {
-
+      (valor) => {
         const url =
           new URL(
             valor
           );
-
 
         const path =
           url.pathname === "/"
@@ -569,12 +486,10 @@ function urlsEquivalentes(
                 ""
               );
 
-
         return (
           `${url.protocol}//${url.host}${path}${url.search}`
         );
       };
-
 
     return (
       normalizar(urlA) ===
@@ -582,7 +497,6 @@ function urlsEquivalentes(
     );
 
   } catch {
-
     return (
       String(urlA)
         .replace(
@@ -599,38 +513,29 @@ function urlsEquivalentes(
   }
 }
 
-
 function textoTempoAnalise(
   iso
 ) {
-
-  if (
-    !iso
-  ) {
-
+  if (!iso) {
     return (
       "Analyzed just now"
     );
   }
-
 
   const data =
     new Date(
       iso
     );
 
-
   if (
     Number.isNaN(
       data.getTime()
     )
   ) {
-
     return (
       "Analyzed just now"
     );
   }
-
 
   return (
     `Analyzed ${data.toLocaleTimeString(
@@ -646,69 +551,77 @@ function textoTempoAnalise(
   );
 }
 
-
-// ======================================================
+// =====================================================
 // PERFORMANCE
-// ======================================================
+// =====================================================
 
 function atualizarPerformance(
   performance = {}
 ) {
-
   definirTexto(
     "score",
     performance.score
   );
-
 
   definirTexto(
     "lcp",
     performance.lcp
   );
 
-
   definirTexto(
     "cls",
     performance.cls
   );
-
 
   definirTexto(
     "fcp",
     performance.fcp
   );
 
-
   definirTexto(
     "speedIndex",
     performance.speedIndex
   );
 
+  definirTexto(
+    "overviewScore",
+    performance.score
+  );
+
+  definirTexto(
+    "overviewLcp",
+    performance.lcp
+  );
+
+  definirTexto(
+    "overviewCls",
+    performance.cls
+  );
+
+  definirTexto(
+    "overviewFcp",
+    performance.fcp
+  );
 
   const score =
     Number(
       performance.score
     );
 
-
   let scoreTom =
     "neutral";
 
-
   let scoreTexto =
     "Unavailable";
-
 
   if (
     Number.isFinite(
       score
     )
   ) {
-
     if (
       score >= 90
     ) {
-
       scoreTom =
         "good";
 
@@ -718,7 +631,6 @@ function atualizarPerformance(
     } else if (
       score >= 50
     ) {
-
       scoreTom =
         "warning";
 
@@ -726,7 +638,6 @@ function atualizarPerformance(
         "Needs attention";
 
     } else {
-
       scoreTom =
         "bad";
 
@@ -735,73 +646,63 @@ function atualizarPerformance(
     }
   }
 
-
   definirStatus(
     "scoreStatus",
     scoreTexto,
     scoreTom
   );
 
-
   const scoreBar =
     document.getElementById(
       "scoreBar"
     );
 
-
-  if (
-    scoreBar
-  ) {
-
-    scoreBar.style.width =
+  if (scoreBar) {
+    const bounded =
       Number.isFinite(
         score
       )
-        ? `${Math.max(
+        ? Math.max(
             0,
             Math.min(
               score,
               100
             )
-          )}%`
-        : "0%";
+          )
+        : 0;
 
+    scoreBar.style.width =
+      `${bounded}%`;
 
     scoreBar.style.background =
       scoreTom === "good"
-        ? "#43d18b"
+        ? "var(--success)"
         : scoreTom === "warning"
-          ? "#f2c94c"
+          ? "var(--warning)"
           : scoreTom === "bad"
-            ? "#ff6b78"
-            : "#6b7f98";
+            ? "var(--danger)"
+            : "var(--muted-2)";
   }
-
 
   const lcpMs =
     Number(
       performance.lcpMs
     );
 
-
   let lcpTom =
     "neutral";
 
-
   let lcpTexto =
     "Measured";
-
 
   if (
     Number.isFinite(
       lcpMs
     )
   ) {
-
     if (
       lcpMs <= 2500
     ) {
-
       lcpTom =
         "good";
 
@@ -811,7 +712,6 @@ function atualizarPerformance(
     } else if (
       lcpMs <= 4000
     ) {
-
       lcpTom =
         "warning";
 
@@ -819,7 +719,6 @@ function atualizarPerformance(
         "Needs attention";
 
     } else {
-
       lcpTom =
         "bad";
 
@@ -828,38 +727,31 @@ function atualizarPerformance(
     }
   }
 
-
   definirStatus(
     "lcpStatus",
     lcpTexto,
     lcpTom
   );
 
-
   const cls =
     Number(
       performance.clsValor
     );
 
-
   let clsTom =
     "neutral";
 
-
   let clsTexto =
     "Measured";
-
 
   if (
     Number.isFinite(
       cls
     )
   ) {
-
     if (
       cls <= 0.1
     ) {
-
       clsTom =
         "good";
 
@@ -869,7 +761,6 @@ function atualizarPerformance(
     } else if (
       cls <= 0.25
     ) {
-
       clsTom =
         "warning";
 
@@ -877,7 +768,6 @@ function atualizarPerformance(
         "Needs attention";
 
     } else {
-
       clsTom =
         "bad";
 
@@ -886,44 +776,35 @@ function atualizarPerformance(
     }
   }
 
-
   definirStatus(
     "clsStatus",
     clsTexto,
     clsTom
   );
 
-
   return {
-
     score,
-
     scoreTom,
-
     scoreTexto
   };
 }
 
-
-// ======================================================
+// =====================================================
 // INDEXABILITY
-// ======================================================
+// =====================================================
 
 function atualizarIndexability(
   indexability
 ) {
-
   if (
     !indexability ||
     indexability.erro
   ) {
-
     definirStatus(
       "httpStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirStatus(
       "httpsStatus",
@@ -931,13 +812,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "indexingStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirStatus(
       "canonicalStatus",
@@ -945,13 +824,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "robotsTxtStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirStatus(
       "sitemapStatus",
@@ -959,12 +836,10 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "httpsDetail",
       "Could not determine protocol"
     );
-
 
     definirTexto(
       "indexingReason",
@@ -972,13 +847,11 @@ function atualizarIndexability(
       "Indexability data is unavailable."
     );
 
-
     definirTexto(
       "metaRobots",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "xRobotsTag",
@@ -986,13 +859,11 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     definirTexto(
       "canonicalUrl",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "robotsTxtUrl",
@@ -1000,13 +871,11 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "sitemapSource",
@@ -1014,9 +883,7 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     return {
-
       tom:
         "neutral",
 
@@ -1028,16 +895,13 @@ function atualizarIndexability(
     };
   }
 
-
   const httpStatus =
     indexability.httpStatus;
-
 
   if (
     typeof httpStatus ===
     "number"
   ) {
-
     const tom =
       httpStatus >= 200 &&
       httpStatus < 300
@@ -1048,7 +912,6 @@ function atualizarIndexability(
           : httpStatus >= 400
             ? "bad"
             : "neutral";
-
 
     definirStatus(
       "httpStatus",
@@ -1061,7 +924,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "httpStatus",
       "Unknown",
@@ -1069,17 +931,14 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     indexability.https === true
   ) {
-
     definirStatus(
       "httpsStatus",
       "Yes",
       "good"
     );
-
 
     definirTexto(
       "httpsDetail",
@@ -1089,13 +948,11 @@ function atualizarIndexability(
   } else if (
     indexability.https === false
   ) {
-
     definirStatus(
       "httpsStatus",
       "No",
       "bad"
     );
-
 
     definirTexto(
       "httpsDetail",
@@ -1103,13 +960,11 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "httpsStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirTexto(
       "httpsDetail",
@@ -1117,11 +972,9 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     indexability.indexable === true
   ) {
-
     definirStatus(
       "indexingStatus",
       "Allowed",
@@ -1131,7 +984,6 @@ function atualizarIndexability(
   } else if (
     indexability.indexable === false
   ) {
-
     definirStatus(
       "indexingStatus",
       "Blocked",
@@ -1139,7 +991,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "indexingStatus",
       "Unknown",
@@ -1147,13 +998,11 @@ function atualizarIndexability(
     );
   }
 
-
   definirTexto(
     "indexingReason",
     indexability.indexabilityReason,
     "No indexability explanation available."
   );
-
 
   definirTexto(
     "metaRobots",
@@ -1161,24 +1010,20 @@ function atualizarIndexability(
     "Not specified"
   );
 
-
   definirTexto(
     "xRobotsTag",
     indexability.xRobotsTag,
     "Not specified"
   );
 
-
   if (
     indexability.canonical
   ) {
-
     const selfReferencing =
       urlsEquivalentes(
         indexability.canonical,
         indexability.finalUrl
       );
-
 
     definirStatus(
       "canonicalStatus",
@@ -1190,20 +1035,17 @@ function atualizarIndexability(
         : "neutral"
     );
 
-
     definirTexto(
       "canonicalUrl",
       indexability.canonical
     );
 
   } else {
-
     definirStatus(
       "canonicalStatus",
       "Not found",
       "neutral"
     );
-
 
     definirTexto(
       "canonicalUrl",
@@ -1212,18 +1054,15 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     indexability.robotsTxt
       ?.found === true
   ) {
-
     definirStatus(
       "robotsTxtStatus",
       "Found",
       "good"
     );
-
 
     definirTexto(
       "robotsTxtUrl",
@@ -1236,13 +1075,11 @@ function atualizarIndexability(
     indexability.robotsTxt
       ?.found === false
   ) {
-
     definirStatus(
       "robotsTxtStatus",
       "Not found",
       "neutral"
     );
-
 
     definirTexto(
       "robotsTxtUrl",
@@ -1253,13 +1090,11 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "robotsTxtStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirTexto(
       "robotsTxtUrl",
@@ -1268,18 +1103,15 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     indexability.sitemap
       ?.found === true
   ) {
-
     definirStatus(
       "sitemapStatus",
       "Found",
       "good"
     );
-
 
     definirTexto(
       "sitemapUrl",
@@ -1288,12 +1120,10 @@ function atualizarIndexability(
         .url
     );
 
-
     const source =
       indexability
         .sitemap
         .source;
-
 
     definirTexto(
       "sitemapSource",
@@ -1308,20 +1138,17 @@ function atualizarIndexability(
     indexability.sitemap
       ?.found === false
   ) {
-
     definirStatus(
       "sitemapStatus",
       "Not found",
       "neutral"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "No sitemap detected"
     );
-
 
     definirTexto(
       "sitemapSource",
@@ -1330,20 +1157,17 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "sitemapStatus",
       "Unknown",
       "neutral"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "Sitemap was not checked"
     );
-
 
     definirTexto(
       "sitemapSource",
@@ -1352,14 +1176,11 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     indexability.indexable ===
     false
   ) {
-
     return {
-
       tom:
         "bad",
 
@@ -1371,16 +1192,13 @@ function atualizarIndexability(
     };
   }
 
-
   if (
     typeof httpStatus ===
     "number"
     &&
     httpStatus >= 400
   ) {
-
     return {
-
       tom:
         "bad",
 
@@ -1392,14 +1210,11 @@ function atualizarIndexability(
     };
   }
 
-
   if (
     indexability.https ===
     false
   ) {
-
     return {
-
       tom:
         "warning",
 
@@ -1411,14 +1226,11 @@ function atualizarIndexability(
     };
   }
 
-
   if (
     indexability.indexable ===
     true
   ) {
-
     return {
-
       tom:
         "good",
 
@@ -1430,9 +1242,7 @@ function atualizarIndexability(
     };
   }
 
-
   return {
-
     tom:
       "neutral",
 
@@ -1444,22 +1254,19 @@ function atualizarIndexability(
   };
 }
 
-
-// ======================================================
+// =====================================================
 // ON-PAGE
-// ======================================================
+// =====================================================
 
 function atualizarOnPage(
   seo = {},
   findings = []
 ) {
-
   definirTexto(
     "title",
     seo.title,
     "Not found"
   );
-
 
   definirTexto(
     "metaDescription",
@@ -1467,30 +1274,25 @@ function atualizarOnPage(
     "Not found"
   );
 
-
   definirTexto(
     "h1Count",
     seo.h1Count
   );
-
 
   const titleOk =
     Boolean(
       seo.title
     );
 
-
   const metaOk =
     Boolean(
       seo.metaDescription
     );
 
-
   const h1Ok =
     Number(
       seo.h1Count
     ) > 0;
-
 
   definirStatus(
     "titleStatus",
@@ -1502,7 +1304,6 @@ function atualizarOnPage(
       : "bad"
   );
 
-
   definirStatus(
     "metaDescriptionStatus",
     metaOk
@@ -1513,7 +1314,6 @@ function atualizarOnPage(
       : "warning"
   );
 
-
   definirStatus(
     "h1Status",
     h1Ok
@@ -1523,7 +1323,6 @@ function atualizarOnPage(
       ? "good"
       : "warning"
   );
-
 
   definirTexto(
     "h1Detail",
@@ -1536,7 +1335,6 @@ function atualizarOnPage(
       : "Heading count unavailable"
   );
 
-
   const onPageCodes =
     new Set([
       "TITLE_MISSING",
@@ -1544,23 +1342,19 @@ function atualizarOnPage(
       "H1_MISSING"
     ]);
 
-
   const issues =
     findings.filter(
-      finding =>
+      (finding) =>
         onPageCodes.has(
           finding.codigo
         )
     );
 
-
   if (
     issues.length === 0 &&
     !seo.erro
   ) {
-
     return {
-
       tom:
         "good",
 
@@ -1572,22 +1366,18 @@ function atualizarOnPage(
     };
   }
 
-
   if (
     issues.length > 0
   ) {
-
     const high =
       issues.some(
-        finding =>
+        (finding) =>
           normalizarSeveridade(
             finding.severidade
           ) === "high"
       );
 
-
     return {
-
       tom:
         high
           ? "bad"
@@ -1601,9 +1391,7 @@ function atualizarOnPage(
     };
   }
 
-
   return {
-
     tom:
       "neutral",
 
@@ -1615,10 +1403,9 @@ function atualizarOnPage(
   };
 }
 
-
-// ======================================================
+// =====================================================
 // SNAPSHOT
-// ======================================================
+// =====================================================
 
 function atualizarSnapshot({
   performanceInfo,
@@ -1626,10 +1413,8 @@ function atualizarSnapshot({
   onPageInfo,
   findings
 }) {
-
   const score =
     performanceInfo.score;
-
 
   definirTexto(
     "snapshotScore",
@@ -1640,12 +1425,10 @@ function atualizarSnapshot({
       : "-"
   );
 
-
   definirTexto(
     "snapshotPerformance",
     performanceInfo.scoreTexto
   );
-
 
   definirTexto(
     "snapshotPerformanceDetail",
@@ -1656,23 +1439,17 @@ function atualizarSnapshot({
       : "Performance unavailable"
   );
 
-
   definirTomCard(
     "snapshotPerformanceCard",
     performanceInfo.scoreTom
   );
-
 
   const ring =
     document.getElementById(
       "snapshotScoreRing"
     );
 
-
-  if (
-    ring
-  ) {
-
+  if (ring) {
     const bounded =
       Number.isFinite(
         score
@@ -1686,22 +1463,19 @@ function atualizarSnapshot({
           )
         : 0;
 
-
     const color =
       performanceInfo.scoreTom === "good"
-        ? "#43d18b"
+        ? "var(--success)"
         : performanceInfo.scoreTom === "warning"
-          ? "#f2c94c"
+          ? "var(--warning)"
           : performanceInfo.scoreTom === "bad"
-            ? "#ff6b78"
-            : "#5b718e";
-
+            ? "var(--danger)"
+            : "var(--muted-2)";
 
     ring.style.setProperty(
       "--score-angle",
       `${bounded * 3.6}deg`
     );
-
 
     ring.style.setProperty(
       "--score-color",
@@ -1709,88 +1483,72 @@ function atualizarSnapshot({
     );
   }
 
-
   definirTexto(
     "snapshotIndexability",
     indexabilityInfo.titulo
   );
-
 
   definirTexto(
     "snapshotIndexabilityDetail",
     indexabilityInfo.detalhe
   );
 
-
   definirTomCard(
     "snapshotIndexabilityCard",
     indexabilityInfo.tom
   );
-
 
   definirTexto(
     "snapshotOnPage",
     onPageInfo.titulo
   );
 
-
   definirTexto(
     "snapshotOnPageDetail",
     onPageInfo.detalhe
   );
-
 
   definirTomCard(
     "snapshotOnPageCard",
     onPageInfo.tom
   );
 
-
   const quantidade =
     findings.length;
 
-
   const high =
     findings.filter(
-      finding =>
+      (finding) =>
         normalizarSeveridade(
           finding.severidade
         ) === "high"
     ).length;
 
-
   const medium =
     findings.filter(
-      finding =>
+      (finding) =>
         normalizarSeveridade(
           finding.severidade
         ) === "medium"
     ).length;
 
-
   let tom =
     "good";
-
 
   let titulo =
     "No findings";
 
-
   let detalhe =
     "No verified opportunities detected";
-
 
   if (
     high > 0
   ) {
-
     tom =
       "bad";
 
-
     titulo =
       `${high} high priority`;
-
 
     detalhe =
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
@@ -1798,14 +1556,11 @@ function atualizarSnapshot({
   } else if (
     medium > 0
   ) {
-
     tom =
       "warning";
 
-
     titulo =
       `${medium} to review`;
-
 
     detalhe =
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
@@ -1813,31 +1568,25 @@ function atualizarSnapshot({
   } else if (
     quantidade > 0
   ) {
-
     tom =
       "warning";
-
 
     titulo =
       `${quantidade} detected`;
 
-
     detalhe =
       "Verified opportunities available";
   }
-
 
   definirTexto(
     "snapshotOpportunities",
     titulo
   );
 
-
   definirTexto(
     "snapshotOpportunitiesDetail",
     detalhe
   );
-
 
   definirTomCard(
     "snapshotOpportunitiesCard",
@@ -1845,17 +1594,138 @@ function atualizarSnapshot({
   );
 }
 
+// =====================================================
+// TOP OPPORTUNITY
+// =====================================================
 
-// ======================================================
+function atualizarTopOpportunity(
+  findings
+) {
+  const container =
+    document.getElementById(
+      "topOpportunity"
+    );
+
+  const marcador =
+    container?.querySelector(
+      ".opportunity-marker"
+    );
+
+  if (
+    !Array.isArray(
+      findings
+    )
+    ||
+    findings.length === 0
+  ) {
+    container?.classList.add(
+      "empty-opportunity"
+    );
+
+    if (marcador) {
+      marcador.textContent =
+        "✓";
+    }
+
+    definirTexto(
+      "topOpportunityTitle",
+      "No verified findings"
+    );
+
+    definirTexto(
+      "topOpportunityEvidence",
+      "No verified opportunities were detected in this analysis."
+    );
+
+    definirStatus(
+      "topOpportunitySeverity",
+      "Clear",
+      "good"
+    );
+
+    return;
+  }
+
+  const peso = {
+    high:
+      3,
+
+    medium:
+      2,
+
+    low:
+      1
+  };
+
+  const principal =
+    [...findings]
+      .sort(
+        (a, b) =>
+          (
+            peso[
+              normalizarSeveridade(
+                b.severidade
+              )
+            ] || 0
+          )
+          -
+          (
+            peso[
+              normalizarSeveridade(
+                a.severidade
+              )
+            ] || 0
+          )
+      )[0];
+
+  const nivel =
+    normalizarSeveridade(
+      principal.severidade
+    );
+
+  container?.classList.remove(
+    "empty-opportunity"
+  );
+
+  if (marcador) {
+    marcador.textContent =
+      "!";
+  }
+
+  definirTexto(
+    "topOpportunityTitle",
+    nomeFinding(
+      principal.codigo
+    )
+  );
+
+  definirTexto(
+    "topOpportunityEvidence",
+    principal.evidencia,
+    "Verified by analyzer."
+  );
+
+  definirStatus(
+    "topOpportunitySeverity",
+    capitalizar(
+      nivel
+    ),
+    nivel === "high"
+      ? "bad"
+      : nivel === "medium"
+        ? "warning"
+        : "good"
+  );
+}
+
+// =====================================================
 // FINDINGS
-// ======================================================
+// =====================================================
 
 function atualizarContadoresFindings(
   findings
 ) {
-
   const contadores = {
-
     all:
       findings.length,
 
@@ -1869,27 +1739,22 @@ function atualizarContadoresFindings(
       0
   };
 
-
   findings.forEach(
-    finding => {
-
+    (finding) => {
       const nivel =
         normalizarSeveridade(
           finding.severidade
         );
 
-
       if (
         contadores[nivel] !==
         undefined
       ) {
-
         contadores[nivel] +=
           1;
       }
     }
   );
-
 
   definirTexto(
     "filterAllCount",
@@ -1897,13 +1762,11 @@ function atualizarContadoresFindings(
     "0"
   );
 
-
   definirTexto(
     "filterHighCount",
     contadores.high,
     "0"
   );
-
 
   definirTexto(
     "filterMediumCount",
@@ -1911,29 +1774,30 @@ function atualizarContadoresFindings(
     "0"
   );
 
-
   definirTexto(
     "filterLowCount",
     contadores.low,
     "0"
   );
-}
 
+  definirTexto(
+    "tabOpportunityCount",
+    contadores.all,
+    "0"
+  );
+}
 
 function mostrarFindings(
   findings,
   filtro = "all"
 ) {
-
   const container =
     document.getElementById(
       "findings"
     );
 
-
   container.innerHTML =
     "";
-
 
   const lista =
     Array.isArray(
@@ -1942,329 +1806,210 @@ function mostrarFindings(
       ? findings
       : [];
 
-
   atualizarContadoresFindings(
     lista
   );
-
 
   const filtrados =
     filtro === "all"
       ? lista
       : lista.filter(
-          finding =>
+          (finding) =>
             normalizarSeveridade(
               finding.severidade
             ) === filtro
         );
 
-
   if (
     filtrados.length === 0
   ) {
-
     const vazio =
       document.createElement(
         "div"
       );
 
-
     vazio.className =
       "empty-state";
-
 
     vazio.textContent =
       lista.length === 0
         ? "No verified issues were detected in this analysis."
         : `No ${filtro} severity findings in this analysis.`;
 
-
     container.appendChild(
       vazio
     );
 
-
     return;
   }
 
-
   filtrados.forEach(
-    finding => {
-
-
+    (finding) => {
       const card =
         document.createElement(
           "article"
         );
 
-
       card.className =
         "finding";
-
-
-      // MAIN
 
       const main =
         document.createElement(
           "div"
         );
 
-
       main.className =
         "finding-main";
-
 
       const alert =
         document.createElement(
           "div"
         );
 
-
       alert.className =
         "finding-alert";
 
-
       alert.textContent =
         "!";
-
 
       const mainText =
         document.createElement(
           "div"
         );
 
-
       const titulo =
         document.createElement(
           "div"
         );
 
-
       titulo.className =
         "finding-code";
-
 
       titulo.textContent =
         nomeFinding(
           finding.codigo
         );
 
-
       const evidencia =
         document.createElement(
           "div"
         );
 
-
       evidencia.className =
         "finding-evidence";
-
 
       evidencia.textContent =
         finding.evidencia ||
         "No evidence provided.";
 
-
       mainText.appendChild(
         titulo
       );
-
 
       mainText.appendChild(
         evidencia
       );
 
-
       main.appendChild(
         alert
       );
-
 
       main.appendChild(
         mainText
       );
 
-
-      // EVIDENCE
-
       const evidenceField =
-        document.createElement(
-          "div"
+        criarCampoFinding(
+          "Evidence",
+          finding.evidencia ||
+          "Verified by analyzer"
         );
-
-
-      evidenceField.className =
-        "finding-field";
-
-
-      const evidenceLabel =
-        document.createElement(
-          "span"
-        );
-
-
-      evidenceLabel.className =
-        "finding-field-label";
-
-
-      evidenceLabel.textContent =
-        "Evidence";
-
-
-      const evidenceValue =
-        document.createElement(
-          "span"
-        );
-
-
-      evidenceValue.className =
-        "finding-field-value";
-
-
-      evidenceValue.textContent =
-        finding.evidencia ||
-        "Verified by analyzer";
-
-
-      evidenceField.appendChild(
-        evidenceLabel
-      );
-
-
-      evidenceField.appendChild(
-        evidenceValue
-      );
-
-
-      // CATEGORY
 
       const categoryField =
         document.createElement(
           "div"
         );
 
-
       categoryField.className =
         "finding-field";
-
 
       const categoryLabel =
         document.createElement(
           "span"
         );
 
-
       categoryLabel.className =
         "finding-field-label";
 
-
       categoryLabel.textContent =
         "Category";
-
 
       const categoryValue =
         document.createElement(
           "span"
         );
 
-
       categoryValue.className =
         "badge";
-
 
       categoryValue.textContent =
         categoriaFinding(
           finding.categoria
         );
 
-
-      categoryField.appendChild(
-        categoryLabel
-      );
-
-
-      categoryField.appendChild(
+      categoryField.append(
+        categoryLabel,
         categoryValue
       );
-
-
-      // SEVERITY
 
       const severityField =
         document.createElement(
           "div"
         );
 
-
       severityField.className =
         "finding-field";
-
 
       const severityLabel =
         document.createElement(
           "span"
         );
 
-
       severityLabel.className =
         "finding-field-label";
 
-
       severityLabel.textContent =
         "Severity";
-
-
-      const severityValue =
-        document.createElement(
-          "span"
-        );
-
 
       const nivel =
         normalizarSeveridade(
           finding.severidade
         );
 
+      const severityValue =
+        document.createElement(
+          "span"
+        );
 
       severityValue.className =
         `badge badge-${nivel}`;
-
 
       severityValue.textContent =
         capitalizar(
           nivel
         );
 
-
-      severityField.appendChild(
-        severityLabel
-      );
-
-
-      severityField.appendChild(
+      severityField.append(
+        severityLabel,
         severityValue
       );
 
-
-      card.appendChild(
-        main
-      );
-
-
-      card.appendChild(
-        evidenceField
-      );
-
-
-      card.appendChild(
-        categoryField
-      );
-
-
-      card.appendChild(
+      card.append(
+        main,
+        evidenceField,
+        categoryField,
         severityField
       );
-
 
       container.appendChild(
         card
@@ -2273,19 +2018,92 @@ function mostrarFindings(
   );
 }
 
+function criarCampoFinding(
+  label,
+  valor
+) {
+  const campo =
+    document.createElement(
+      "div"
+    );
 
-// ======================================================
+  campo.className =
+    "finding-field";
+
+  const titulo =
+    document.createElement(
+      "span"
+    );
+
+  titulo.className =
+    "finding-field-label";
+
+  titulo.textContent =
+    label;
+
+  const texto =
+    document.createElement(
+      "span"
+    );
+
+  texto.className =
+    "finding-field-value";
+
+  texto.textContent =
+    valor;
+
+  campo.append(
+    titulo,
+    texto
+  );
+
+  return campo;
+}
+
+function ativarFiltroVisual(
+  filtro
+) {
+  document
+    .querySelectorAll(
+      ".filter-chip"
+    )
+    .forEach(
+      (botao) => {
+        botao.classList.toggle(
+          "active",
+          botao.dataset.filter ===
+          filtro
+        );
+      }
+    );
+}
+
+function filtrarFindings(
+  filtro
+) {
+  filtroFindingAtual =
+    filtro;
+
+  ativarFiltroVisual(
+    filtro
+  );
+
+  mostrarFindings(
+    findingsAtuais,
+    filtro
+  );
+}
+
+// =====================================================
 // RESULT
-// ======================================================
+// =====================================================
 
 function mostrarResultado(
   dados
 ) {
-
   errorBox.classList.add(
     "hidden"
   );
-
 
   const findings =
     Array.isArray(
@@ -2294,19 +2112,15 @@ function mostrarResultado(
       ? dados.findings
       : [];
 
-
   findingsAtuais =
     findings;
-
 
   filtroFindingAtual =
     "all";
 
-
   ativarFiltroVisual(
     "all"
   );
-
 
   const performanceInfo =
     atualizarPerformance(
@@ -2314,12 +2128,10 @@ function mostrarResultado(
       {}
     );
 
-
   const indexabilityInfo =
     atualizarIndexability(
       dados.indexability
     );
-
 
   const onPageInfo =
     atualizarOnPage(
@@ -2328,24 +2140,21 @@ function mostrarResultado(
       findings
     );
 
-
   atualizarSnapshot({
-
     performanceInfo,
-
     indexabilityInfo,
-
     onPageInfo,
-
     findings
   });
 
+  atualizarTopOpportunity(
+    findings
+  );
 
   mostrarFindings(
     findings,
     "all"
   );
-
 
   const agencyView =
     dados.agencyView ||
@@ -2354,16 +2163,13 @@ function mostrarResultado(
       "Agency View"
     );
 
-
   definirTexto(
     "agencyView",
     agencyView
   );
 
-
   copyAgencyButton.disabled =
     !dados.agencyView;
-
 
   const prospectView =
     dados.prospectView ||
@@ -2372,50 +2178,41 @@ function mostrarResultado(
       "Prospect View"
     );
 
-
   definirTexto(
     "prospectView",
     prospectView
   );
 
-
   copyProspectButton.disabled =
     !dados.prospectView;
 
-
   const quantidade =
     findings.length;
-
 
   const statusIA =
     formatarStatusIA(
       dados.iaStatus
     );
 
-
   definirTexto(
     "analysisStatus",
     `${quantidade} verified finding${quantidade === 1 ? "" : "s"} · AI status: ${statusIA}`
   );
-
 
   const freshness =
     textoTempoAnalise(
       dados.analisadoEm
     );
 
-
   definirTexto(
     "analysisFreshness",
     freshness
   );
 
-
   definirTexto(
     "lastAnalyzed",
     freshness
   );
-
 
   document
     .getElementById(
@@ -2426,14 +2223,15 @@ function mostrarResultado(
       "hidden"
     );
 
-
   results.classList.remove(
     "hidden"
   );
 
+  ativarAba(
+    "overview"
+  );
 
   results.scrollIntoView({
-
     behavior:
       "smooth",
 
@@ -2442,129 +2240,65 @@ function mostrarResultado(
   });
 }
 
-
-// ======================================================
-// FILTERS
-// ======================================================
-
-function ativarFiltroVisual(
-  filtro
-) {
-
-  document
-    .querySelectorAll(
-      ".filter-chip"
-    )
-    .forEach(
-      botao => {
-
-        botao.classList.toggle(
-          "active",
-          botao.dataset.filter ===
-          filtro
-        );
-      }
-    );
-}
-
-
-function filtrarFindings(
-  filtro
-) {
-
-  filtroFindingAtual =
-    filtro;
-
-
-  ativarFiltroVisual(
-    filtro
-  );
-
-
-  mostrarFindings(
-    findingsAtuais,
-    filtro
-  );
-}
-
-
-// ======================================================
+// =====================================================
 // COPY
-// ======================================================
+// =====================================================
 
 async function copiarTexto(
   elementoId,
   botao
 ) {
-
   const elemento =
     document.getElementById(
       elementoId
     );
-
 
   const texto =
     elemento
       ?.textContent
       ?.trim();
 
-
-  if (
-    !texto
-  ) {
-
+  if (!texto) {
     return;
   }
 
-
   try {
-
     await navigator
       .clipboard
       .writeText(
         texto
       );
 
-
     mostrarCopiado(
       botao
     );
 
   } catch {
-
     const textarea =
       document.createElement(
         "textarea"
       );
 
-
     textarea.value =
       texto;
-
 
     textarea.style.position =
       "fixed";
 
-
     textarea.style.opacity =
       "0";
-
 
     document.body.appendChild(
       textarea
     );
 
-
     textarea.select();
-
 
     document.execCommand(
       "copy"
     );
 
-
     textarea.remove();
-
 
     mostrarCopiado(
       botao
@@ -2572,107 +2306,121 @@ async function copiarTexto(
   }
 }
 
-
 function mostrarCopiado(
   botao
 ) {
-
   const original =
     botao.textContent;
 
-
   botao.textContent =
     "Copied!";
-
 
   botao.classList.add(
     "copied"
   );
 
-
   setTimeout(
     () => {
-
       botao.textContent =
         original;
-
 
       botao.classList.remove(
         "copied"
       );
-
     },
     1600
   );
 }
 
-
-// ======================================================
+// =====================================================
 // EVENTS
-// ======================================================
+// =====================================================
+
+iniciarTema();
+
+themeToggle.addEventListener(
+  "click",
+  alternarTema
+);
 
 analyzeButton.addEventListener(
   "click",
   analisar
 );
 
-
 urlInput.addEventListener(
   "keydown",
-  event => {
-
+  (event) => {
     if (
       event.key ===
       "Enter"
     ) {
-
       analisar();
     }
   }
 );
 
+document
+  .querySelectorAll(
+    ".tab-button"
+  )
+  .forEach(
+    (botao) => {
+      botao.addEventListener(
+        "click",
+        () =>
+          ativarAba(
+            botao.dataset.tab
+          )
+      );
+    }
+  );
+
+document
+  .querySelectorAll(
+    "[data-go-tab]"
+  )
+  .forEach(
+    (botao) => {
+      botao.addEventListener(
+        "click",
+        () =>
+          ativarAba(
+            botao.dataset.goTab
+          )
+      );
+    }
+  );
 
 copyAgencyButton.addEventListener(
   "click",
-  () => {
-
+  () =>
     copiarTexto(
       "agencyView",
       copyAgencyButton
-    );
-  }
+    )
 );
-
 
 copyProspectButton.addEventListener(
   "click",
-  () => {
-
+  () =>
     copiarTexto(
       "prospectView",
       copyProspectButton
-    );
-  }
+    )
 );
-
 
 findingFilters.addEventListener(
   "click",
-  event => {
-
+  (event) => {
     const botao =
       event.target.closest(
         ".filter-chip"
       );
 
-
-    if (
-      !botao
-    ) {
-
+    if (!botao) {
       return;
     }
-
 
     filtrarFindings(
       botao.dataset.filter ||

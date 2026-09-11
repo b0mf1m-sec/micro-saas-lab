@@ -1158,7 +1158,7 @@ async function analisarSite(
 
 
   console.log(
-    "Checking SEO structure and indexability..."
+    "Checking SEO structure, indexability, structured data and images..."
   );
 
 
@@ -1178,6 +1178,7 @@ async function analisarSite(
     - robots.txt
     - sitemap
     - Structured Data / JSON-LD
+    - Images / alt attributes
   */
 
   const [
@@ -1206,6 +1207,10 @@ async function analisarSite(
 
   const structuredData =
     pagina.structuredData;
+
+
+  const images =
+    pagina.images;
 
 
   // ====================================================
@@ -1288,6 +1293,8 @@ async function analisarSite(
 
     structuredData,
 
+    images,
+
     seo,
 
     findings,
@@ -1326,6 +1333,9 @@ async function analisarSite(
 
       structuredData:
         resultado.structuredData,
+
+      images:
+        resultado.images,
 
       seo:
         resultado.seo,

@@ -1,119 +1,42 @@
-const urlInput =
-  document.getElementById(
-    "urlInput"
-  );
+const urlInput = document.getElementById("urlInput");
+const analyzeButton = document.getElementById("analyzeButton");
+const loading = document.getElementById("loading");
+const results = document.getElementById("results");
+const errorBox = document.getElementById("error");
+const copyAgencyButton = document.getElementById("copyAgencyButton");
+const copyProspectButton = document.getElementById("copyProspectButton");
+const findingFilters = document.getElementById("findingFilters");
+const themeToggle = document.getElementById("themeToggle");
 
-
-const analyzeButton =
-  document.getElementById(
-    "analyzeButton"
-  );
-
-
-const loading =
-  document.getElementById(
-    "loading"
-  );
-
-
-const results =
-  document.getElementById(
-    "results"
-  );
-
-
-const errorBox =
-  document.getElementById(
-    "error"
-  );
-
-
-const copyAgencyButton =
-  document.getElementById(
-    "copyAgencyButton"
-  );
-
-
-const copyProspectButton =
-  document.getElementById(
-    "copyProspectButton"
-  );
-
-
-const findingFilters =
-  document.getElementById(
-    "findingFilters"
-  );
-
-
-const themeToggle =
-  document.getElementById(
-    "themeToggle"
-  );
-
-
-let findingsAtuais =
-  [];
-
-
-let filtroFindingAtual =
-  "all";
+let findingsAtuais = [];
+let filtroFindingAtual = "all";
 
 
 // =====================================================
 // THEME
 // =====================================================
 
-function aplicarTema(
-  theme
-) {
+function aplicarTema(theme) {
+  const finalTheme = theme === "light" ? "light" : "dark";
 
-  const finalTheme =
-    theme === "light"
-      ? "light"
-      : "dark";
-
-
-  document
-    .documentElement
-    .dataset
-    .theme =
-      finalTheme;
-
+  document.documentElement.dataset.theme = finalTheme;
 
   localStorage.setItem(
     "prospect-analyzer-theme",
     finalTheme
   );
 
+  const icon = document.getElementById("themeIcon");
+  const label = document.getElementById("themeLabel");
 
-  const icon =
-    document.getElementById(
-      "themeIcon"
-    );
-
-
-  const label =
-    document.getElementById(
-      "themeLabel"
-    );
-
-
-  if (
-    icon
-  ) {
-
+  if (icon) {
     icon.textContent =
       finalTheme === "dark"
         ? "☾"
         : "☀";
   }
 
-
-  if (
-    label
-  ) {
-
+  if (label) {
     label.textContent =
       finalTheme === "dark"
         ? "Dark"
@@ -123,26 +46,18 @@ function aplicarTema(
 
 
 function iniciarTema() {
-
   const salvo =
     localStorage.getItem(
       "prospect-analyzer-theme"
     );
 
-
   if (
     salvo === "light" ||
     salvo === "dark"
   ) {
-
-    aplicarTema(
-      salvo
-    );
-
-
+    aplicarTema(salvo);
     return;
   }
-
 
   const prefereClaro =
     window
@@ -150,7 +65,6 @@ function iniciarTema() {
         "(prefers-color-scheme: light)"
       )
       .matches;
-
 
   aplicarTema(
     prefereClaro
@@ -161,13 +75,8 @@ function iniciarTema() {
 
 
 function alternarTema() {
-
   const atual =
-    document
-      .documentElement
-      .dataset
-      .theme;
-
+    document.documentElement.dataset.theme;
 
   aplicarTema(
     atual === "dark"
@@ -181,48 +90,24 @@ function alternarTema() {
 // TABS
 // =====================================================
 
-function ativarAba(
-  nome
-) {
+function ativarAba(nome) {
+  document
+    .querySelectorAll(".tab-button")
+    .forEach((botao) => {
+      botao.classList.toggle(
+        "active",
+        botao.dataset.tab === nome
+      );
+    });
 
   document
-    .querySelectorAll(
-      ".tab-button"
-    )
-    .forEach(
-      (
-        botao
-      ) => {
-
-        botao
-          .classList
-          .toggle(
-            "active",
-            botao.dataset.tab ===
-              nome
-          );
-      }
-    );
-
-
-  document
-    .querySelectorAll(
-      ".tab-panel"
-    )
-    .forEach(
-      (
-        painel
-      ) => {
-
-        painel
-          .classList
-          .toggle(
-            "active",
-            painel.dataset.panel ===
-              nome
-          );
-      }
-    );
+    .querySelectorAll(".tab-panel")
+    .forEach((painel) => {
+      painel.classList.toggle(
+        "active",
+        painel.dataset.panel === nome
+      );
+    });
 }
 
 
@@ -231,46 +116,31 @@ function ativarAba(
 // =====================================================
 
 async function analisar() {
-
   const url =
-    urlInput
-      .value
-      .trim();
+    urlInput.value.trim();
 
-
-  if (
-    !url
-  ) {
-
+  if (!url) {
     mostrarErro(
       "Enter a website URL."
     );
 
-
     return;
   }
 
-
   iniciarLoading();
 
-
   try {
-
     const resposta =
       await fetch(
         "/analisar",
         {
-
           method:
             "POST",
 
-
           headers: {
-
             "Content-Type":
               "application/json"
           },
-
 
           body:
             JSON.stringify({
@@ -279,41 +149,29 @@ async function analisar() {
         }
       );
 
-
     let dados;
 
-
     try {
-
       dados =
         await resposta.json();
-
     } catch {
-
       throw new Error(
         "The server returned an invalid response."
       );
     }
 
-
-    if (
-      !resposta.ok
-    ) {
-
+    if (!resposta.ok) {
       throw new Error(
         dados.erro ||
         "Analysis failed."
       );
     }
 
-
     mostrarResultado(
       dados
     );
 
-  } catch (
-    erro
-  ) {
+  } catch (erro) {
 
     mostrarErro(
       erro.message ||
@@ -328,39 +186,27 @@ async function analisar() {
 
 
 // =====================================================
-// LOADING
+// LOADING / ERROR
 // =====================================================
 
 function iniciarLoading() {
+  errorBox.classList.add(
+    "hidden"
+  );
 
-  errorBox
-    .classList
-    .add(
-      "hidden"
-    );
+  results.classList.add(
+    "hidden"
+  );
 
-
-  results
-    .classList
-    .add(
-      "hidden"
-    );
-
-
-  loading
-    .classList
-    .remove(
-      "hidden"
-    );
-
+  loading.classList.remove(
+    "hidden"
+  );
 
   analyzeButton.disabled =
     true;
 
-
   urlInput.disabled =
     true;
-
 
   analyzeButton.innerHTML =
     "<span>Analyzing…</span>";
@@ -368,44 +214,28 @@ function iniciarLoading() {
 
 
 function finalizarLoading() {
-
-  loading
-    .classList
-    .add(
-      "hidden"
-    );
-
+  loading.classList.add(
+    "hidden"
+  );
 
   analyzeButton.disabled =
     false;
 
-
   urlInput.disabled =
     false;
-
 
   analyzeButton.innerHTML =
     '<span>Analyze</span><span aria-hidden="true">→</span>';
 }
 
 
-// =====================================================
-// ERROR
-// =====================================================
-
-function mostrarErro(
-  mensagem
-) {
-
+function mostrarErro(mensagem) {
   errorBox.textContent =
     mensagem;
 
-
-  errorBox
-    .classList
-    .remove(
-      "hidden"
-    );
+  errorBox.classList.remove(
+    "hidden"
+  );
 }
 
 
@@ -418,48 +248,34 @@ function definirTexto(
   valor,
   fallback = "-"
 ) {
-
   const elemento =
     document.getElementById(
       id
     );
 
-
-  if (
-    !elemento
-  ) {
-
+  if (!elemento) {
     return;
   }
-
 
   const temValor =
     valor !== null &&
     valor !== undefined &&
     valor !== "";
 
-
   elemento.textContent =
     temValor
-      ? String(
-          valor
-        )
+      ? String(valor)
       : fallback;
 }
 
 
-function removerTons(
-  elemento
-) {
-
-  elemento
-    ?.classList
-    .remove(
-      "good",
-      "warning",
-      "bad",
-      "neutral"
-    );
+function removerTons(elemento) {
+  elemento?.classList.remove(
+    "good",
+    "warning",
+    "bad",
+    "neutral"
+  );
 }
 
 
@@ -467,25 +283,17 @@ function aplicarTom(
   elemento,
   tom = "neutral"
 ) {
-
-  if (
-    !elemento
-  ) {
-
+  if (!elemento) {
     return;
   }
-
 
   removerTons(
     elemento
   );
 
-
-  elemento
-    .classList
-    .add(
-      tom
-    );
+  elemento.classList.add(
+    tom
+  );
 }
 
 
@@ -494,24 +302,17 @@ function definirStatus(
   texto,
   tom = "neutral"
 ) {
-
   const elemento =
     document.getElementById(
       id
     );
 
-
-  if (
-    !elemento
-  ) {
-
+  if (!elemento) {
     return;
   }
 
-
   elemento.textContent =
     texto;
-
 
   aplicarTom(
     elemento,
@@ -524,53 +325,34 @@ function definirTomCard(
   id,
   tom = "neutral"
 ) {
-
   const elemento =
     document.getElementById(
       id
     );
 
-
-  if (
-    elemento
-  ) {
-
+  if (elemento) {
     elemento.dataset.tone =
       tom;
   }
 }
 
 
-function capitalizar(
-  texto
-) {
-
-  if (
-    !texto
-  ) {
-
+function capitalizar(texto) {
+  if (!texto) {
     return "Unknown";
   }
 
-
   return (
     texto
-      .charAt(
-        0
-      )
+      .charAt(0)
       .toUpperCase()
     +
-    texto.slice(
-      1
-    )
+    texto.slice(1)
   );
 }
 
 
-function normalizarSeveridade(
-  valor
-) {
-
+function normalizarSeveridade(valor) {
   const nivel =
     String(
       valor ||
@@ -578,31 +360,20 @@ function normalizarSeveridade(
     )
       .toLowerCase();
 
-
-  if (
-    nivel === "alta"
-  ) {
-
+  if (nivel === "alta") {
     return "high";
   }
-
 
   if (
     nivel === "media" ||
     nivel === "média"
   ) {
-
     return "medium";
   }
 
-
-  if (
-    nivel === "baixa"
-  ) {
-
+  if (nivel === "baixa") {
     return "low";
   }
-
 
   return (
     nivel ||
@@ -611,37 +382,26 @@ function normalizarSeveridade(
 }
 
 
-function nomeFinding(
-  codigo
-) {
-
+function nomeFinding(codigo) {
   const nomes = {
-
     LCP_HIGH:
       "High Largest Contentful Paint",
-
 
     CLS_HIGH:
       "High Cumulative Layout Shift",
 
-
     TITLE_MISSING:
       "Missing Page Title",
 
-
     META_DESCRIPTION_MISSING:
       "Missing Meta Description",
-
 
     H1_MISSING:
       "Missing H1 Heading"
   };
 
-
   return (
-    nomes[
-      codigo
-    ]
+    nomes[codigo]
     ||
     codigo
     ||
@@ -650,10 +410,7 @@ function nomeFinding(
 }
 
 
-function categoriaFinding(
-  categoria
-) {
-
+function categoriaFinding(categoria) {
   return (
     categoria === "seo"
       ? "SEO"
@@ -664,57 +421,41 @@ function categoriaFinding(
 }
 
 
-function formatarStatusIA(
-  status
-) {
-
+function formatarStatusIA(status) {
   const statusMap = {
-
     generated:
       "Generated",
-
 
     cached:
       "Cached",
 
-
     no_findings:
       "No findings",
-
 
     rate_limited:
       "Temporarily rate limited",
 
-
     error:
       "Error",
-
 
     invalid_json:
       "Invalid AI response",
 
-
     gerado:
       "Generated",
-
 
     sem_findings:
       "No findings",
 
-
     erro:
       "Error",
-
 
     erro_json:
       "Invalid AI response"
   };
 
-
   return (
-    statusMap[
-      status
-    ]
+    statusMap[status]
     ||
     "Unknown"
   );
@@ -725,28 +466,23 @@ function textoIAIndisponivel(
   status,
   tipo
 ) {
-
   if (
     status ===
     "rate_limited"
   ) {
-
     return (
       "AI generation is temporarily unavailable due to rate limits. Please try again shortly."
     );
   }
 
-
   if (
     status ===
     "no_findings"
   ) {
-
     return (
       `No ${tipo} was generated because no verified findings were detected.`
     );
   }
-
 
   return (
     `No ${tipo} was generated.`
@@ -758,28 +494,21 @@ function urlsEquivalentes(
   urlA,
   urlB
 ) {
-
   if (
     !urlA ||
     !urlB
   ) {
-
     return false;
   }
 
-
   try {
-
     const normalizar =
-      (
-        valor
-      ) => {
+      (valor) => {
 
         const url =
           new URL(
             valor
           );
-
 
         const path =
           url.pathname === "/"
@@ -789,37 +518,27 @@ function urlsEquivalentes(
                 ""
               );
 
-
         return (
           `${url.protocol}//${url.host}${path}${url.search}`
         );
       };
 
-
     return (
-      normalizar(
-        urlA
-      )
+      normalizar(urlA)
       ===
-      normalizar(
-        urlB
-      )
+      normalizar(urlB)
     );
 
   } catch {
 
     return (
-      String(
-        urlA
-      )
+      String(urlA)
         .replace(
           /\/$/,
           ""
         )
       ===
-      String(
-        urlB
-      )
+      String(urlB)
         .replace(
           /\/$/,
           ""
@@ -829,46 +548,34 @@ function urlsEquivalentes(
 }
 
 
-function textoTempoAnalise(
-  iso
-) {
-
-  if (
-    !iso
-  ) {
-
+function textoTempoAnalise(iso) {
+  if (!iso) {
     return (
       "Analyzed just now"
     );
   }
-
 
   const data =
     new Date(
       iso
     );
 
-
   if (
     Number.isNaN(
       data.getTime()
     )
   ) {
-
     return (
       "Analyzed just now"
     );
   }
 
-
   return (
     `Analyzed ${data.toLocaleTimeString(
       [],
       {
-
         hour:
           "2-digit",
-
 
         minute:
           "2-digit"
@@ -885,54 +592,45 @@ function textoTempoAnalise(
 function atualizarPerformance(
   performance = {}
 ) {
-
   definirTexto(
     "score",
     performance.score
   );
-
 
   definirTexto(
     "lcp",
     performance.lcp
   );
 
-
   definirTexto(
     "cls",
     performance.cls
   );
-
 
   definirTexto(
     "fcp",
     performance.fcp
   );
 
-
   definirTexto(
     "speedIndex",
     performance.speedIndex
   );
-
 
   definirTexto(
     "overviewScore",
     performance.score
   );
 
-
   definirTexto(
     "overviewLcp",
     performance.lcp
   );
 
-
   definirTexto(
     "overviewCls",
     performance.cls
   );
-
 
   definirTexto(
     "overviewFcp",
@@ -945,10 +643,8 @@ function atualizarPerformance(
       performance.score
     );
 
-
   let scoreTom =
     "neutral";
-
 
   let scoreTexto =
     "Unavailable";
@@ -964,10 +660,8 @@ function atualizarPerformance(
       score >=
       90
     ) {
-
       scoreTom =
         "good";
-
 
       scoreTexto =
         "Good";
@@ -976,19 +670,15 @@ function atualizarPerformance(
       score >=
       50
     ) {
-
       scoreTom =
         "warning";
-
 
       scoreTexto =
         "Needs attention";
 
     } else {
-
       scoreTom =
         "bad";
-
 
       scoreTexto =
         "Poor";
@@ -1009,10 +699,7 @@ function atualizarPerformance(
     );
 
 
-  if (
-    scoreBar
-  ) {
-
+  if (scoreBar) {
     const bounded =
       Number.isFinite(
         score
@@ -1047,10 +734,8 @@ function atualizarPerformance(
       performance.lcpMs
     );
 
-
   let lcpTom =
     "neutral";
-
 
   let lcpTexto =
     "Measured";
@@ -1066,10 +751,8 @@ function atualizarPerformance(
       lcpMs <=
       2500
     ) {
-
       lcpTom =
         "good";
-
 
       lcpTexto =
         "Good";
@@ -1078,19 +761,15 @@ function atualizarPerformance(
       lcpMs <=
       4000
     ) {
-
       lcpTom =
         "warning";
-
 
       lcpTexto =
         "Needs attention";
 
     } else {
-
       lcpTom =
         "bad";
-
 
       lcpTexto =
         "Poor";
@@ -1110,10 +789,8 @@ function atualizarPerformance(
       performance.clsValor
     );
 
-
   let clsTom =
     "neutral";
-
 
   let clsTexto =
     "Measured";
@@ -1129,10 +806,8 @@ function atualizarPerformance(
       cls <=
       0.1
     ) {
-
       clsTom =
         "good";
-
 
       clsTexto =
         "Good";
@@ -1141,19 +816,15 @@ function atualizarPerformance(
       cls <=
       0.25
     ) {
-
       clsTom =
         "warning";
-
 
       clsTexto =
         "Needs attention";
 
     } else {
-
       clsTom =
         "bad";
-
 
       clsTexto =
         "Poor";
@@ -1169,11 +840,8 @@ function atualizarPerformance(
 
 
   return {
-
     score,
-
     scoreTom,
-
     scoreTexto
   };
 }
@@ -1186,7 +854,6 @@ function atualizarPerformance(
 function atualizarIndexability(
   indexability
 ) {
-
   if (
     !indexability ||
     indexability.erro
@@ -1198,13 +865,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "httpsStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirStatus(
       "indexingStatus",
@@ -1212,20 +877,17 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "canonicalStatus",
       "Unknown",
       "neutral"
     );
 
-
     definirStatus(
       "robotsTxtStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirStatus(
       "sitemapStatus",
@@ -1239,13 +901,11 @@ function atualizarIndexability(
       "Could not determine protocol"
     );
 
-
     definirTexto(
       "indexingReason",
       indexability?.erro ||
       "Indexability data is unavailable."
     );
-
 
     definirTexto(
       "metaRobots",
@@ -1253,13 +913,11 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     definirTexto(
       "xRobotsTag",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "canonicalUrl",
@@ -1267,20 +925,17 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     definirTexto(
       "robotsTxtUrl",
       null,
       "Unavailable"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "sitemapSource",
@@ -1290,14 +945,11 @@ function atualizarIndexability(
 
 
     return {
-
       tom:
         "neutral",
 
-
       titulo:
         "Unknown",
-
 
       detalhe:
         "Indexability data unavailable"
@@ -1357,7 +1009,6 @@ function atualizarIndexability(
       "good"
     );
 
-
     definirTexto(
       "httpsDetail",
       "Secure connection"
@@ -1374,7 +1025,6 @@ function atualizarIndexability(
       "bad"
     );
 
-
     definirTexto(
       "httpsDetail",
       "HTTP connection"
@@ -1387,7 +1037,6 @@ function atualizarIndexability(
       "Unknown",
       "neutral"
     );
-
 
     definirTexto(
       "httpsDetail",
@@ -1649,14 +1298,11 @@ function atualizarIndexability(
   ) {
 
     return {
-
       tom:
         "bad",
 
-
       titulo:
         "Blocked",
-
 
       detalhe:
         "Explicit noindex detected"
@@ -1669,18 +1315,15 @@ function atualizarIndexability(
     "number"
     &&
     httpStatus >=
-      400
+    400
   ) {
 
     return {
-
       tom:
         "bad",
 
-
       titulo:
         "Unavailable",
-
 
       detalhe:
         `HTTP ${httpStatus}`
@@ -1694,14 +1337,11 @@ function atualizarIndexability(
   ) {
 
     return {
-
       tom:
         "warning",
 
-
       titulo:
         "Review",
-
 
       detalhe:
         "Page is not using HTTPS"
@@ -1715,14 +1355,11 @@ function atualizarIndexability(
   ) {
 
     return {
-
       tom:
         "good",
 
-
       titulo:
         "Allowed",
-
 
       detalhe:
         "No explicit noindex detected"
@@ -1731,14 +1368,11 @@ function atualizarIndexability(
 
 
   return {
-
     tom:
       "neutral",
 
-
     titulo:
       "Unknown",
-
 
     detalhe:
       "Could not determine indexing directives"
@@ -1753,7 +1387,6 @@ function atualizarIndexability(
 function atualizarStructuredData(
   structuredData
 ) {
-
   if (
     !structuredData ||
     structuredData.erro
@@ -1850,18 +1483,14 @@ function atualizarStructuredData(
             structuredData
               .types
               .filter(
-                (
-                  type
-                ) =>
+                (type) =>
                   typeof type ===
                     "string"
                   &&
                   type.trim()
               )
               .map(
-                (
-                  type
-                ) =>
+                (type) =>
                   type.trim()
               )
           )
@@ -1935,10 +1564,10 @@ function atualizarStructuredData(
 
   const parsingTone =
     invalidScripts >
-      0
+    0
       ? "warning"
       : validScripts >
-          0
+        0
         ? "good"
         : "neutral";
 
@@ -1971,9 +1600,7 @@ function atualizarStructuredData(
   const mainTypes =
     priorityTypes
       .filter(
-        (
-          type
-        ) =>
+        (type) =>
           types.includes(
             type
           )
@@ -1988,7 +1615,6 @@ function atualizarStructuredData(
     mainTypes.length ===
     0
   ) {
-
     mainTypes.push(
       ...types.slice(
         0,
@@ -2006,9 +1632,7 @@ function atualizarStructuredData(
 
   const otherTypes =
     types.filter(
-      (
-        type
-      ) =>
+      (type) =>
         !mainTypeSet.has(
           type
         )
@@ -2018,7 +1642,7 @@ function atualizarStructuredData(
   definirTexto(
     "schemaMainTypes",
     mainTypes.length >
-      0
+    0
       ? mainTypes.join(
           " · "
         )
@@ -2030,12 +1654,264 @@ function atualizarStructuredData(
   definirTexto(
     "schemaOtherTypes",
     otherTypes.length >
-      0
+    0
       ? `+${otherTypes.length} additional type${otherTypes.length === 1 ? "" : "s"} detected`
       : types.length >
-          0
+        0
         ? "No additional types detected"
         : "No @type values detected"
+  );
+}
+
+
+// =====================================================
+// IMAGES / ALT ATTRIBUTES
+// =====================================================
+
+function atualizarImages(
+  images
+) {
+  if (
+    !images ||
+    images.erro
+  ) {
+
+    definirTexto(
+      "imagesTotal",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "imagesWithAltText",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "imagesWithAltTextDetail",
+      images?.erro,
+      "Image data could not be analyzed."
+    );
+
+
+    definirTexto(
+      "imagesEmptyAlt",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "imagesEmptyAltDetail",
+      null,
+      "Image data could not be analyzed."
+    );
+
+
+    definirStatus(
+      "imagesMissingAltStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "imagesMissingAltDetail",
+      null,
+      "Image data could not be analyzed."
+    );
+
+
+    definirTexto(
+      "imagesMissingAltCount",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "imagesMissingAltSamples",
+      null,
+      "Missing-alt evidence is unavailable."
+    );
+
+
+    return;
+  }
+
+
+  const total =
+    Number.isFinite(
+      Number(
+        images.total
+      )
+    )
+      ? Number(
+          images.total
+        )
+      : 0;
+
+
+  const withAltText =
+    Number.isFinite(
+      Number(
+        images.withAltText
+      )
+    )
+      ? Number(
+          images.withAltText
+        )
+      : 0;
+
+
+  const emptyAlt =
+    Number.isFinite(
+      Number(
+        images.emptyAlt
+      )
+    )
+      ? Number(
+          images.emptyAlt
+        )
+      : 0;
+
+
+  const missingAlt =
+    Number.isFinite(
+      Number(
+        images.missingAlt
+      )
+    )
+      ? Number(
+          images.missingAlt
+        )
+      : 0;
+
+
+  const samples =
+    Array.isArray(
+      images.missingAltSamples
+    )
+      ? images
+          .missingAltSamples
+          .filter(
+            (sample) =>
+              typeof sample ===
+                "string"
+              &&
+              sample.trim()
+          )
+          .map(
+            (sample) =>
+              sample.trim()
+          )
+          .slice(
+            0,
+            5
+          )
+      : [];
+
+
+  definirTexto(
+    "imagesTotal",
+    total
+  );
+
+
+  definirTexto(
+    "imagesWithAltText",
+    withAltText
+  );
+
+
+  definirTexto(
+    "imagesWithAltTextDetail",
+    total >
+    0
+      ? `${withAltText} of ${total} image${total === 1 ? "" : "s"} contain non-empty alt text.`
+      : "No images were detected in the analyzed HTML."
+  );
+
+
+  definirTexto(
+    "imagesEmptyAlt",
+    emptyAlt
+  );
+
+
+  definirTexto(
+    "imagesEmptyAltDetail",
+    emptyAlt >
+    0
+      ? `${emptyAlt} image${emptyAlt === 1 ? "" : "s"} use${emptyAlt === 1 ? "s" : ""} alt="". Empty alt can be intentional for decorative images.`
+      : "No empty alt attributes were detected."
+  );
+
+
+  if (
+    total ===
+    0
+  ) {
+
+    definirStatus(
+      "imagesMissingAltStatus",
+      "No images",
+      "neutral"
+    );
+
+  } else if (
+    missingAlt >
+    0
+  ) {
+
+    definirStatus(
+      "imagesMissingAltStatus",
+      `${missingAlt} missing`,
+      "warning"
+    );
+
+  } else {
+
+    definirStatus(
+      "imagesMissingAltStatus",
+      "None missing",
+      "good"
+    );
+  }
+
+
+  definirTexto(
+    "imagesMissingAltDetail",
+    total ===
+    0
+      ? "No images were available to check."
+      : missingAlt >
+        0
+        ? `${missingAlt} image${missingAlt === 1 ? "" : "s"} ${missingAlt === 1 ? "does" : "do"} not include an alt attribute.`
+        : "Every detected image includes an alt attribute."
+  );
+
+
+  definirTexto(
+    "imagesMissingAltCount",
+    missingAlt
+  );
+
+
+  definirTexto(
+    "imagesMissingAltSamples",
+    samples.length >
+    0
+      ? samples.join(
+          " · "
+        )
+      : missingAlt >
+        0
+        ? "Missing alt was detected, but no source URL was available for the sampled elements."
+        : "No missing-alt examples to show."
   );
 }
 
@@ -2048,7 +1924,6 @@ function atualizarOnPage(
   seo = {},
   findings = []
 ) {
-
   definirTexto(
     "title",
     seo.title,
@@ -2143,9 +2018,7 @@ function atualizarOnPage(
 
   const issues =
     findings.filter(
-      (
-        finding
-      ) =>
+      (finding) =>
         onPageCodes.has(
           finding.codigo
         )
@@ -2154,20 +2027,17 @@ function atualizarOnPage(
 
   if (
     issues.length ===
-      0
+    0
     &&
     !seo.erro
   ) {
 
     return {
-
       tom:
         "good",
 
-
       titulo:
         "Core tags present",
-
 
       detalhe:
         "Title, meta description and H1 detected"
@@ -2182,9 +2052,7 @@ function atualizarOnPage(
 
     const high =
       issues.some(
-        (
-          finding
-        ) =>
+        (finding) =>
           normalizarSeveridade(
             finding.severidade
           ) ===
@@ -2193,16 +2061,13 @@ function atualizarOnPage(
 
 
     return {
-
       tom:
         high
           ? "bad"
           : "warning",
 
-
       titulo:
         `${issues.length} issue${issues.length === 1 ? "" : "s"}`,
-
 
       detalhe:
         "Verified on-page findings detected"
@@ -2211,14 +2076,11 @@ function atualizarOnPage(
 
 
   return {
-
     tom:
       "neutral",
 
-
     titulo:
       "Unknown",
-
 
     detalhe:
       "On-page data unavailable"
@@ -2236,7 +2098,6 @@ function atualizarSnapshot({
   onPageInfo,
   findings
 }) {
-
   const score =
     performanceInfo.score;
 
@@ -2279,10 +2140,7 @@ function atualizarSnapshot({
     );
 
 
-  if (
-    ring
-  ) {
-
+  if (ring) {
     const bounded =
       Number.isFinite(
         score
@@ -2299,13 +2157,13 @@ function atualizarSnapshot({
 
     const color =
       performanceInfo.scoreTom ===
-        "good"
+      "good"
         ? "var(--success)"
         : performanceInfo.scoreTom ===
-            "warning"
+          "warning"
           ? "var(--warning)"
           : performanceInfo.scoreTom ===
-              "bad"
+            "bad"
             ? "var(--danger)"
             : "var(--muted-2)";
 
@@ -2365,9 +2223,7 @@ function atualizarSnapshot({
 
   const high =
     findings.filter(
-      (
-        finding
-      ) =>
+      (finding) =>
         normalizarSeveridade(
           finding.severidade
         ) ===
@@ -2377,9 +2233,7 @@ function atualizarSnapshot({
 
   const medium =
     findings.filter(
-      (
-        finding
-      ) =>
+      (finding) =>
         normalizarSeveridade(
           finding.severidade
         ) ===
@@ -2390,10 +2244,8 @@ function atualizarSnapshot({
   let tom =
     "good";
 
-
   let titulo =
     "No findings";
-
 
   let detalhe =
     "No verified opportunities detected";
@@ -2407,10 +2259,8 @@ function atualizarSnapshot({
     tom =
       "bad";
 
-
     titulo =
       `${high} high priority`;
-
 
     detalhe =
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
@@ -2423,10 +2273,8 @@ function atualizarSnapshot({
     tom =
       "warning";
 
-
     titulo =
       `${medium} to review`;
-
 
     detalhe =
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
@@ -2439,10 +2287,8 @@ function atualizarSnapshot({
     tom =
       "warning";
 
-
     titulo =
       `${quantidade} detected`;
-
 
     detalhe =
       "Verified opportunities available";
@@ -2475,7 +2321,6 @@ function atualizarSnapshot({
 function atualizarTopOpportunity(
   findings
 ) {
-
   const container =
     document.getElementById(
       "topOpportunity"
@@ -2495,7 +2340,7 @@ function atualizarTopOpportunity(
     )
     ||
     findings.length ===
-      0
+    0
   ) {
 
     container
@@ -2505,10 +2350,7 @@ function atualizarTopOpportunity(
       );
 
 
-    if (
-      marcador
-    ) {
-
+    if (marcador) {
       marcador.textContent =
         "✓";
     }
@@ -2538,14 +2380,11 @@ function atualizarTopOpportunity(
 
 
   const peso = {
-
     high:
       3,
 
-
     medium:
       2,
-
 
     low:
       1
@@ -2557,10 +2396,7 @@ function atualizarTopOpportunity(
       ...findings
     ]
       .sort(
-        (
-          a,
-          b
-        ) =>
+        (a, b) =>
           (
             peso[
               normalizarSeveridade(
@@ -2596,10 +2432,7 @@ function atualizarTopOpportunity(
     );
 
 
-  if (
-    marcador
-  ) {
-
+  if (marcador) {
     marcador.textContent =
       "!";
   }
@@ -2626,10 +2459,10 @@ function atualizarTopOpportunity(
       nivel
     ),
     nivel ===
-      "high"
+    "high"
       ? "bad"
       : nivel ===
-          "medium"
+        "medium"
         ? "warning"
         : "good"
   );
@@ -2643,20 +2476,15 @@ function atualizarTopOpportunity(
 function atualizarContadoresFindings(
   findings
 ) {
-
   const contadores = {
-
     all:
       findings.length,
-
 
     high:
       0,
 
-
     medium:
       0,
-
 
     low:
       0
@@ -2664,9 +2492,7 @@ function atualizarContadoresFindings(
 
 
   findings.forEach(
-    (
-      finding
-    ) => {
+    (finding) => {
 
       const nivel =
         normalizarSeveridade(
@@ -2684,7 +2510,7 @@ function atualizarContadoresFindings(
         contadores[
           nivel
         ] +=
-          1;
+        1;
       }
     }
   );
@@ -2730,7 +2556,6 @@ function mostrarFindings(
   findings,
   filtro = "all"
 ) {
-
   const container =
     document.getElementById(
       "findings"
@@ -2756,12 +2581,10 @@ function mostrarFindings(
 
   const filtrados =
     filtro ===
-      "all"
+    "all"
       ? lista
       : lista.filter(
-          (
-            finding
-          ) =>
+          (finding) =>
             normalizarSeveridade(
               finding.severidade
             ) ===
@@ -2786,7 +2609,7 @@ function mostrarFindings(
 
     vazio.textContent =
       lista.length ===
-        0
+      0
         ? "No verified issues were detected in this analysis."
         : `No ${filtro} severity findings in this analysis.`;
 
@@ -2801,9 +2624,7 @@ function mostrarFindings(
 
 
   filtrados.forEach(
-    (
-      finding
-    ) => {
+    (finding) => {
 
       const card =
         document.createElement(
@@ -3022,7 +2843,6 @@ function criarCampoFinding(
   label,
   valor
 ) {
-
   const campo =
     document.createElement(
       "div"
@@ -3074,23 +2894,18 @@ function criarCampoFinding(
 function ativarFiltroVisual(
   filtro
 ) {
-
   document
     .querySelectorAll(
       ".filter-chip"
     )
     .forEach(
-      (
-        botao
-      ) => {
+      (botao) => {
 
-        botao
-          .classList
-          .toggle(
-            "active",
-            botao.dataset.filter ===
-              filtro
-          );
+        botao.classList.toggle(
+          "active",
+          botao.dataset.filter ===
+          filtro
+        );
       }
     );
 }
@@ -3099,7 +2914,6 @@ function ativarFiltroVisual(
 function filtrarFindings(
   filtro
 ) {
-
   filtroFindingAtual =
     filtro;
 
@@ -3123,12 +2937,9 @@ function filtrarFindings(
 function mostrarResultado(
   dados
 ) {
-
-  errorBox
-    .classList
-    .add(
-      "hidden"
-    );
+  errorBox.classList.add(
+    "hidden"
+  );
 
 
   const findings =
@@ -3170,6 +2981,11 @@ function mostrarResultado(
   );
 
 
+  atualizarImages(
+    dados.images
+  );
+
+
   const onPageInfo =
     atualizarOnPage(
       dados.seo ||
@@ -3179,13 +2995,9 @@ function mostrarResultado(
 
 
   atualizarSnapshot({
-
     performanceInfo,
-
     indexabilityInfo,
-
     onPageInfo,
-
     findings
   });
 
@@ -3281,11 +3093,9 @@ function mostrarResultado(
     );
 
 
-  results
-    .classList
-    .remove(
-      "hidden"
-    );
+  results.classList.remove(
+    "hidden"
+  );
 
 
   ativarAba(
@@ -3294,10 +3104,8 @@ function mostrarResultado(
 
 
   results.scrollIntoView({
-
     behavior:
       "smooth",
-
 
     block:
       "start"
@@ -3313,7 +3121,6 @@ async function copiarTexto(
   elementoId,
   botao
 ) {
-
   const elemento =
     document.getElementById(
       elementoId
@@ -3326,16 +3133,12 @@ async function copiarTexto(
       ?.trim();
 
 
-  if (
-    !texto
-  ) {
-
+  if (!texto) {
     return;
   }
 
 
   try {
-
     await navigator
       .clipboard
       .writeText(
@@ -3393,7 +3196,6 @@ async function copiarTexto(
 function mostrarCopiado(
   botao
 ) {
-
   const original =
     botao.textContent;
 
@@ -3402,25 +3204,20 @@ function mostrarCopiado(
     "Copied!";
 
 
-  botao
-    .classList
-    .add(
-      "copied"
-    );
+  botao.classList.add(
+    "copied"
+  );
 
 
   setTimeout(
     () => {
-
       botao.textContent =
         original;
 
 
-      botao
-        .classList
-        .remove(
-          "copied"
-        );
+      botao.classList.remove(
+        "copied"
+      );
     },
     1600
   );
@@ -3448,15 +3245,12 @@ analyzeButton.addEventListener(
 
 urlInput.addEventListener(
   "keydown",
-  (
-    event
-  ) => {
+  (event) => {
 
     if (
       event.key ===
       "Enter"
     ) {
-
       analisar();
     }
   }
@@ -3468,9 +3262,7 @@ document
     ".tab-button"
   )
   .forEach(
-    (
-      botao
-    ) => {
+    (botao) => {
 
       botao.addEventListener(
         "click",
@@ -3488,9 +3280,7 @@ document
     "[data-go-tab]"
   )
   .forEach(
-    (
-      botao
-    ) => {
+    (botao) => {
 
       botao.addEventListener(
         "click",
@@ -3525,9 +3315,7 @@ copyProspectButton.addEventListener(
 
 findingFilters.addEventListener(
   "click",
-  (
-    event
-  ) => {
+  (event) => {
 
     const botao =
       event
@@ -3537,10 +3325,7 @@ findingFilters.addEventListener(
         );
 
 
-    if (
-      !botao
-    ) {
-
+    if (!botao) {
       return;
     }
 

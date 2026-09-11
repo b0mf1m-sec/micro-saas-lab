@@ -742,6 +742,182 @@ function structuredDataIndisponivel(
   };
 }
 
+// ======================================================
+// IMAGES / ALT ATTRIBUTES
+// ======================================================
+
+function analisarImagens(
+  $,
+  finalUrl
+) {
+
+  const resultado = {
+
+    total:
+      0,
+
+    withAltText:
+      0,
+
+    emptyAlt:
+      0,
+
+    missingAlt:
+      0,
+
+    missingAltSamples:
+      [],
+
+    erro:
+      null
+  };
+
+
+  $("img").each(
+    (
+      index,
+      elemento
+    ) => {
+
+      resultado.total +=
+        1;
+
+
+      const altExiste =
+        $(elemento)
+          .is(
+            "[alt]"
+          );
+
+
+      // ===============================================
+      // ALT ATTRIBUTE MISSING
+      // ===============================================
+
+      if (
+        !altExiste
+      ) {
+
+        resultado.missingAlt +=
+          1;
+
+
+        // Save up to 5 examples as evidence.
+
+        if (
+          resultado
+            .missingAltSamples
+            .length < 5
+        ) {
+
+          const src =
+            $(elemento)
+              .attr(
+                "src"
+              )
+            ||
+            $(elemento)
+              .attr(
+                "data-src"
+              )
+            ||
+            $(elemento)
+              .attr(
+                "data-lazy-src"
+              )
+            ||
+            null;
+
+
+          if (
+            src
+          ) {
+
+            try {
+
+              resultado
+                .missingAltSamples
+                .push(
+                  new URL(
+                    src,
+                    finalUrl
+                  ).toString()
+                );
+
+            } catch {
+
+              resultado
+                .missingAltSamples
+                .push(
+                  src
+                );
+            }
+          }
+        }
+
+
+        return;
+      }
+
+
+      // ===============================================
+      // ALT ATTRIBUTE EXISTS
+      // ===============================================
+
+      const alt =
+        $(elemento)
+          .attr(
+            "alt"
+          )
+        ??
+        "";
+
+
+      if (
+        alt.trim()
+      ) {
+
+        resultado.withAltText +=
+          1;
+
+      } else {
+
+        resultado.emptyAlt +=
+          1;
+      }
+    }
+  );
+
+
+  return resultado;
+}
+
+
+function imagesIndisponiveis(
+  mensagem = null
+) {
+
+  return {
+
+    total:
+      0,
+
+    withAltText:
+      0,
+
+    emptyAlt:
+      0,
+
+    missingAlt:
+      0,
+
+    missingAltSamples:
+      [],
+
+    erro:
+      mensagem
+  };
+}
 
 // ======================================================
 // ANALYZE PAGE
@@ -867,6 +1043,12 @@ async function analisarPagina(
             ),
 
 
+          images:
+            imagesIndisponiveis(
+              `HTML was not analyzed because the page returned HTTP ${httpStatus}.`
+          ),
+
+
           indexability: {
 
             httpStatus,
@@ -923,6 +1105,15 @@ async function analisarPagina(
           $
         );
 
+      // =================================================
+      // IMAGES / ALT ATTRIBUTES
+      // =================================================
+
+      const images =
+        analisarImagens(
+          $,
+          finalUrl
+        );
 
       // =================================================
       // ON-PAGE SEO
@@ -1110,6 +1301,9 @@ async function analisarPagina(
         structuredData,
 
 
+        images,
+
+
         indexability: {
 
           httpStatus,
@@ -1217,6 +1411,12 @@ async function analisarPagina(
 
         structuredData:
           structuredDataIndisponivel(
+            erro.message
+          ),
+
+
+        images:
+          imagesIndisponiveis(
             erro.message
           ),
 

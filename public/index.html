@@ -7,12 +7,25 @@
   <title>Prospect Analyzer</title>
   <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
+
   <div class="app-shell">
+
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Prospect Analyzer home">
-        <span class="brand-mark" aria-hidden="true">
-          <span></span><span></span><span></span>
+
+      <a
+        class="brand"
+        href="#"
+        aria-label="Prospect Analyzer home"
+      >
+        <span
+          class="brand-mark"
+          aria-hidden="true"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
         </span>
 
         <span class="brand-name">
@@ -24,11 +37,14 @@
         </span>
       </a>
 
+
       <div class="topbar-actions">
+
         <span class="evidence-chip">
           <span class="dot"></span>
           Evidence-first
         </span>
+
 
         <button
           id="themeToggle"
@@ -37,7 +53,10 @@
           aria-label="Switch theme"
           title="Switch theme"
         >
-          <span id="themeIcon" aria-hidden="true">
+          <span
+            id="themeIcon"
+            aria-hidden="true"
+          >
             ☾
           </span>
 
@@ -45,16 +64,24 @@
             Dark
           </span>
         </button>
+
       </div>
+
     </header>
+
 
 
     <main class="workspace">
 
-      <!-- HERO -->
+
+      <!-- ==================================================
+           HERO
+           ================================================== -->
 
       <section class="hero">
+
         <div>
+
           <div class="kicker">
             SEO prospecting workspace
           </div>
@@ -66,20 +93,27 @@
           <p>
             Turn verified website findings into personalized sales outreach.
           </p>
+
         </div>
+
 
         <p class="hero-note">
           Find opportunities. Build better outreach.
         </p>
+
       </section>
 
 
-      <!-- SEARCH -->
+
+      <!-- ==================================================
+           SEARCH
+           ================================================== -->
 
       <section
         class="search-area"
         aria-label="Website analysis"
       >
+
         <div class="search-row">
 
           <div class="url-field">
@@ -90,6 +124,7 @@
             >
               ↗
             </span>
+
 
             <input
               id="urlInput"
@@ -135,32 +170,42 @@
       </section>
 
 
-      <!-- LOADING -->
+
+      <!-- ==================================================
+           LOADING
+           ================================================== -->
 
       <section
         id="loading"
         class="loading-panel hidden"
         aria-live="polite"
       >
+
         <span
           class="spinner"
           aria-hidden="true"
         ></span>
 
+
         <div>
+
           <strong>
             Analyzing website…
           </strong>
 
           <span>
-            Checking performance, indexability, crawling, structured data, images, on-page SEO and verified opportunities.
+            Checking performance, indexability, crawling, structured data, images, Local SEO signals, on-page SEO and verified opportunities.
           </span>
+
         </div>
 
       </section>
 
 
-      <!-- ERROR -->
+
+      <!-- ==================================================
+           ERROR
+           ================================================== -->
 
       <div
         id="error"
@@ -169,14 +214,20 @@
       ></div>
 
 
-      <!-- RESULTS -->
+
+      <!-- ==================================================
+           RESULTS
+           ================================================== -->
 
       <section
         id="results"
         class="results hidden"
       >
 
-        <!-- TABS -->
+
+        <!-- ==================================================
+             TABS
+             ================================================== -->
 
         <nav
           class="tabs"
@@ -191,6 +242,7 @@
             Overview
           </button>
 
+
           <button
             class="tab-button"
             type="button"
@@ -198,6 +250,7 @@
           >
             Technical
           </button>
+
 
           <button
             class="tab-button"
@@ -214,6 +267,7 @@
             </span>
           </button>
 
+
           <button
             class="tab-button"
             type="button"
@@ -225,7 +279,10 @@
         </nav>
 
 
-        <!-- OVERVIEW -->
+
+        <!-- ==================================================
+             OVERVIEW
+             ================================================== -->
 
         <div
           class="tab-panel active"
@@ -239,6 +296,7 @@
             <div class="section-heading">
 
               <div>
+
                 <span class="section-kicker">
                   At a glance
                 </span>
@@ -250,15 +308,18 @@
                 <p>
                   Quick view of the site's technical health and highest-priority findings.
                 </p>
+
               </div>
 
 
               <div class="freshness">
+
                 <span class="dot"></span>
 
                 <span id="analysisFreshness">
                   Analyzed just now
                 </span>
+
               </div>
 
             </div>
@@ -281,7 +342,9 @@
                   </span>
                 </div>
 
+
                 <div>
+
                   <span class="label">
                     Performance
                   </span>
@@ -293,9 +356,11 @@
                   <small id="snapshotPerformanceDetail">
                     Waiting for data
                   </small>
+
                 </div>
 
               </article>
+
 
 
               <article
@@ -308,6 +373,7 @@
                 </div>
 
                 <div>
+
                   <span class="label">
                     Indexability
                   </span>
@@ -319,9 +385,11 @@
                   <small id="snapshotIndexabilityDetail">
                     Waiting for data
                   </small>
+
                 </div>
 
               </article>
+
 
 
               <article
@@ -334,6 +402,7 @@
                 </div>
 
                 <div>
+
                   <span class="label">
                     On-Page SEO
                   </span>
@@ -345,9 +414,11 @@
                   <small id="snapshotOnPageDetail">
                     Waiting for data
                   </small>
+
                 </div>
 
               </article>
+
 
 
               <article
@@ -360,6 +431,7 @@
                 </div>
 
                 <div>
+
                   <span class="label">
                     Opportunities
                   </span>
@@ -371,22 +443,27 @@
                   <small id="snapshotOpportunitiesDetail">
                     No verified findings yet
                   </small>
+
                 </div>
 
               </article>
+
 
             </div>
 
           </section>
 
 
+
           <div class="overview-grid">
+
 
             <section class="section-block">
 
               <div class="section-heading compact">
 
                 <div>
+
                   <span class="section-kicker">
                     Performance
                   </span>
@@ -394,6 +471,7 @@
                   <h2>
                     Core Web Signals
                   </h2>
+
                 </div>
 
 
@@ -420,6 +498,7 @@
                   </strong>
                 </div>
 
+
                 <div>
                   <span>
                     LCP
@@ -430,6 +509,7 @@
                   </strong>
                 </div>
 
+
                 <div>
                   <span>
                     CLS
@@ -439,6 +519,7 @@
                     -
                   </strong>
                 </div>
+
 
                 <div>
                   <span>
@@ -455,6 +536,7 @@
             </section>
 
 
+
             <section
               class="section-block top-opportunity-block"
             >
@@ -462,6 +544,7 @@
               <div class="section-heading compact">
 
                 <div>
+
                   <span class="section-kicker">
                     Evidence-first
                   </span>
@@ -469,6 +552,7 @@
                   <h2>
                     Top Opportunity
                   </h2>
+
                 </div>
 
 
@@ -494,6 +578,7 @@
 
 
                 <div>
+
                   <strong id="topOpportunityTitle">
                     No verified findings
                   </strong>
@@ -501,6 +586,7 @@
                   <p id="topOpportunityEvidence">
                     Run an analysis to review verified opportunities.
                   </p>
+
                 </div>
 
 
@@ -520,20 +606,27 @@
         </div>
 
 
-        <!-- TECHNICAL -->
+
+        <!-- ==================================================
+             TECHNICAL
+             ================================================== -->
 
         <div
           class="tab-panel"
           data-panel="technical"
         >
 
-          <!-- PERFORMANCE -->
+
+          <!-- ==================================================
+               PERFORMANCE
+               ================================================== -->
 
           <section class="section-block">
 
             <div class="section-heading">
 
               <div>
+
                 <span class="section-kicker">
                   Lighthouse
                 </span>
@@ -545,6 +638,7 @@
                 <p>
                   Measured loading and visual stability signals.
                 </p>
+
               </div>
 
             </div>
@@ -585,6 +679,7 @@
               </article>
 
 
+
               <article class="metric-item">
 
                 <span class="label">
@@ -610,6 +705,7 @@
                 </small>
 
               </article>
+
 
 
               <article class="metric-item">
@@ -639,6 +735,7 @@
               </article>
 
 
+
               <article class="metric-item">
 
                 <span class="label">
@@ -661,6 +758,7 @@
                 </small>
 
               </article>
+
 
 
               <article class="metric-item">
@@ -692,13 +790,17 @@
           </section>
 
 
-          <!-- INDEXABILITY -->
+
+          <!-- ==================================================
+               INDEXABILITY
+               ================================================== -->
 
           <section class="section-block">
 
             <div class="section-heading">
 
               <div>
+
                 <span class="section-kicker">
                   Search access
                 </span>
@@ -710,6 +812,7 @@
                 <p>
                   Signals that affect how search engines can access and interpret the page.
                 </p>
+
               </div>
 
             </div>
@@ -738,6 +841,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -758,6 +862,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -776,6 +881,7 @@
                 </small>
 
               </div>
+
 
 
               <div class="technical-row">
@@ -801,6 +907,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -824,6 +931,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -845,6 +953,7 @@
                 </small>
 
               </div>
+
 
 
               <div class="technical-row">
@@ -888,13 +997,17 @@
           </section>
 
 
-          <!-- STRUCTURED DATA -->
+
+          <!-- ==================================================
+               STRUCTURED DATA
+               ================================================== -->
 
           <section class="section-block">
 
             <div class="section-heading">
 
               <div>
+
                 <span class="section-kicker">
                   Structured data
                 </span>
@@ -906,6 +1019,7 @@
                 <p>
                   Structured data detected in the analyzed HTML. Detection does not by itself confirm Schema.org validity or eligibility for rich results.
                 </p>
+
               </div>
 
             </div>
@@ -934,6 +1048,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -952,6 +1067,7 @@
                 </small>
 
               </div>
+
 
 
               <div class="technical-row">
@@ -982,13 +1098,340 @@
           </section>
 
 
-          <!-- IMAGES -->
+
+          <!-- ==================================================
+               LOCAL SEO SNAPSHOT
+               ================================================== -->
 
           <section class="section-block">
 
             <div class="section-heading">
 
               <div>
+
+                <span class="section-kicker">
+                  Local search evidence
+                </span>
+
+                <h2>
+                  Local SEO Snapshot
+                </h2>
+
+                <p>
+                  Signals detected in the analyzed server HTML and JSON-LD. “Not detected” does not mean the information is absent elsewhere on the website or in Google Business Profile.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="technical-table">
+
+
+              <div class="technical-row">
+
+                <span>
+                  Local business schema
+                </span>
+
+                <span
+                  id="localSeoSchemaStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="localSeoSchemaDetail">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Selected entity types
+                </span>
+
+                <strong
+                  id="localSeoEntityTypes"
+                  class="technical-code"
+                >
+                  -
+                </strong>
+
+                <small>
+                  Schema types associated with the selected local entity.
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Business name
+                </span>
+
+                <strong
+                  id="localSeoBusinessName"
+                  class="technical-code"
+                >
+                  -
+                </strong>
+
+                <small>
+                  Name detected on the selected Schema entity.
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Schema phone
+                </span>
+
+                <strong
+                  id="localSeoSchemaPhones"
+                  class="technical-code breakable"
+                >
+                  -
+                </strong>
+
+                <small>
+                  Telephone values associated with the selected Schema entity.
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Click-to-call
+                </span>
+
+                <span
+                  id="localSeoClickToCallStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small
+                  id="localSeoClickToCallDetail"
+                  class="breakable"
+                >
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Structured address
+                </span>
+
+                <strong
+                  id="localSeoAddress"
+                  class="technical-code breakable"
+                >
+                  -
+                </strong>
+
+                <small id="localSeoAddressDetail">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Opening hours
+                </span>
+
+                <span
+                  id="localSeoHoursStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small
+                  id="localSeoHoursDetail"
+                  class="breakable"
+                >
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Area served
+                </span>
+
+                <span
+                  id="localSeoAreaServedStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small
+                  id="localSeoAreaServedDetail"
+                  class="breakable"
+                >
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Geo coordinates
+                </span>
+
+                <span
+                  id="localSeoGeoStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="localSeoGeoDetail">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Google Maps
+                </span>
+
+                <span
+                  id="localSeoMapsStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small
+                  id="localSeoMapsDetail"
+                  class="breakable"
+                >
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Social / sameAs
+                </span>
+
+                <strong
+                  id="localSeoSameAsCount"
+                  class="technical-code"
+                >
+                  -
+                </strong>
+
+                <small
+                  id="localSeoSameAsDetail"
+                  class="breakable"
+                >
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Location in title
+                </span>
+
+                <span
+                  id="localSeoTitleLocationStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="localSeoTitleLocationDetail">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+
+              <div class="technical-row">
+
+                <span>
+                  Location in H1
+                </span>
+
+                <span
+                  id="localSeoH1LocationStatus"
+                  class="status-pill neutral"
+                >
+                  -
+                </span>
+
+                <small id="localSeoH1LocationDetail">
+                  Waiting for data
+                </small>
+
+              </div>
+
+
+            </div>
+
+          </section>
+
+
+
+          <!-- ==================================================
+               IMAGES
+               ================================================== -->
+
+          <section class="section-block">
+
+            <div class="section-heading">
+
+              <div>
+
                 <span class="section-kicker">
                   HTML media
                 </span>
@@ -1000,6 +1443,7 @@
                 <p>
                   Image alt attribute coverage detected in the analyzed HTML. Empty alt values can be intentional for decorative images.
                 </p>
+
               </div>
 
             </div>
@@ -1028,6 +1472,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -1046,6 +1491,7 @@
                 </small>
 
               </div>
+
 
 
               <div class="technical-row">
@@ -1068,6 +1514,7 @@
               </div>
 
 
+
               <div class="technical-row">
 
                 <span>
@@ -1086,6 +1533,7 @@
                 </small>
 
               </div>
+
 
 
               <div class="technical-row">
@@ -1116,13 +1564,17 @@
           </section>
 
 
-          <!-- ON-PAGE -->
+
+          <!-- ==================================================
+               ON-PAGE
+               ================================================== -->
 
           <section class="section-block">
 
             <div class="section-heading">
 
               <div>
+
                 <span class="section-kicker">
                   HTML signals
                 </span>
@@ -1134,6 +1586,7 @@
                 <p>
                   Core page elements found in the analyzed HTML.
                 </p>
+
               </div>
 
             </div>
@@ -1145,6 +1598,7 @@
               <div class="onpage-row">
 
                 <div>
+
                   <span class="label">
                     Title
                   </span>
@@ -1152,6 +1606,7 @@
                   <strong id="title">
                     -
                   </strong>
+
                 </div>
 
                 <span
@@ -1164,9 +1619,11 @@
               </div>
 
 
+
               <div class="onpage-row">
 
                 <div>
+
                   <span class="label">
                     Meta Description
                   </span>
@@ -1174,6 +1631,7 @@
                   <p id="metaDescription">
                     -
                   </p>
+
                 </div>
 
                 <span
@@ -1186,9 +1644,11 @@
               </div>
 
 
+
               <div class="onpage-row">
 
                 <div>
+
                   <span class="label">
                     H1 Count
                   </span>
@@ -1200,6 +1660,7 @@
                   <small id="h1Detail">
                     Headings detected
                   </small>
+
                 </div>
 
                 <span
@@ -1216,10 +1677,14 @@
 
           </section>
 
+
         </div>
 
 
-        <!-- OPPORTUNITIES -->
+
+        <!-- ==================================================
+             OPPORTUNITIES
+             ================================================== -->
 
         <div
           class="tab-panel"
@@ -1233,6 +1698,7 @@
             >
 
               <div>
+
                 <span class="section-kicker">
                   Verified evidence
                 </span>
@@ -1244,6 +1710,7 @@
                 <p>
                   Only findings backed by data collected by the analyzer appear here.
                 </p>
+
               </div>
 
 
@@ -1259,10 +1726,12 @@
                   data-filter="all"
                 >
                   All
+
                   <span id="filterAllCount">
                     0
                   </span>
                 </button>
+
 
                 <button
                   type="button"
@@ -1270,10 +1739,12 @@
                   data-filter="high"
                 >
                   High
+
                   <span id="filterHighCount">
                     0
                   </span>
                 </button>
+
 
                 <button
                   type="button"
@@ -1281,10 +1752,12 @@
                   data-filter="medium"
                 >
                   Medium
+
                   <span id="filterMediumCount">
                     0
                   </span>
                 </button>
+
 
                 <button
                   type="button"
@@ -1292,6 +1765,7 @@
                   data-filter="low"
                 >
                   Low
+
                   <span id="filterLowCount">
                     0
                   </span>
@@ -1312,7 +1786,10 @@
         </div>
 
 
-        <!-- OUTREACH -->
+
+        <!-- ==================================================
+             OUTREACH
+             ================================================== -->
 
         <div
           class="tab-panel"
@@ -1329,6 +1806,7 @@
               <div class="section-heading compact">
 
                 <div>
+
                   <span class="section-kicker">
                     Internal
                   </span>
@@ -1340,6 +1818,7 @@
                   <p>
                     Technical summary for SEO review.
                   </p>
+
                 </div>
 
 
@@ -1362,6 +1841,7 @@
             </section>
 
 
+
             <section
               class="section-block outreach-card prospect-card"
             >
@@ -1369,6 +1849,7 @@
               <div class="section-heading compact">
 
                 <div>
+
                   <span class="section-kicker">
                     Ready to send
                   </span>
@@ -1380,6 +1861,7 @@
                   <p>
                     Consultative outreach grounded in verified findings.
                   </p>
+
                 </div>
 
 
@@ -1407,7 +1889,10 @@
         </div>
 
 
-        <!-- FOOTER -->
+
+        <!-- ==================================================
+             FOOTER
+             ================================================== -->
 
         <footer class="result-footer">
 
@@ -1425,9 +1910,11 @@
 
         </footer>
 
+
       </section>
 
     </main>
+
   </div>
 
 
@@ -1435,5 +1922,6 @@
     src="/app.js"
     defer
   ></script>
+
 </body>
 </html>

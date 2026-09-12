@@ -26,12 +26,7 @@ const ai = new GoogleGenAI({
 });
 
 
-// ======================================================
-// UTILITY
-// ======================================================
-
 function esperar(ms) {
-
   return new Promise(
     resolve =>
       setTimeout(
@@ -42,16 +37,10 @@ function esperar(ms) {
 }
 
 
-// ======================================================
-// PAGESPEED
-// ======================================================
-
 async function analisarPageSpeed(
   url
 ) {
-
   const resultado = {
-
     score:
       null,
 
@@ -97,28 +86,20 @@ async function analisarPageSpeed(
     tentativa <= maxTentativas;
     tentativa++
   ) {
-
     try {
-
       const resposta =
         await fetch(
           apiEndpoint
         );
 
 
-      // =================================================
-      // GOOGLE TEMPORARY ERROR
-      // =================================================
-
       if (
         resposta.status >= 500
       ) {
-
         if (
           tentativa <
           maxTentativas
         ) {
-
           console.log(
             "⚠️ PageSpeed failed. Retrying in 2 seconds..."
           );
@@ -141,14 +122,9 @@ async function analisarPageSpeed(
       }
 
 
-      // =================================================
-      // OTHER HTTP ERROR
-      // =================================================
-
       if (
         !resposta.ok
       ) {
-
         resultado.erro =
           `HTTP ${resposta.status}`;
 
@@ -156,10 +132,6 @@ async function analisarPageSpeed(
         return resultado;
       }
 
-
-      // =================================================
-      // RESPONSE
-      // =================================================
 
       const textoResposta =
         await resposta.text();
@@ -169,14 +141,12 @@ async function analisarPageSpeed(
 
 
       try {
-
         dados =
           JSON.parse(
             textoResposta
           );
 
       } catch {
-
         resultado.erro =
           "PageSpeed returned an invalid response.";
 
@@ -188,7 +158,6 @@ async function analisarPageSpeed(
       if (
         dados.error
       ) {
-
         resultado.erro =
           dados.error.message;
 
@@ -216,7 +185,6 @@ async function analisarPageSpeed(
         performanceScore ===
           undefined
       ) {
-
         resultado.erro =
           "Incomplete Lighthouse data.";
 
@@ -225,20 +193,12 @@ async function analisarPageSpeed(
       }
 
 
-      // =================================================
-      // SCORE
-      // =================================================
-
       resultado.score =
         Math.round(
           performanceScore *
           100
         );
 
-
-      // =================================================
-      // LCP
-      // =================================================
 
       resultado.lcp =
         audits[
@@ -256,10 +216,6 @@ async function analisarPageSpeed(
         null;
 
 
-      // =================================================
-      // CLS
-      // =================================================
-
       resultado.cls =
         audits[
           "cumulative-layout-shift"
@@ -276,10 +232,6 @@ async function analisarPageSpeed(
         null;
 
 
-      // =================================================
-      // FCP
-      // =================================================
-
       resultado.fcp =
         audits[
           "first-contentful-paint"
@@ -295,10 +247,6 @@ async function analisarPageSpeed(
         ??
         null;
 
-
-      // =================================================
-      // SPEED INDEX
-      // =================================================
 
       resultado.speedIndex =
         audits[
@@ -324,7 +272,6 @@ async function analisarPageSpeed(
         tentativa <
         maxTentativas
       ) {
-
         console.log(
           "⚠️ Error contacting PageSpeed. Retrying..."
         );
@@ -352,38 +299,21 @@ async function analisarPageSpeed(
 }
 
 
-// ======================================================
-// VERIFIED FINDINGS
-// ======================================================
-
 function gerarFindings(
   performance,
   seo
 ) {
-
   const findings =
     [];
 
 
-  // ====================================================
-  // SEO
-  // ====================================================
-
   if (
     !seo.erro
   ) {
-
-
-    // ==================================================
-    // TITLE MISSING
-    // ==================================================
-
     if (
       !seo.title
     ) {
-
       findings.push({
-
         codigo:
           "TITLE_MISSING",
 
@@ -399,16 +329,10 @@ function gerarFindings(
     }
 
 
-    // ==================================================
-    // META DESCRIPTION MISSING
-    // ==================================================
-
     if (
       !seo.metaDescription
     ) {
-
       findings.push({
-
         codigo:
           "META_DESCRIPTION_MISSING",
 
@@ -424,16 +348,10 @@ function gerarFindings(
     }
 
 
-    // ==================================================
-    // H1 MISSING
-    // ==================================================
-
     if (
       seo.h1Count === 0
     ) {
-
       findings.push({
-
         codigo:
           "H1_MISSING",
 
@@ -450,26 +368,14 @@ function gerarFindings(
   }
 
 
-  // ====================================================
-  // PERFORMANCE
-  // ====================================================
-
   if (
     !performance.erro
   ) {
-
-
-    // ==================================================
-    // HIGH LCP
-    // ==================================================
-
     if (
       performance.lcpMs !== null &&
       performance.lcpMs > 2500
     ) {
-
       findings.push({
-
         codigo:
           "LCP_HIGH",
 
@@ -485,17 +391,11 @@ function gerarFindings(
     }
 
 
-    // ==================================================
-    // HIGH CLS
-    // ==================================================
-
     if (
       performance.clsValor !== null &&
       performance.clsValor > 0.1
     ) {
-
       findings.push({
-
         codigo:
           "CLS_HIGH",
 
@@ -516,27 +416,15 @@ function gerarFindings(
 }
 
 
-// ======================================================
-// GEMINI
-// AGENCY VIEW + PROSPECT VIEW
-// ======================================================
-
 async function gerarViewsComIA(
   url,
   findings
 ) {
-
-  // ====================================================
-  // NO FINDINGS
-  // ====================================================
-
   if (
     !findings ||
     findings.length === 0
   ) {
-
     return {
-
       agencyView:
         null,
 
@@ -552,10 +440,6 @@ async function gerarViewsComIA(
   }
 
 
-  // ====================================================
-  // AI CACHE
-  // ====================================================
-
   const cache =
     obterCacheIA(
       url,
@@ -566,14 +450,12 @@ async function gerarViewsComIA(
   if (
     cache
   ) {
-
     console.log(
       "🧠 AI cache hit. Reusing previous response."
     );
 
 
     return {
-
       agencyView:
         cache.agencyView,
 
@@ -588,10 +470,6 @@ async function gerarViewsComIA(
     };
   }
 
-
-  // ====================================================
-  // PROMPT
-  // ====================================================
 
   const prompt = `
 You are assisting a Local SEO agency with prospecting.
@@ -673,6 +551,7 @@ Do NOT invent additional diagnostics.
 Do NOT speculate about root causes.
 
 For example, never claim or suggest:
+
 - render-blocking resources
 - oversized images
 - slow server response
@@ -945,16 +824,10 @@ ${JSON.stringify(
 
 
   try {
-
-    // ==================================================
-    // GEMINI REQUEST
-    // ==================================================
-
     const resposta =
       await ai
         .interactions
         .create({
-
           model:
             "gemini-3.6-flash",
 
@@ -972,21 +845,14 @@ ${JSON.stringify(
     let dadosIA;
 
 
-    // ==================================================
-    // JSON PARSE
-    // ==================================================
-
     try {
-
       dadosIA =
         JSON.parse(
           textoBruto
         );
 
     } catch {
-
       return {
-
         agencyView:
           null,
 
@@ -1005,12 +871,7 @@ ${JSON.stringify(
     }
 
 
-    // ==================================================
-    // SUCCESS
-    // ==================================================
-
     const resultadoIA = {
-
       agencyView:
         dadosIA.agencyView
         ??
@@ -1036,7 +897,6 @@ ${JSON.stringify(
 
 
     return {
-
       ...resultadoIA,
 
       status:
@@ -1058,10 +918,6 @@ ${JSON.stringify(
       mensagem.toLowerCase();
 
 
-    // ==================================================
-    // GEMINI RATE LIMIT
-    // ==================================================
-
     if (
       mensagem.includes(
         "429"
@@ -1075,9 +931,7 @@ ${JSON.stringify(
         "rate limit"
       )
     ) {
-
       return {
-
         agencyView:
           null,
 
@@ -1093,12 +947,7 @@ ${JSON.stringify(
     }
 
 
-    // ==================================================
-    // OTHER AI ERROR
-    // ==================================================
-
     return {
-
       agencyView:
         null,
 
@@ -1115,18 +964,9 @@ ${JSON.stringify(
 }
 
 
-// ======================================================
-// ANALYZE SITE
-// ======================================================
-
 async function analisarSite(
   url
 ) {
-
-  // ====================================================
-  // SECURITY VALIDATION
-  // ====================================================
-
   url =
     await validarUrlPublica(
       url
@@ -1148,45 +988,21 @@ async function analisarSite(
   );
 
 
-  // ====================================================
-  // PAGESPEED + PAGE ANALYSIS
-  // ====================================================
-
   console.log(
     "\nChecking PageSpeed..."
   );
 
 
   console.log(
-    "Checking SEO structure, indexability, structured data and images..."
+    "Checking SEO structure, indexability, structured data, images and Local SEO signals..."
   );
 
-
-  /*
-    Run both operations in parallel.
-
-    PageSpeed:
-    - Lighthouse performance metrics
-
-    analisarPagina:
-    - HTML
-    - HTTP status
-    - HTTPS
-    - Meta Robots
-    - X-Robots-Tag
-    - Canonical
-    - robots.txt
-    - sitemap
-    - Structured Data / JSON-LD
-    - Images / alt attributes
-  */
 
   const [
     performance,
     pagina
   ] =
     await Promise.all([
-
       analisarPageSpeed(
         url
       ),
@@ -1213,9 +1029,9 @@ async function analisarSite(
     pagina.images;
 
 
-  // ====================================================
-  // FINDINGS
-  // ====================================================
+  const localSeo =
+    pagina.localSeo;
+
 
   console.log(
     "Generating verified findings..."
@@ -1229,17 +1045,12 @@ async function analisarSite(
     );
 
 
-  // ====================================================
-  // AI
-  // ====================================================
-
   let views;
 
 
   if (
     findings.length > 0
   ) {
-
     console.log(
       "🤖 Generating Agency View and Prospect View..."
     );
@@ -1252,14 +1063,12 @@ async function analisarSite(
       );
 
   } else {
-
     console.log(
       "ℹ️ No verified findings. Gemini will not be called."
     );
 
 
     views = {
-
       agencyView:
         null,
 
@@ -1275,12 +1084,7 @@ async function analisarSite(
   }
 
 
-  // ====================================================
-  // FINAL RESULT
-  // ====================================================
-
   const resultado = {
-
     url,
 
     analisadoEm:
@@ -1294,6 +1098,8 @@ async function analisarSite(
     structuredData,
 
     images,
+
+    localSeo,
 
     seo,
 
@@ -1310,10 +1116,6 @@ async function analisarSite(
   };
 
 
-  // ====================================================
-  // TERMINAL RESULT
-  // ====================================================
-
   console.log(
     "\n✅ TECHNICAL RESULT"
   );
@@ -1321,7 +1123,6 @@ async function analisarSite(
 
   console.dir(
     {
-
       url:
         resultado.url,
 
@@ -1337,6 +1138,9 @@ async function analisarSite(
       images:
         resultado.images,
 
+      localSeo:
+        resultado.localSeo,
+
       seo:
         resultado.seo,
 
@@ -1351,14 +1155,9 @@ async function analisarSite(
   );
 
 
-  // ====================================================
-  // AGENCY VIEW
-  // ====================================================
-
   if (
     resultado.agencyView
   ) {
-
     console.log(
       "\n========================================"
     );
@@ -1380,14 +1179,9 @@ async function analisarSite(
   }
 
 
-  // ====================================================
-  // PROSPECT VIEW
-  // ====================================================
-
   if (
     resultado.prospectView
   ) {
-
     console.log(
       "\n========================================"
     );
@@ -1409,14 +1203,9 @@ async function analisarSite(
   }
 
 
-  // ====================================================
-  // AI ERROR
-  // ====================================================
-
   if (
     views.erro
   ) {
-
     console.log(
       "\n🚨 AI ERROR:"
     );
@@ -1430,7 +1219,6 @@ async function analisarSite(
     if (
       views.respostaBruta
     ) {
-
       console.log(
         "\nRaw Gemini response:"
       );
@@ -1447,19 +1235,13 @@ async function analisarSite(
 }
 
 
-// ======================================================
-// TERMINAL MODE
-// ======================================================
-
 if (
   require.main ===
   module
 ) {
-
   const rl =
     readline
       .createInterface({
-
         input:
           process.stdin,
 
@@ -1469,11 +1251,9 @@ if (
 
 
   rl.question(
-
     "\n🌐 Enter the website URL to analyze:\n> ",
 
     async (url) => {
-
       url =
         url.trim();
 
@@ -1487,20 +1267,17 @@ if (
           "https://"
         )
       ) {
-
         url =
           `https://${url}`;
       }
 
 
       try {
-
         await analisarSite(
           url
         );
 
       } catch (erro) {
-
         console.log(
           "\n🚨 Unexpected error:"
         );
@@ -1511,17 +1288,12 @@ if (
         );
 
       } finally {
-
         rl.close();
       }
     }
   );
 }
 
-
-// ======================================================
-// EXPORT
-// ======================================================
 
 module.exports = {
   analisarSite

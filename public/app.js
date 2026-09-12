@@ -1,42 +1,116 @@
-const urlInput = document.getElementById("urlInput");
-const analyzeButton = document.getElementById("analyzeButton");
-const loading = document.getElementById("loading");
-const results = document.getElementById("results");
-const errorBox = document.getElementById("error");
-const copyAgencyButton = document.getElementById("copyAgencyButton");
-const copyProspectButton = document.getElementById("copyProspectButton");
-const findingFilters = document.getElementById("findingFilters");
-const themeToggle = document.getElementById("themeToggle");
+const urlInput =
+  document.getElementById(
+    "urlInput"
+  );
 
-let findingsAtuais = [];
-let filtroFindingAtual = "all";
+
+const analyzeButton =
+  document.getElementById(
+    "analyzeButton"
+  );
+
+
+const loading =
+  document.getElementById(
+    "loading"
+  );
+
+
+const results =
+  document.getElementById(
+    "results"
+  );
+
+
+const errorBox =
+  document.getElementById(
+    "error"
+  );
+
+
+const copyAgencyButton =
+  document.getElementById(
+    "copyAgencyButton"
+  );
+
+
+const copyProspectButton =
+  document.getElementById(
+    "copyProspectButton"
+  );
+
+
+const findingFilters =
+  document.getElementById(
+    "findingFilters"
+  );
+
+
+const themeToggle =
+  document.getElementById(
+    "themeToggle"
+  );
+
+
+let findingsAtuais =
+  [];
+
+
+let filtroFindingAtual =
+  "all";
 
 
 // =====================================================
 // THEME
 // =====================================================
 
-function aplicarTema(theme) {
-  const finalTheme = theme === "light" ? "light" : "dark";
+function aplicarTema(
+  theme
+) {
+  const finalTheme =
+    theme === "light"
+      ? "light"
+      : "dark";
 
-  document.documentElement.dataset.theme = finalTheme;
+
+  document
+    .documentElement
+    .dataset
+    .theme =
+      finalTheme;
+
 
   localStorage.setItem(
     "prospect-analyzer-theme",
     finalTheme
   );
 
-  const icon = document.getElementById("themeIcon");
-  const label = document.getElementById("themeLabel");
 
-  if (icon) {
+  const icon =
+    document.getElementById(
+      "themeIcon"
+    );
+
+
+  const label =
+    document.getElementById(
+      "themeLabel"
+    );
+
+
+  if (
+    icon
+  ) {
     icon.textContent =
       finalTheme === "dark"
         ? "☾"
         : "☀";
   }
 
-  if (label) {
+
+  if (
+    label
+  ) {
     label.textContent =
       finalTheme === "dark"
         ? "Dark"
@@ -51,13 +125,18 @@ function iniciarTema() {
       "prospect-analyzer-theme"
     );
 
+
   if (
     salvo === "light" ||
     salvo === "dark"
   ) {
-    aplicarTema(salvo);
+    aplicarTema(
+      salvo
+    );
+
     return;
   }
+
 
   const prefereClaro =
     window
@@ -65,6 +144,7 @@ function iniciarTema() {
         "(prefers-color-scheme: light)"
       )
       .matches;
+
 
   aplicarTema(
     prefereClaro
@@ -76,7 +156,11 @@ function iniciarTema() {
 
 function alternarTema() {
   const atual =
-    document.documentElement.dataset.theme;
+    document
+      .documentElement
+      .dataset
+      .theme;
+
 
   aplicarTema(
     atual === "dark"
@@ -90,24 +174,47 @@ function alternarTema() {
 // TABS
 // =====================================================
 
-function ativarAba(nome) {
+function ativarAba(
+  nome
+) {
   document
-    .querySelectorAll(".tab-button")
-    .forEach((botao) => {
-      botao.classList.toggle(
-        "active",
-        botao.dataset.tab === nome
-      );
-    });
+    .querySelectorAll(
+      ".tab-button"
+    )
+    .forEach(
+      (
+        botao
+      ) => {
+
+        botao
+          .classList
+          .toggle(
+            "active",
+            botao.dataset.tab ===
+              nome
+          );
+      }
+    );
+
 
   document
-    .querySelectorAll(".tab-panel")
-    .forEach((painel) => {
-      painel.classList.toggle(
-        "active",
-        painel.dataset.panel === nome
-      );
-    });
+    .querySelectorAll(
+      ".tab-panel"
+    )
+    .forEach(
+      (
+        painel
+      ) => {
+
+        painel
+          .classList
+          .toggle(
+            "active",
+            painel.dataset.panel ===
+              nome
+          );
+      }
+    );
 }
 
 
@@ -117,9 +224,14 @@ function ativarAba(nome) {
 
 async function analisar() {
   const url =
-    urlInput.value.trim();
+    urlInput
+      .value
+      .trim();
 
-  if (!url) {
+
+  if (
+    !url
+  ) {
     mostrarErro(
       "Enter a website URL."
     );
@@ -127,7 +239,9 @@ async function analisar() {
     return;
   }
 
+
   iniciarLoading();
+
 
   try {
     const resposta =
@@ -149,64 +263,82 @@ async function analisar() {
         }
       );
 
+
     let dados;
+
 
     try {
       dados =
         await resposta.json();
+
     } catch {
       throw new Error(
         "The server returned an invalid response."
       );
     }
 
-    if (!resposta.ok) {
+
+    if (
+      !resposta.ok
+    ) {
       throw new Error(
         dados.erro ||
         "Analysis failed."
       );
     }
 
+
     mostrarResultado(
       dados
     );
 
-  } catch (erro) {
-
+  } catch (
+    erro
+  ) {
     mostrarErro(
       erro.message ||
       "Something went wrong."
     );
 
   } finally {
-
     finalizarLoading();
   }
 }
 
 
 // =====================================================
-// LOADING / ERROR
+// LOADING
 // =====================================================
 
 function iniciarLoading() {
-  errorBox.classList.add(
-    "hidden"
-  );
+  errorBox
+    .classList
+    .add(
+      "hidden"
+    );
 
-  results.classList.add(
-    "hidden"
-  );
 
-  loading.classList.remove(
-    "hidden"
-  );
+  results
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  loading
+    .classList
+    .remove(
+      "hidden"
+    );
+
 
   analyzeButton.disabled =
     true;
 
+
   urlInput.disabled =
     true;
+
 
   analyzeButton.innerHTML =
     "<span>Analyzing…</span>";
@@ -214,28 +346,42 @@ function iniciarLoading() {
 
 
 function finalizarLoading() {
-  loading.classList.add(
-    "hidden"
-  );
+  loading
+    .classList
+    .add(
+      "hidden"
+    );
+
 
   analyzeButton.disabled =
     false;
 
+
   urlInput.disabled =
     false;
+
 
   analyzeButton.innerHTML =
     '<span>Analyze</span><span aria-hidden="true">→</span>';
 }
 
 
-function mostrarErro(mensagem) {
+// =====================================================
+// ERROR
+// =====================================================
+
+function mostrarErro(
+  mensagem
+) {
   errorBox.textContent =
     mensagem;
 
-  errorBox.classList.remove(
-    "hidden"
-  );
+
+  errorBox
+    .classList
+    .remove(
+      "hidden"
+    );
 }
 
 
@@ -253,29 +399,40 @@ function definirTexto(
       id
     );
 
-  if (!elemento) {
+
+  if (
+    !elemento
+  ) {
     return;
   }
+
 
   const temValor =
     valor !== null &&
     valor !== undefined &&
     valor !== "";
 
+
   elemento.textContent =
     temValor
-      ? String(valor)
+      ? String(
+          valor
+        )
       : fallback;
 }
 
 
-function removerTons(elemento) {
-  elemento?.classList.remove(
-    "good",
-    "warning",
-    "bad",
-    "neutral"
-  );
+function removerTons(
+  elemento
+) {
+  elemento
+    ?.classList
+    .remove(
+      "good",
+      "warning",
+      "bad",
+      "neutral"
+    );
 }
 
 
@@ -283,17 +440,23 @@ function aplicarTom(
   elemento,
   tom = "neutral"
 ) {
-  if (!elemento) {
+  if (
+    !elemento
+  ) {
     return;
   }
+
 
   removerTons(
     elemento
   );
 
-  elemento.classList.add(
-    tom
-  );
+
+  elemento
+    .classList
+    .add(
+      tom
+    );
 }
 
 
@@ -307,12 +470,17 @@ function definirStatus(
       id
     );
 
-  if (!elemento) {
+
+  if (
+    !elemento
+  ) {
     return;
   }
 
+
   elemento.textContent =
     texto;
+
 
   aplicarTom(
     elemento,
@@ -330,29 +498,43 @@ function definirTomCard(
       id
     );
 
-  if (elemento) {
+
+  if (
+    elemento
+  ) {
     elemento.dataset.tone =
       tom;
   }
 }
 
 
-function capitalizar(texto) {
-  if (!texto) {
+function capitalizar(
+  texto
+) {
+  if (
+    !texto
+  ) {
     return "Unknown";
   }
 
+
   return (
     texto
-      .charAt(0)
+      .charAt(
+        0
+      )
       .toUpperCase()
     +
-    texto.slice(1)
+    texto.slice(
+      1
+    )
   );
 }
 
 
-function normalizarSeveridade(valor) {
+function normalizarSeveridade(
+  valor
+) {
   const nivel =
     String(
       valor ||
@@ -360,9 +542,13 @@ function normalizarSeveridade(valor) {
     )
       .toLowerCase();
 
-  if (nivel === "alta") {
+
+  if (
+    nivel === "alta"
+  ) {
     return "high";
   }
+
 
   if (
     nivel === "media" ||
@@ -371,9 +557,13 @@ function normalizarSeveridade(valor) {
     return "medium";
   }
 
-  if (nivel === "baixa") {
+
+  if (
+    nivel === "baixa"
+  ) {
     return "low";
   }
+
 
   return (
     nivel ||
@@ -382,8 +572,11 @@ function normalizarSeveridade(valor) {
 }
 
 
-function nomeFinding(codigo) {
+function nomeFinding(
+  codigo
+) {
   const nomes = {
+
     LCP_HIGH:
       "High Largest Contentful Paint",
 
@@ -397,11 +590,29 @@ function nomeFinding(codigo) {
       "Missing Meta Description",
 
     H1_MISSING:
+      "Missing H1 Heading",
+
+    LCP_ALTO:
+      "High Largest Contentful Paint",
+
+    CLS_ALTO:
+      "High Cumulative Layout Shift",
+
+    TITLE_AUSENTE:
+      "Missing Page Title",
+
+    META_DESCRIPTION_AUSENTE:
+      "Missing Meta Description",
+
+    H1_AUSENTE:
       "Missing H1 Heading"
   };
 
+
   return (
-    nomes[codigo]
+    nomes[
+      codigo
+    ]
     ||
     codigo
     ||
@@ -410,7 +621,9 @@ function nomeFinding(codigo) {
 }
 
 
-function categoriaFinding(categoria) {
+function categoriaFinding(
+  categoria
+) {
   return (
     categoria === "seo"
       ? "SEO"
@@ -421,8 +634,11 @@ function categoriaFinding(categoria) {
 }
 
 
-function formatarStatusIA(status) {
+function formatarStatusIA(
+  status
+) {
   const statusMap = {
+
     generated:
       "Generated",
 
@@ -454,8 +670,11 @@ function formatarStatusIA(status) {
       "Invalid AI response"
   };
 
+
   return (
-    statusMap[status]
+    statusMap[
+      status
+    ]
     ||
     "Unknown"
   );
@@ -475,14 +694,19 @@ function textoIAIndisponivel(
     );
   }
 
+
   if (
     status ===
-    "no_findings"
+      "no_findings"
+    ||
+    status ===
+      "sem_findings"
   ) {
     return (
       `No ${tipo} was generated because no verified findings were detected.`
     );
   }
+
 
   return (
     `No ${tipo} was generated.`
@@ -501,14 +725,18 @@ function urlsEquivalentes(
     return false;
   }
 
+
   try {
     const normalizar =
-      (valor) => {
+      (
+        valor
+      ) => {
 
         const url =
           new URL(
             valor
           );
+
 
         const path =
           url.pathname === "/"
@@ -518,27 +746,36 @@ function urlsEquivalentes(
                 ""
               );
 
+
         return (
           `${url.protocol}//${url.host}${path}${url.search}`
         );
       };
 
+
     return (
-      normalizar(urlA)
+      normalizar(
+        urlA
+      )
       ===
-      normalizar(urlB)
+      normalizar(
+        urlB
+      )
     );
 
   } catch {
-
     return (
-      String(urlA)
+      String(
+        urlA
+      )
         .replace(
           /\/$/,
           ""
         )
       ===
-      String(urlB)
+      String(
+        urlB
+      )
         .replace(
           /\/$/,
           ""
@@ -548,17 +785,23 @@ function urlsEquivalentes(
 }
 
 
-function textoTempoAnalise(iso) {
-  if (!iso) {
+function textoTempoAnalise(
+  iso
+) {
+  if (
+    !iso
+  ) {
     return (
       "Analyzed just now"
     );
   }
 
+
   const data =
     new Date(
       iso
     );
+
 
   if (
     Number.isNaN(
@@ -569,6 +812,7 @@ function textoTempoAnalise(iso) {
       "Analyzed just now"
     );
   }
+
 
   return (
     `Analyzed ${data.toLocaleTimeString(
@@ -585,6 +829,64 @@ function textoTempoAnalise(iso) {
 }
 
 
+function numeroSeguro(
+  valor,
+  fallback = 0
+) {
+  const numero =
+    Number(
+      valor
+    );
+
+
+  return Number.isFinite(
+    numero
+  )
+    ? numero
+    : fallback;
+}
+
+
+function listaLimpa(
+  valor
+) {
+  if (
+    !Array.isArray(
+      valor
+    )
+  ) {
+    return [];
+  }
+
+
+  return [
+    ...new Set(
+      valor
+        .filter(
+          (
+            item
+          ) =>
+            item !== null
+            &&
+            item !== undefined
+            &&
+            String(
+              item
+            ).trim()
+        )
+        .map(
+          (
+            item
+          ) =>
+            String(
+              item
+            ).trim()
+        )
+    )
+  ];
+}
+
+
 // =====================================================
 // PERFORMANCE
 // =====================================================
@@ -597,40 +899,48 @@ function atualizarPerformance(
     performance.score
   );
 
+
   definirTexto(
     "lcp",
     performance.lcp
   );
+
 
   definirTexto(
     "cls",
     performance.cls
   );
 
+
   definirTexto(
     "fcp",
     performance.fcp
   );
+
 
   definirTexto(
     "speedIndex",
     performance.speedIndex
   );
 
+
   definirTexto(
     "overviewScore",
     performance.score
   );
+
 
   definirTexto(
     "overviewLcp",
     performance.lcp
   );
 
+
   definirTexto(
     "overviewCls",
     performance.cls
   );
+
 
   definirTexto(
     "overviewFcp",
@@ -643,8 +953,10 @@ function atualizarPerformance(
       performance.score
     );
 
+
   let scoreTom =
     "neutral";
+
 
   let scoreTexto =
     "Unavailable";
@@ -655,7 +967,6 @@ function atualizarPerformance(
       score
     )
   ) {
-
     if (
       score >=
       90
@@ -699,7 +1010,9 @@ function atualizarPerformance(
     );
 
 
-  if (scoreBar) {
+  if (
+    scoreBar
+  ) {
     const bounded =
       Number.isFinite(
         score
@@ -734,8 +1047,10 @@ function atualizarPerformance(
       performance.lcpMs
     );
 
+
   let lcpTom =
     "neutral";
+
 
   let lcpTexto =
     "Measured";
@@ -746,7 +1061,6 @@ function atualizarPerformance(
       lcpMs
     )
   ) {
-
     if (
       lcpMs <=
       2500
@@ -789,8 +1103,10 @@ function atualizarPerformance(
       performance.clsValor
     );
 
+
   let clsTom =
     "neutral";
+
 
   let clsTexto =
     "Measured";
@@ -801,7 +1117,6 @@ function atualizarPerformance(
       cls
     )
   ) {
-
     if (
       cls <=
       0.1
@@ -840,8 +1155,11 @@ function atualizarPerformance(
 
 
   return {
+
     score,
+
     scoreTom,
+
     scoreTexto
   };
 }
@@ -858,12 +1176,12 @@ function atualizarIndexability(
     !indexability ||
     indexability.erro
   ) {
-
     definirStatus(
       "httpStatus",
       "Unavailable",
       "neutral"
     );
+
 
     definirStatus(
       "httpsStatus",
@@ -871,11 +1189,13 @@ function atualizarIndexability(
       "neutral"
     );
 
+
     definirStatus(
       "indexingStatus",
       "Unknown",
       "neutral"
     );
+
 
     definirStatus(
       "canonicalStatus",
@@ -883,11 +1203,13 @@ function atualizarIndexability(
       "neutral"
     );
 
+
     definirStatus(
       "robotsTxtStatus",
       "Unknown",
       "neutral"
     );
+
 
     definirStatus(
       "sitemapStatus",
@@ -901,11 +1223,13 @@ function atualizarIndexability(
       "Could not determine protocol"
     );
 
+
     definirTexto(
       "indexingReason",
       indexability?.erro ||
       "Indexability data is unavailable."
     );
+
 
     definirTexto(
       "metaRobots",
@@ -913,11 +1237,13 @@ function atualizarIndexability(
       "Unavailable"
     );
 
+
     definirTexto(
       "xRobotsTag",
       null,
       "Unavailable"
     );
+
 
     definirTexto(
       "canonicalUrl",
@@ -925,17 +1251,20 @@ function atualizarIndexability(
       "Unavailable"
     );
 
+
     definirTexto(
       "robotsTxtUrl",
       null,
       "Unavailable"
     );
 
+
     definirTexto(
       "sitemapUrl",
       null,
       "Unavailable"
     );
+
 
     definirTexto(
       "sitemapSource",
@@ -945,6 +1274,7 @@ function atualizarIndexability(
 
 
     return {
+
       tom:
         "neutral",
 
@@ -965,7 +1295,6 @@ function atualizarIndexability(
     typeof httpStatus ===
     "number"
   ) {
-
     const tom =
       httpStatus >= 200 &&
       httpStatus < 300
@@ -989,7 +1318,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "httpStatus",
       "Unknown",
@@ -1002,12 +1330,12 @@ function atualizarIndexability(
     indexability.https ===
     true
   ) {
-
     definirStatus(
       "httpsStatus",
       "Yes",
       "good"
     );
+
 
     definirTexto(
       "httpsDetail",
@@ -1018,12 +1346,12 @@ function atualizarIndexability(
     indexability.https ===
     false
   ) {
-
     definirStatus(
       "httpsStatus",
       "No",
       "bad"
     );
+
 
     definirTexto(
       "httpsDetail",
@@ -1031,12 +1359,12 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "httpsStatus",
       "Unknown",
       "neutral"
     );
+
 
     definirTexto(
       "httpsDetail",
@@ -1049,7 +1377,6 @@ function atualizarIndexability(
     indexability.indexable ===
     true
   ) {
-
     definirStatus(
       "indexingStatus",
       "Allowed",
@@ -1060,7 +1387,6 @@ function atualizarIndexability(
     indexability.indexable ===
     false
   ) {
-
     definirStatus(
       "indexingStatus",
       "Blocked",
@@ -1068,7 +1394,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "indexingStatus",
       "Unknown",
@@ -1101,7 +1426,6 @@ function atualizarIndexability(
   if (
     indexability.canonical
   ) {
-
     const selfReferencing =
       urlsEquivalentes(
         indexability.canonical,
@@ -1126,7 +1450,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "canonicalStatus",
       "Not found",
@@ -1146,9 +1469,8 @@ function atualizarIndexability(
     indexability
       .robotsTxt
       ?.found ===
-      true
+    true
   ) {
-
     definirStatus(
       "robotsTxtStatus",
       "Found",
@@ -1167,9 +1489,8 @@ function atualizarIndexability(
     indexability
       .robotsTxt
       ?.found ===
-      false
+    false
   ) {
-
     definirStatus(
       "robotsTxtStatus",
       "Not found",
@@ -1186,7 +1507,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "robotsTxtStatus",
       "Unknown",
@@ -1206,9 +1526,8 @@ function atualizarIndexability(
     indexability
       .sitemap
       ?.found ===
-      true
+    true
   ) {
-
     definirStatus(
       "sitemapStatus",
       "Found",
@@ -1245,9 +1564,8 @@ function atualizarIndexability(
     indexability
       .sitemap
       ?.found ===
-      false
+    false
   ) {
-
     definirStatus(
       "sitemapStatus",
       "Not found",
@@ -1269,7 +1587,6 @@ function atualizarIndexability(
     );
 
   } else {
-
     definirStatus(
       "sitemapStatus",
       "Unknown",
@@ -1296,8 +1613,8 @@ function atualizarIndexability(
     indexability.indexable ===
     false
   ) {
-
     return {
+
       tom:
         "bad",
 
@@ -1312,13 +1629,13 @@ function atualizarIndexability(
 
   if (
     typeof httpStatus ===
-    "number"
+      "number"
     &&
     httpStatus >=
-    400
+      400
   ) {
-
     return {
+
       tom:
         "bad",
 
@@ -1335,8 +1652,8 @@ function atualizarIndexability(
     indexability.https ===
     false
   ) {
-
     return {
+
       tom:
         "warning",
 
@@ -1353,8 +1670,8 @@ function atualizarIndexability(
     indexability.indexable ===
     true
   ) {
-
     return {
+
       tom:
         "good",
 
@@ -1368,6 +1685,7 @@ function atualizarIndexability(
 
 
   return {
+
     tom:
       "neutral",
 
@@ -1391,7 +1709,6 @@ function atualizarStructuredData(
     !structuredData ||
     structuredData.erro
   ) {
-
     definirStatus(
       "schemaStatus",
       "Unavailable",
@@ -1439,70 +1756,33 @@ function atualizarStructuredData(
 
 
   const scriptCount =
-    Number.isFinite(
-      Number(
-        structuredData.scriptCount
-      )
-    )
-      ? Number(
-          structuredData.scriptCount
-        )
-      : 0;
+    numeroSeguro(
+      structuredData.scriptCount
+    );
 
 
   const validScripts =
-    Number.isFinite(
-      Number(
-        structuredData.validScripts
-      )
-    )
-      ? Number(
-          structuredData.validScripts
-        )
-      : 0;
+    numeroSeguro(
+      structuredData.validScripts
+    );
 
 
   const invalidScripts =
-    Number.isFinite(
-      Number(
-        structuredData.invalidScripts
-      )
-    )
-      ? Number(
-          structuredData.invalidScripts
-        )
-      : 0;
+    numeroSeguro(
+      structuredData.invalidScripts
+    );
 
 
   const types =
-    Array.isArray(
+    listaLimpa(
       structuredData.types
-    )
-      ? [
-          ...new Set(
-            structuredData
-              .types
-              .filter(
-                (type) =>
-                  typeof type ===
-                    "string"
-                  &&
-                  type.trim()
-              )
-              .map(
-                (type) =>
-                  type.trim()
-              )
-          )
-        ]
-      : [];
+    );
 
 
   if (
     structuredData.found !==
     true
   ) {
-
     definirStatus(
       "schemaStatus",
       "Not detected",
@@ -1567,7 +1847,7 @@ function atualizarStructuredData(
     0
       ? "warning"
       : validScripts >
-        0
+          0
         ? "good"
         : "neutral";
 
@@ -1598,29 +1878,55 @@ function atualizarStructuredData(
 
 
   const mainTypes =
-    priorityTypes
-      .filter(
-        (type) =>
-          types.includes(
-            type
-          )
-      )
-      .slice(
-        0,
-        4
-      );
+    [];
 
 
   if (
-    mainTypes.length ===
-    0
+    types[0]
   ) {
     mainTypes.push(
-      ...types.slice(
-        0,
-        4
-      )
+      types[0]
     );
+  }
+
+
+  for (
+    const type of priorityTypes
+  ) {
+    if (
+      types.includes(
+        type
+      )
+      &&
+      !mainTypes.includes(
+        type
+      )
+      &&
+      mainTypes.length <
+        4
+    ) {
+      mainTypes.push(
+        type
+      );
+    }
+  }
+
+
+  for (
+    const type of types
+  ) {
+    if (
+      !mainTypes.includes(
+        type
+      )
+      &&
+      mainTypes.length <
+        4
+    ) {
+      mainTypes.push(
+        type
+      );
+    }
   }
 
 
@@ -1632,7 +1938,9 @@ function atualizarStructuredData(
 
   const otherTypes =
     types.filter(
-      (type) =>
+      (
+        type
+      ) =>
         !mainTypeSet.has(
           type
         )
@@ -1642,7 +1950,7 @@ function atualizarStructuredData(
   definirTexto(
     "schemaMainTypes",
     mainTypes.length >
-    0
+      0
       ? mainTypes.join(
           " · "
         )
@@ -1654,10 +1962,10 @@ function atualizarStructuredData(
   definirTexto(
     "schemaOtherTypes",
     otherTypes.length >
-    0
+      0
       ? `+${otherTypes.length} additional type${otherTypes.length === 1 ? "" : "s"} detected`
       : types.length >
-        0
+          0
         ? "No additional types detected"
         : "No @type values detected"
   );
@@ -1675,7 +1983,6 @@ function atualizarImages(
     !images ||
     images.erro
   ) {
-
     definirTexto(
       "imagesTotal",
       null,
@@ -1721,7 +2028,7 @@ function atualizarImages(
     definirTexto(
       "imagesMissingAltDetail",
       null,
-      "Image data could not be analyzed."
+      "Missing alt coverage could not be determined."
     );
 
 
@@ -1735,7 +2042,7 @@ function atualizarImages(
     definirTexto(
       "imagesMissingAltSamples",
       null,
-      "Missing-alt evidence is unavailable."
+      "No evidence available."
     );
 
 
@@ -1744,75 +2051,33 @@ function atualizarImages(
 
 
   const total =
-    Number.isFinite(
-      Number(
-        images.total
-      )
-    )
-      ? Number(
-          images.total
-        )
-      : 0;
+    numeroSeguro(
+      images.total
+    );
 
 
   const withAltText =
-    Number.isFinite(
-      Number(
-        images.withAltText
-      )
-    )
-      ? Number(
-          images.withAltText
-        )
-      : 0;
+    numeroSeguro(
+      images.withAltText
+    );
 
 
   const emptyAlt =
-    Number.isFinite(
-      Number(
-        images.emptyAlt
-      )
-    )
-      ? Number(
-          images.emptyAlt
-        )
-      : 0;
+    numeroSeguro(
+      images.emptyAlt
+    );
 
 
   const missingAlt =
-    Number.isFinite(
-      Number(
-        images.missingAlt
-      )
-    )
-      ? Number(
-          images.missingAlt
-        )
-      : 0;
+    numeroSeguro(
+      images.missingAlt
+    );
 
 
   const samples =
-    Array.isArray(
+    listaLimpa(
       images.missingAltSamples
-    )
-      ? images
-          .missingAltSamples
-          .filter(
-            (sample) =>
-              typeof sample ===
-                "string"
-              &&
-              sample.trim()
-          )
-          .map(
-            (sample) =>
-              sample.trim()
-          )
-          .slice(
-            0,
-            5
-          )
-      : [];
+    );
 
 
   definirTexto(
@@ -1829,10 +2094,9 @@ function atualizarImages(
 
   definirTexto(
     "imagesWithAltTextDetail",
-    total >
-    0
-      ? `${withAltText} of ${total} image${total === 1 ? "" : "s"} contain non-empty alt text.`
-      : "No images were detected in the analyzed HTML."
+    total > 0
+      ? `${withAltText} of ${total} detected image${total === 1 ? " contains" : "s contain"} non-empty alt text.`
+      : "No img elements were detected in the analyzed HTML."
   );
 
 
@@ -1844,54 +2108,11 @@ function atualizarImages(
 
   definirTexto(
     "imagesEmptyAltDetail",
-    emptyAlt >
-    0
-      ? `${emptyAlt} image${emptyAlt === 1 ? "" : "s"} use${emptyAlt === 1 ? "s" : ""} alt="". Empty alt can be intentional for decorative images.`
-      : "No empty alt attributes were detected."
-  );
-
-
-  if (
-    total ===
-    0
-  ) {
-
-    definirStatus(
-      "imagesMissingAltStatus",
-      "No images",
-      "neutral"
-    );
-
-  } else if (
-    missingAlt >
-    0
-  ) {
-
-    definirStatus(
-      "imagesMissingAltStatus",
-      `${missingAlt} missing`,
-      "warning"
-    );
-
-  } else {
-
-    definirStatus(
-      "imagesMissingAltStatus",
-      "None missing",
-      "good"
-    );
-  }
-
-
-  definirTexto(
-    "imagesMissingAltDetail",
-    total ===
-    0
-      ? "No images were available to check."
-      : missingAlt >
-        0
-        ? `${missingAlt} image${missingAlt === 1 ? "" : "s"} ${missingAlt === 1 ? "does" : "do"} not include an alt attribute.`
-        : "Every detected image includes an alt attribute."
+    emptyAlt > 0
+      ? `${emptyAlt} image${emptyAlt === 1 ? " has" : "s have"} an empty alt attribute. This can be intentional for decorative images.`
+      : total > 0
+        ? "No empty alt attributes were detected."
+        : "No img elements were detected in the analyzed HTML."
   );
 
 
@@ -1901,17 +2122,734 @@ function atualizarImages(
   );
 
 
+  if (
+    total === 0
+  ) {
+    definirStatus(
+      "imagesMissingAltStatus",
+      "No images",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "imagesMissingAltDetail",
+      "No img elements were detected in the analyzed HTML."
+    );
+
+  } else if (
+    missingAlt > 0
+  ) {
+    definirStatus(
+      "imagesMissingAltStatus",
+      `${missingAlt} missing`,
+      "warning"
+    );
+
+
+    definirTexto(
+      "imagesMissingAltDetail",
+      `${missingAlt} image${missingAlt === 1 ? " is" : "s are"} missing the alt attribute in the analyzed HTML.`
+    );
+
+  } else {
+    definirStatus(
+      "imagesMissingAltStatus",
+      "None missing",
+      "good"
+    );
+
+
+    definirTexto(
+      "imagesMissingAltDetail",
+      "Every detected img element includes an alt attribute."
+    );
+  }
+
+
   definirTexto(
     "imagesMissingAltSamples",
     samples.length >
-    0
+      0
       ? samples.join(
           " · "
         )
       : missingAlt >
+          0
+        ? "No image source samples were available."
+        : "No missing-alt image samples."
+  );
+}
+
+
+// =====================================================
+// LOCAL SEO SNAPSHOT
+// =====================================================
+
+function textoListaLocal(
+  valores,
+  fallback = "Not detected"
+) {
+  const limpos =
+    listaLimpa(
+      valores
+    );
+
+
+  return limpos.length >
+    0
+      ? limpos.join(
+          " · "
+        )
+      : fallback;
+}
+
+
+function detalheSinalLocalidade(
+  localSeo,
+  localKey,
+  regionKey
+) {
+  const sinais =
+    localSeo
+      ?.localitySignals
+    ||
+    {};
+
+
+  const partes =
+    [];
+
+
+  if (
+    sinais.locality
+  ) {
+    const valor =
+      sinais[
+        localKey
+      ];
+
+
+    partes.push(
+      `${sinais.locality}: ${
+        valor === true
+          ? "detected"
+          : valor === false
+            ? "not detected"
+            : "unknown"
+      }`
+    );
+  }
+
+
+  if (
+    sinais.region
+  ) {
+    const valor =
+      sinais[
+        regionKey
+      ];
+
+
+    partes.push(
+      `${sinais.region}: ${
+        valor === true
+          ? "detected"
+          : valor === false
+            ? "not detected"
+            : "unknown"
+      }`
+    );
+  }
+
+
+  return partes.length >
+    0
+      ? partes.join(
+          " · "
+        )
+      : "No verified locality or region was available from the selected structured address.";
+}
+
+
+function statusSinalLocalidade(
+  localSeo,
+  localKey,
+  regionKey
+) {
+  const sinais =
+    localSeo
+      ?.localitySignals
+    ||
+    {};
+
+
+  const valores =
+    [];
+
+
+  if (
+    sinais.locality
+  ) {
+    valores.push(
+      sinais[
+        localKey
+      ]
+    );
+  }
+
+
+  if (
+    sinais.region
+  ) {
+    valores.push(
+      sinais[
+        regionKey
+      ]
+    );
+  }
+
+
+  if (
+    valores.length ===
+    0
+  ) {
+    return "Unavailable";
+  }
+
+
+  if (
+    valores.some(
+      (
+        valor
+      ) =>
+        valor === true
+    )
+  ) {
+    return "Detected";
+  }
+
+
+  if (
+    valores.every(
+      (
+        valor
+      ) =>
+        valor === false
+    )
+  ) {
+    return "Not detected";
+  }
+
+
+  return "Unknown";
+}
+
+
+function atualizarLocalSeo(
+  localSeo
+) {
+  if (
+    !localSeo ||
+    localSeo.erro
+  ) {
+    definirStatus(
+      "localSeoSchemaStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoSchemaDetail",
+      localSeo?.erro,
+      "Local SEO signals could not be analyzed."
+    );
+
+
+    definirTexto(
+      "localSeoEntityTypes",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "localSeoBusinessName",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "localSeoSchemaPhones",
+      null,
+      "Unavailable"
+    );
+
+
+    definirStatus(
+      "localSeoClickToCallStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoClickToCallDetail",
+      null,
+      "Click-to-call signals could not be analyzed."
+    );
+
+
+    definirTexto(
+      "localSeoAddress",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "localSeoAddressDetail",
+      null,
+      "Structured address could not be analyzed."
+    );
+
+
+    definirStatus(
+      "localSeoHoursStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoHoursDetail",
+      null,
+      "Opening hours could not be analyzed."
+    );
+
+
+    definirStatus(
+      "localSeoAreaServedStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoAreaServedDetail",
+      null,
+      "Area served could not be analyzed."
+    );
+
+
+    definirStatus(
+      "localSeoGeoStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoGeoDetail",
+      null,
+      "Geo data could not be analyzed."
+    );
+
+
+    definirStatus(
+      "localSeoMapsStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoMapsDetail",
+      null,
+      "Google Maps signals could not be analyzed."
+    );
+
+
+    definirTexto(
+      "localSeoSameAsCount",
+      null,
+      "Unavailable"
+    );
+
+
+    definirTexto(
+      "localSeoSameAsDetail",
+      null,
+      "sameAs data could not be analyzed."
+    );
+
+
+    definirStatus(
+      "localSeoTitleLocationStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoTitleLocationDetail",
+      null,
+      "Location-title comparison unavailable."
+    );
+
+
+    definirStatus(
+      "localSeoH1LocationStatus",
+      "Unavailable",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoH1LocationDetail",
+      null,
+      "Location-H1 comparison unavailable."
+    );
+
+
+    return;
+  }
+
+
+  const schema =
+    localSeo.schema ||
+    {};
+
+
+  const localTypes =
+    listaLimpa(
+      schema.localBusinessTypes
+    );
+
+
+  const selectedTypes =
+    listaLimpa(
+      schema.selectedEntityTypes
+    );
+
+
+  if (
+    schema.localBusinessFound ===
+    true
+  ) {
+    definirStatus(
+      "localSeoSchemaStatus",
+      "Detected",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoSchemaDetail",
+      localTypes.length >
         0
-        ? "Missing alt was detected, but no source URL was available for the sampled elements."
-        : "No missing-alt examples to show."
+        ? `Detected type${localTypes.length === 1 ? "" : "s"}: ${localTypes.join(" · ")}`
+        : "A LocalBusiness-compatible Schema entity was detected."
+    );
+
+  } else {
+    definirStatus(
+      "localSeoSchemaStatus",
+      "Not detected",
+      "neutral"
+    );
+
+
+    definirTexto(
+      "localSeoSchemaDetail",
+      schema.organizationFound ===
+        true
+        ? "No LocalBusiness-compatible type was detected. An Organization entity was available."
+        : "No LocalBusiness-compatible Schema entity was detected in the analyzed JSON-LD."
+    );
+  }
+
+
+  definirTexto(
+    "localSeoEntityTypes",
+    selectedTypes.length >
+      0
+      ? selectedTypes.join(
+          " · "
+        )
+      : null,
+    "Not detected"
+  );
+
+
+  definirTexto(
+    "localSeoBusinessName",
+    localSeo.businessName,
+    "Not detected"
+  );
+
+
+  definirTexto(
+    "localSeoSchemaPhones",
+    textoListaLocal(
+      localSeo.schemaPhones
+    ),
+    "Not detected"
+  );
+
+
+  const clickToCall =
+    localSeo.clickToCall ||
+    {};
+
+
+  const clickCount =
+    numeroSeguro(
+      clickToCall.count
+    );
+
+
+  const clickPhones =
+    listaLimpa(
+      clickToCall.phones
+    );
+
+
+  definirStatus(
+    "localSeoClickToCallStatus",
+    clickCount > 0
+      ? "Detected"
+      : "Not detected",
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoClickToCallDetail",
+    clickCount > 0
+      ? `${clickCount} tel: link${clickCount === 1 ? "" : "s"} detected${
+          clickPhones.length > 0
+            ? ` · ${clickPhones.join(" · ")}`
+            : ""
+        }`
+      : "No tel: links were detected in the analyzed server HTML."
+  );
+
+
+  const address =
+    localSeo.address ||
+    {};
+
+
+  definirTexto(
+    "localSeoAddress",
+    address.found ===
+      true
+      ? address.formatted
+      : null,
+    "Not detected"
+  );
+
+
+  definirTexto(
+    "localSeoAddressDetail",
+    address.found ===
+      true
+      ? "Structured address associated with the selected entity."
+      : "No structured address was detected for the selected entity."
+  );
+
+
+  const openingHours =
+    localSeo.openingHours ||
+    {};
+
+
+  definirStatus(
+    "localSeoHoursStatus",
+    openingHours.found ===
+      true
+      ? "Detected"
+      : "Not detected",
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoHoursDetail",
+    openingHours.found ===
+      true
+      ? textoListaLocal(
+          openingHours.values
+        )
+      : "No opening hours were detected for the selected entity."
+  );
+
+
+  const areaServed =
+    localSeo.areaServed ||
+    {};
+
+
+  definirStatus(
+    "localSeoAreaServedStatus",
+    areaServed.found ===
+      true
+      ? "Detected"
+      : "Not detected",
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoAreaServedDetail",
+    areaServed.found ===
+      true
+      ? textoListaLocal(
+          areaServed.values
+        )
+      : "No areaServed value was detected for the selected entity."
+  );
+
+
+  const geo =
+    localSeo.geo ||
+    {};
+
+
+  definirStatus(
+    "localSeoGeoStatus",
+    geo.found ===
+      true
+      ? "Detected"
+      : "Not detected",
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoGeoDetail",
+    geo.found ===
+      true
+      ? `${geo.latitude}, ${geo.longitude}`
+      : "No geo coordinates were associated with the selected entity."
+  );
+
+
+  const maps =
+    localSeo.googleMaps ||
+    {};
+
+
+  const mapsCount =
+    numeroSeguro(
+      maps.count
+    );
+
+
+  const mapsUrls =
+    listaLimpa(
+      maps.urls
+    );
+
+
+  definirStatus(
+    "localSeoMapsStatus",
+    maps.found ===
+      true
+      ? "Detected"
+      : "Not detected",
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoMapsDetail",
+    maps.found ===
+      true
+      ? `${mapsCount} Google Maps reference${mapsCount === 1 ? "" : "s"}${
+          mapsUrls.length > 0
+            ? ` · ${mapsUrls.join(" · ")}`
+            : ""
+        }`
+      : "No Google Maps link or embed was detected in the analyzed server HTML."
+  );
+
+
+  const sameAs =
+    localSeo.sameAs ||
+    {};
+
+
+  const sameAsCount =
+    numeroSeguro(
+      sameAs.count
+    );
+
+
+  const sameAsUrls =
+    listaLimpa(
+      sameAs.urls
+    );
+
+
+  definirTexto(
+    "localSeoSameAsCount",
+    sameAsCount
+  );
+
+
+  definirTexto(
+    "localSeoSameAsDetail",
+    sameAsCount > 0
+      ? textoListaLocal(
+          sameAsUrls
+        )
+      : "No sameAs URLs were detected for the selected entity."
+  );
+
+
+  definirStatus(
+    "localSeoTitleLocationStatus",
+    statusSinalLocalidade(
+      localSeo,
+      "localityInTitle",
+      "regionInTitle"
+    ),
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoTitleLocationDetail",
+    detalheSinalLocalidade(
+      localSeo,
+      "localityInTitle",
+      "regionInTitle"
+    )
+  );
+
+
+  definirStatus(
+    "localSeoH1LocationStatus",
+    statusSinalLocalidade(
+      localSeo,
+      "localityInH1",
+      "regionInH1"
+    ),
+    "neutral"
+  );
+
+
+  definirTexto(
+    "localSeoH1LocationDetail",
+    detalheSinalLocalidade(
+      localSeo,
+      "localityInH1",
+      "regionInH1"
+    )
   );
 }
 
@@ -2012,13 +2950,18 @@ function atualizarOnPage(
     new Set([
       "TITLE_MISSING",
       "META_DESCRIPTION_MISSING",
-      "H1_MISSING"
+      "H1_MISSING",
+      "TITLE_AUSENTE",
+      "META_DESCRIPTION_AUSENTE",
+      "H1_AUSENTE"
     ]);
 
 
   const issues =
     findings.filter(
-      (finding) =>
+      (
+        finding
+      ) =>
         onPageCodes.has(
           finding.codigo
         )
@@ -2027,12 +2970,12 @@ function atualizarOnPage(
 
   if (
     issues.length ===
-    0
+      0
     &&
     !seo.erro
   ) {
-
     return {
+
       tom:
         "good",
 
@@ -2049,10 +2992,11 @@ function atualizarOnPage(
     issues.length >
     0
   ) {
-
     const high =
       issues.some(
-        (finding) =>
+        (
+          finding
+        ) =>
           normalizarSeveridade(
             finding.severidade
           ) ===
@@ -2061,6 +3005,7 @@ function atualizarOnPage(
 
 
     return {
+
       tom:
         high
           ? "bad"
@@ -2076,6 +3021,7 @@ function atualizarOnPage(
 
 
   return {
+
     tom:
       "neutral",
 
@@ -2140,7 +3086,9 @@ function atualizarSnapshot({
     );
 
 
-  if (ring) {
+  if (
+    ring
+  ) {
     const bounded =
       Number.isFinite(
         score
@@ -2157,13 +3105,13 @@ function atualizarSnapshot({
 
     const color =
       performanceInfo.scoreTom ===
-      "good"
+        "good"
         ? "var(--success)"
         : performanceInfo.scoreTom ===
-          "warning"
+            "warning"
           ? "var(--warning)"
           : performanceInfo.scoreTom ===
-            "bad"
+              "bad"
             ? "var(--danger)"
             : "var(--muted-2)";
 
@@ -2223,7 +3171,9 @@ function atualizarSnapshot({
 
   const high =
     findings.filter(
-      (finding) =>
+      (
+        finding
+      ) =>
         normalizarSeveridade(
           finding.severidade
         ) ===
@@ -2233,7 +3183,9 @@ function atualizarSnapshot({
 
   const medium =
     findings.filter(
-      (finding) =>
+      (
+        finding
+      ) =>
         normalizarSeveridade(
           finding.severidade
         ) ===
@@ -2244,8 +3196,10 @@ function atualizarSnapshot({
   let tom =
     "good";
 
+
   let titulo =
     "No findings";
+
 
   let detalhe =
     "No verified opportunities detected";
@@ -2255,12 +3209,13 @@ function atualizarSnapshot({
     high >
     0
   ) {
-
     tom =
       "bad";
 
+
     titulo =
       `${high} high priority`;
+
 
     detalhe =
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
@@ -2269,12 +3224,13 @@ function atualizarSnapshot({
     medium >
     0
   ) {
-
     tom =
       "warning";
 
+
     titulo =
       `${medium} to review`;
+
 
     detalhe =
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
@@ -2283,12 +3239,13 @@ function atualizarSnapshot({
     quantidade >
     0
   ) {
-
     tom =
       "warning";
 
+
     titulo =
       `${quantidade} detected`;
+
 
     detalhe =
       "Verified opportunities available";
@@ -2340,9 +3297,8 @@ function atualizarTopOpportunity(
     )
     ||
     findings.length ===
-    0
+      0
   ) {
-
     container
       ?.classList
       .add(
@@ -2350,7 +3306,9 @@ function atualizarTopOpportunity(
       );
 
 
-    if (marcador) {
+    if (
+      marcador
+    ) {
       marcador.textContent =
         "✓";
     }
@@ -2380,6 +3338,7 @@ function atualizarTopOpportunity(
 
 
   const peso = {
+
     high:
       3,
 
@@ -2396,7 +3355,10 @@ function atualizarTopOpportunity(
       ...findings
     ]
       .sort(
-        (a, b) =>
+        (
+          a,
+          b
+        ) =>
           (
             peso[
               normalizarSeveridade(
@@ -2432,7 +3394,9 @@ function atualizarTopOpportunity(
     );
 
 
-  if (marcador) {
+  if (
+    marcador
+  ) {
     marcador.textContent =
       "!";
   }
@@ -2459,10 +3423,10 @@ function atualizarTopOpportunity(
       nivel
     ),
     nivel ===
-    "high"
+      "high"
       ? "bad"
       : nivel ===
-        "medium"
+          "medium"
         ? "warning"
         : "good"
   );
@@ -2477,6 +3441,7 @@ function atualizarContadoresFindings(
   findings
 ) {
   const contadores = {
+
     all:
       findings.length,
 
@@ -2492,7 +3457,9 @@ function atualizarContadoresFindings(
 
 
   findings.forEach(
-    (finding) => {
+    (
+      finding
+    ) => {
 
       const nivel =
         normalizarSeveridade(
@@ -2506,11 +3473,10 @@ function atualizarContadoresFindings(
         ] !==
         undefined
       ) {
-
         contadores[
           nivel
         ] +=
-        1;
+          1;
       }
     }
   );
@@ -2552,6 +3518,58 @@ function atualizarContadoresFindings(
 }
 
 
+function criarCampoFinding(
+  label,
+  valor
+) {
+  const campo =
+    document.createElement(
+      "div"
+    );
+
+
+  campo.className =
+    "finding-field";
+
+
+  const titulo =
+    document.createElement(
+      "span"
+    );
+
+
+  titulo.className =
+    "finding-field-label";
+
+
+  titulo.textContent =
+    label;
+
+
+  const texto =
+    document.createElement(
+      "span"
+    );
+
+
+  texto.className =
+    "finding-field-value";
+
+
+  texto.textContent =
+    valor;
+
+
+  campo.append(
+    titulo,
+    texto
+  );
+
+
+  return campo;
+}
+
+
 function mostrarFindings(
   findings,
   filtro = "all"
@@ -2581,10 +3599,12 @@ function mostrarFindings(
 
   const filtrados =
     filtro ===
-    "all"
+      "all"
       ? lista
       : lista.filter(
-          (finding) =>
+          (
+            finding
+          ) =>
             normalizarSeveridade(
               finding.severidade
             ) ===
@@ -2596,7 +3616,6 @@ function mostrarFindings(
     filtrados.length ===
     0
   ) {
-
     const vazio =
       document.createElement(
         "div"
@@ -2609,7 +3628,7 @@ function mostrarFindings(
 
     vazio.textContent =
       lista.length ===
-      0
+        0
         ? "No verified issues were detected in this analysis."
         : `No ${filtro} severity findings in this analysis.`;
 
@@ -2624,7 +3643,9 @@ function mostrarFindings(
 
 
   filtrados.forEach(
-    (finding) => {
+    (
+      finding
+    ) => {
 
       const card =
         document.createElement(
@@ -2697,22 +3718,14 @@ function mostrarFindings(
         "No evidence provided.";
 
 
-      mainText.appendChild(
-        titulo
-      );
-
-
-      mainText.appendChild(
+      mainText.append(
+        titulo,
         evidencia
       );
 
 
-      main.appendChild(
-        alert
-      );
-
-
-      main.appendChild(
+      main.append(
+        alert,
         mainText
       );
 
@@ -2839,58 +3852,6 @@ function mostrarFindings(
 }
 
 
-function criarCampoFinding(
-  label,
-  valor
-) {
-  const campo =
-    document.createElement(
-      "div"
-    );
-
-
-  campo.className =
-    "finding-field";
-
-
-  const titulo =
-    document.createElement(
-      "span"
-    );
-
-
-  titulo.className =
-    "finding-field-label";
-
-
-  titulo.textContent =
-    label;
-
-
-  const texto =
-    document.createElement(
-      "span"
-    );
-
-
-  texto.className =
-    "finding-field-value";
-
-
-  texto.textContent =
-    valor;
-
-
-  campo.append(
-    titulo,
-    texto
-  );
-
-
-  return campo;
-}
-
-
 function ativarFiltroVisual(
   filtro
 ) {
@@ -2899,13 +3860,17 @@ function ativarFiltroVisual(
       ".filter-chip"
     )
     .forEach(
-      (botao) => {
+      (
+        botao
+      ) => {
 
-        botao.classList.toggle(
-          "active",
-          botao.dataset.filter ===
-          filtro
-        );
+        botao
+          .classList
+          .toggle(
+            "active",
+            botao.dataset.filter ===
+              filtro
+          );
       }
     );
 }
@@ -2937,9 +3902,11 @@ function filtrarFindings(
 function mostrarResultado(
   dados
 ) {
-  errorBox.classList.add(
-    "hidden"
-  );
+  errorBox
+    .classList
+    .add(
+      "hidden"
+    );
 
 
   const findings =
@@ -2986,6 +3953,11 @@ function mostrarResultado(
   );
 
 
+  atualizarLocalSeo(
+    dados.localSeo
+  );
+
+
   const onPageInfo =
     atualizarOnPage(
       dados.seo ||
@@ -2995,9 +3967,13 @@ function mostrarResultado(
 
 
   atualizarSnapshot({
+
     performanceInfo,
+
     indexabilityInfo,
+
     onPageInfo,
+
     findings
   });
 
@@ -3093,9 +4069,11 @@ function mostrarResultado(
     );
 
 
-  results.classList.remove(
-    "hidden"
-  );
+  results
+    .classList
+    .remove(
+      "hidden"
+    );
 
 
   ativarAba(
@@ -3104,6 +4082,7 @@ function mostrarResultado(
 
 
   results.scrollIntoView({
+
     behavior:
       "smooth",
 
@@ -3133,7 +4112,9 @@ async function copiarTexto(
       ?.trim();
 
 
-  if (!texto) {
+  if (
+    !texto
+  ) {
     return;
   }
 
@@ -3151,7 +4132,6 @@ async function copiarTexto(
     );
 
   } catch {
-
     const textarea =
       document.createElement(
         "textarea"
@@ -3204,20 +4184,25 @@ function mostrarCopiado(
     "Copied!";
 
 
-  botao.classList.add(
-    "copied"
-  );
+  botao
+    .classList
+    .add(
+      "copied"
+    );
 
 
   setTimeout(
     () => {
+
       botao.textContent =
         original;
 
 
-      botao.classList.remove(
-        "copied"
-      );
+      botao
+        .classList
+        .remove(
+          "copied"
+        );
     },
     1600
   );
@@ -3245,7 +4230,9 @@ analyzeButton.addEventListener(
 
 urlInput.addEventListener(
   "keydown",
-  (event) => {
+  (
+    event
+  ) => {
 
     if (
       event.key ===
@@ -3262,7 +4249,9 @@ document
     ".tab-button"
   )
   .forEach(
-    (botao) => {
+    (
+      botao
+    ) => {
 
       botao.addEventListener(
         "click",
@@ -3280,7 +4269,9 @@ document
     "[data-go-tab]"
   )
   .forEach(
-    (botao) => {
+    (
+      botao
+    ) => {
 
       botao.addEventListener(
         "click",
@@ -3315,7 +4306,9 @@ copyProspectButton.addEventListener(
 
 findingFilters.addEventListener(
   "click",
-  (event) => {
+  (
+    event
+  ) => {
 
     const botao =
       event
@@ -3325,7 +4318,9 @@ findingFilters.addEventListener(
         );
 
 
-    if (!botao) {
+    if (
+      !botao
+    ) {
       return;
     }
 

@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const crypto = require("crypto");
 
 const helmet = require("helmet");
 
@@ -9,12 +10,12 @@ const {
 
 
 const {
-  analisarSite
+  analisarSite,
+  gerarViewsComIA
 } = require("./analisador");
 
 
 const {
-  validarUrlPublica,
   ErroURLInsegura
 } = require("./seguranca");
 
@@ -25,6 +26,26 @@ const app =
 
 const PORT =
   3000;
+
+
+const MAX_URLS_LOTE =
+  50;
+
+
+const CONCORRENCIA_LOTE =
+  3;
+
+
+const ANALYSIS_CACHE_TTL_MS =
+  30 * 60 * 1000;
+
+
+const MAX_ANALYSIS_CACHE_ENTRIES =
+  300;
+
+
+const cacheAnalises =
+  new Map();
 
 
 // ======================================================
@@ -109,13 +130,13 @@ app.disable(
 app.use(
   express.json({
     limit:
-      "10kb"
+      "25kb"
   })
 );
 
 
 // ======================================================
-// RATE LIMIT
+// RATE LIMITS
 // ======================================================
 
 const analisarLimiter =
@@ -134,11 +155,482 @@ const analisarLimiter =
       false,
 
     message: {
-
       erro:
         "Too many analyses were requested. Please try again later."
     }
   });
+
+
+const loteLimiter =
+  rateLimit({
+
+    windowMs:
+      15 * 60 * 1000,
+
+    limit:
+      5,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+      erro:
+        "Too many batch analyses were requested. Please try again later."
+    }
+  });
+
+
+const outreachLimiter =
+  rateLimit({
+
+    windowMs:
+      15 * 60 * 1000,
+
+    limit:
+      30,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+      erro:
+        "Too many AI generations were requested. Please try again later."
+    }
+  });
+
+
+// ======================================================
+// ANALYSIS CACHE
+// Trusted server-side technical results used later when
+// the user explicitly requests AI outreach.
+// ======================================================
+
+function limparCacheAnalises() {
+  const agora =
+    Date.now();
+
+
+  for (
+    const [
+      id,
+      item
+    ] of cacheAnalises
+  ) {
+    if (
+      agora >
+      item.expiraEm
+    ) {
+      cacheAnalises.delete(
+        id
+      );
+    }
+  }
+}
+
+
+function limitarCacheAnalises() {
+  limparCacheAnalises();
+
+
+  while (
+    cacheAnalises.size >=
+    MAX_ANALYSIS_CACHE_ENTRIES
+  ) {
+    const primeiroId =
+      cacheAnalises
+        .keys()
+        .next()
+        .value;
+
+
+    if (
+      !primeiroId
+    ) {
+      break;
+    }
+
+
+    cacheAnalises.delete(
+      primeiroId
+    );
+  }
+}
+
+
+function salvarAnaliseNoCache(
+  analise
+) {
+  limitarCacheAnalises();
+
+
+  const analysisId =
+    crypto.randomUUID();
+
+
+  cacheAnalises.set(
+    analysisId,
+    {
+      analise,
+
+      expiraEm:
+        Date.now() +
+        ANALYSIS_CACHE_TTL_MS
+    }
+  );
+
+
+  return analysisId;
+}
+
+
+function obterAnaliseDoCache(
+  analysisId
+) {
+  limparCacheAnalises();
+
+
+  const item =
+    cacheAnalises.get(
+      analysisId
+    );
+
+
+  if (
+    !item
+  ) {
+    return null;
+  }
+
+
+  return item.analise;
+}
+
+
+function atualizarAnaliseNoCache(
+  analysisId,
+  analise
+) {
+  if (
+    !cacheAnalises.has(
+      analysisId
+    )
+  ) {
+    return;
+  }
+
+
+  cacheAnalises.set(
+    analysisId,
+    {
+      analise,
+
+      expiraEm:
+        Date.now() +
+        ANALYSIS_CACHE_TTL_MS
+    }
+  );
+}
+
+
+// ======================================================
+// BATCH HELPERS
+// ======================================================
+
+function normalizarListaUrls(
+  urls
+) {
+  const vistas =
+    new Set();
+
+
+  const unicas =
+    [];
+
+
+  let duplicadasRemovidas =
+    0;
+
+
+  for (
+    const valor of urls
+  ) {
+    const url =
+      typeof valor === "string"
+        ? valor.trim()
+        : "";
+
+
+    if (
+      !url
+    ) {
+      continue;
+    }
+
+
+    const chave =
+      url.toLowerCase();
+
+
+    if (
+      vistas.has(
+        chave
+      )
+    ) {
+      duplicadasRemovidas +=
+        1;
+
+      continue;
+    }
+
+
+    vistas.add(
+      chave
+    );
+
+
+    unicas.push(
+      url
+    );
+  }
+
+
+  return {
+    urls:
+      unicas,
+
+    duplicadasRemovidas
+  };
+}
+
+
+async function mapComConcorrencia(
+  itens,
+  concorrencia,
+  executar
+) {
+  const resultados =
+    new Array(
+      itens.length
+    );
+
+
+  let proximoIndice =
+    0;
+
+
+  async function worker() {
+    while (
+      true
+    ) {
+      const indice =
+        proximoIndice;
+
+
+      proximoIndice +=
+        1;
+
+
+      if (
+        indice >=
+        itens.length
+      ) {
+        return;
+      }
+
+
+      resultados[indice] =
+        await executar(
+          itens[indice],
+          indice
+        );
+    }
+  }
+
+
+  const quantidadeWorkers =
+    Math.min(
+      concorrencia,
+      itens.length
+    );
+
+
+  await Promise.all(
+    Array.from(
+      {
+        length:
+          quantidadeWorkers
+      },
+      () =>
+        worker()
+    )
+  );
+
+
+  return resultados;
+}
+
+
+function ordemTier(
+  tier
+) {
+  const ordem = {
+    high:
+      0,
+
+    medium:
+      1,
+
+    low:
+      2,
+
+    none:
+      3
+  };
+
+
+  return ordem[tier]
+    ??
+    4;
+}
+
+
+function criarResumoProspect(
+  inputUrl,
+  analysisId,
+  analise
+) {
+  const opportunity =
+    analise.opportunity ||
+    {
+      tier:
+        "none",
+
+      priorityScore:
+        0,
+
+      findingsCount:
+        Array.isArray(
+          analise.findings
+        )
+          ? analise.findings.length
+          : 0,
+
+      counts: {
+        high:
+          0,
+
+        medium:
+          0,
+
+        low:
+          0
+      },
+
+      topFinding:
+        null
+    };
+
+
+  return {
+    analysisId,
+
+    inputUrl,
+
+    url:
+      analise.url,
+
+    status:
+      "completed",
+
+    tier:
+      opportunity.tier,
+
+    priorityScore:
+      opportunity.priorityScore,
+
+    findingsCount:
+      opportunity.findingsCount,
+
+    counts:
+      opportunity.counts,
+
+    topFinding:
+      opportunity.topFinding,
+
+    businessName:
+      analise.localSeo
+        ?.businessName
+      ??
+      null,
+
+    analysis:
+      analise
+  };
+}
+
+
+function criarResumoErro(
+  inputUrl,
+  erro
+) {
+  const urlInsegura =
+    erro instanceof
+    ErroURLInsegura;
+
+
+  return {
+    analysisId:
+      null,
+
+    inputUrl,
+
+    url:
+      null,
+
+    status:
+      "error",
+
+    tier:
+      null,
+
+    priorityScore:
+      0,
+
+    findingsCount:
+      0,
+
+    counts: {
+      high:
+        0,
+
+      medium:
+        0,
+
+      low:
+        0
+    },
+
+    topFinding:
+      null,
+
+    businessName:
+      null,
+
+    analysis:
+      null,
+
+    erro:
+      urlInsegura
+        ? "This URL cannot be analyzed."
+        : "The website could not be analyzed."
+  };
+}
 
 
 // ======================================================
@@ -177,7 +669,8 @@ app.get(
 
 
 // ======================================================
-// ANALYZE SITE
+// ANALYZE ONE SITE
+// Technical analysis only. No AI is generated here.
 // ======================================================
 
 app.post(
@@ -188,71 +681,55 @@ app.post(
   async (req, res) => {
 
     try {
-
-      let { url } =
+      const { url } =
         req.body;
 
-
-      // =================================================
-      // INPUT VALIDATION
-      // =================================================
 
       if (
         !url ||
         typeof url !== "string"
       ) {
-
         return res
           .status(400)
           .json({
-
             erro:
               "A website URL is required."
           });
       }
 
 
-      // =================================================
-      // SSRF / URL VALIDATION
-      // =================================================
-
-      url =
-        await validarUrlPublica(
-          url
-        );
-
-
       console.log(
-        `\n📥 Analysis requested for: ${url}`
+        `\n📥 Technical analysis requested for: ${url}`
       );
 
-
-      // =================================================
-      // ANALYSIS
-      // =================================================
 
       const resultado =
         await analisarSite(
-          url
+          url,
+          {
+            gerarIA:
+              false
+          }
         );
 
 
-      return res.json(
-        resultado
-      );
+      const analysisId =
+        salvarAnaliseNoCache(
+          resultado
+        );
+
+
+      return res.json({
+        ...resultado,
+        analysisId
+      });
 
     } catch (erro) {
-
-
-      // =================================================
-      // UNSAFE URL
-      // =================================================
 
       if (
         erro instanceof
         ErroURLInsegura
       ) {
-
         console.log(
           `🛡️ URL blocked: ${erro.message}`
         );
@@ -261,19 +738,14 @@ app.post(
         return res
           .status(400)
           .json({
-
             erro:
               "This URL cannot be analyzed."
           });
       }
 
 
-      // =================================================
-      // INTERNAL ERROR
-      // =================================================
-
       console.error(
-        "Internal error:",
+        "Internal analysis error:",
         erro
       );
 
@@ -281,9 +753,421 @@ app.post(
       return res
         .status(500)
         .json({
-
           erro:
             "An internal error occurred while analyzing the website."
+        });
+    }
+  }
+);
+
+
+// ======================================================
+// ANALYZE BATCH
+// Up to 50 URLs. Technical analysis only, zero AI calls.
+// ======================================================
+
+app.post(
+  "/analisar-lote",
+
+  loteLimiter,
+
+  async (req, res) => {
+
+    const { urls } =
+      req.body;
+
+
+    if (
+      !Array.isArray(
+        urls
+      )
+    ) {
+      return res
+        .status(400)
+        .json({
+          erro:
+            "An array of website URLs is required."
+        });
+    }
+
+
+    if (
+      urls.length === 0
+    ) {
+      return res
+        .status(400)
+        .json({
+          erro:
+            "At least one website URL is required."
+        });
+    }
+
+
+    if (
+      urls.length >
+      MAX_URLS_LOTE
+    ) {
+      return res
+        .status(400)
+        .json({
+          erro:
+            `A maximum of ${MAX_URLS_LOTE} URLs can be analyzed per batch.`
+        });
+    }
+
+
+    if (
+      urls.some(
+        url =>
+          typeof url !== "string"
+      )
+    ) {
+      return res
+        .status(400)
+        .json({
+          erro:
+            "Every batch item must be a URL string."
+        });
+    }
+
+
+    const lista =
+      normalizarListaUrls(
+        urls
+      );
+
+
+    if (
+      lista.urls.length === 0
+    ) {
+      return res
+        .status(400)
+        .json({
+          erro:
+            "No valid URL strings were provided."
+        });
+    }
+
+
+    console.log(
+      `\n📦 Batch requested: ${lista.urls.length} unique URLs`
+    );
+
+
+    const prospects =
+      await mapComConcorrencia(
+        lista.urls,
+        CONCORRENCIA_LOTE,
+        async (
+          inputUrl,
+          indice
+        ) => {
+          console.log(
+            `📍 Batch ${indice + 1}/${lista.urls.length}: ${inputUrl}`
+          );
+
+
+          try {
+            const analise =
+              await analisarSite(
+                inputUrl,
+                {
+                  gerarIA:
+                    false,
+
+                  logDetalhado:
+                    false
+                }
+              );
+
+
+            const analysisId =
+              salvarAnaliseNoCache(
+                analise
+              );
+
+
+            return criarResumoProspect(
+              inputUrl,
+              analysisId,
+              analise
+            );
+
+          } catch (erro) {
+            console.log(
+              `⚠️ Batch analysis failed for ${inputUrl}: ${erro.message}`
+            );
+
+
+            return criarResumoErro(
+              inputUrl,
+              erro
+            );
+          }
+        }
+      );
+
+
+    prospects.sort(
+      (
+        a,
+        b
+      ) => {
+        if (
+          a.status !== b.status
+        ) {
+          return a.status === "completed"
+            ? -1
+            : 1;
+        }
+
+
+        const tierDifference =
+          ordemTier(
+            a.tier
+          ) -
+          ordemTier(
+            b.tier
+          );
+
+
+        if (
+          tierDifference !== 0
+        ) {
+          return tierDifference;
+        }
+
+
+        if (
+          b.priorityScore !==
+          a.priorityScore
+        ) {
+          return b.priorityScore -
+            a.priorityScore;
+        }
+
+
+        return String(
+          a.url ||
+          a.inputUrl
+        )
+          .localeCompare(
+            String(
+              b.url ||
+              b.inputUrl
+            )
+          );
+      }
+    );
+
+
+    const resumo = {
+      high:
+        0,
+
+      medium:
+        0,
+
+      low:
+        0,
+
+      none:
+        0,
+
+      errors:
+        0
+    };
+
+
+    for (
+      const prospect of prospects
+    ) {
+      if (
+        prospect.status === "error"
+      ) {
+        resumo.errors +=
+          1;
+
+        continue;
+      }
+
+
+      if (
+        prospect.tier in resumo
+      ) {
+        resumo[prospect.tier] +=
+          1;
+      }
+    }
+
+
+    return res.json({
+      analyzedAt:
+        new Date()
+          .toISOString(),
+
+      requestedCount:
+        urls.length,
+
+      uniqueCount:
+        lista.urls.length,
+
+      duplicatesRemoved:
+        lista.duplicadasRemovidas,
+
+      maxBatchSize:
+        MAX_URLS_LOTE,
+
+      aiCalls:
+        0,
+
+      summary:
+        resumo,
+
+      prospects
+    });
+  }
+);
+
+
+// ======================================================
+// GENERATE AI OUTREACH ON DEMAND
+// Uses the trusted technical result previously stored by
+// the server. The browser never supplies its own findings.
+// ======================================================
+
+app.post(
+  "/gerar-outreach",
+
+  outreachLimiter,
+
+  async (req, res) => {
+
+    try {
+      const { analysisId } =
+        req.body;
+
+
+      if (
+        !analysisId ||
+        typeof analysisId !== "string"
+      ) {
+        return res
+          .status(400)
+          .json({
+            erro:
+              "A valid analysisId is required."
+          });
+      }
+
+
+      const analise =
+        obterAnaliseDoCache(
+          analysisId
+        );
+
+
+      if (
+        !analise
+      ) {
+        return res
+          .status(410)
+          .json({
+            erro:
+              "This analysis expired. Please analyze the website again."
+          });
+      }
+
+
+      if (
+        !Array.isArray(
+          analise.findings
+        ) ||
+        analise.findings.length === 0
+      ) {
+        return res.json({
+          analysisId,
+
+          url:
+            analise.url,
+
+          agencyView:
+            null,
+
+          prospectView:
+            null,
+
+          iaStatus:
+            "no_findings"
+        });
+      }
+
+
+      console.log(
+        `\n🤖 AI generation requested for: ${analise.url}`
+      );
+
+
+      const views =
+        await gerarViewsComIA(
+          analise.url,
+          analise.findings
+        );
+
+
+      const analiseAtualizada = {
+        ...analise,
+
+        agencyView:
+          views.agencyView,
+
+        prospectView:
+          views.prospectView,
+
+        iaStatus:
+          views.status
+      };
+
+
+      atualizarAnaliseNoCache(
+        analysisId,
+        analiseAtualizada
+      );
+
+
+      return res.json({
+        analysisId,
+
+        url:
+          analise.url,
+
+        agencyView:
+          views.agencyView,
+
+        prospectView:
+          views.prospectView,
+
+        iaStatus:
+          views.status,
+
+        erro:
+          views.erro
+          ??
+          null
+      });
+
+    } catch (erro) {
+      console.error(
+        "AI generation error:",
+        erro
+      );
+
+
+      return res
+        .status(500)
+        .json({
+          erro:
+            "An internal error occurred while generating outreach."
         });
     }
   }
@@ -302,36 +1186,27 @@ app.use(
     next
   ) => {
 
-
-    // Payload larger than 10 KB
-
     if (
       erro.type ===
       "entity.too.large"
     ) {
-
       return res
         .status(413)
         .json({
-
           erro:
             "The request is too large."
         });
     }
 
 
-    // Invalid JSON
-
     if (
       erro instanceof SyntaxError &&
       erro.status === 400 &&
       "body" in erro
     ) {
-
       return res
         .status(400)
         .json({
-
           erro:
             "Invalid JSON."
         });
@@ -347,7 +1222,6 @@ app.use(
     return res
       .status(500)
       .json({
-
         erro:
           "Internal server error."
       });
@@ -363,21 +1237,38 @@ app.listen(
   PORT,
 
   () => {
-
     console.log(
       `\n🚀 Micro-SaaS running at http://localhost:${PORT}`
     );
+
 
     console.log(
       "🛡️ Security headers enabled"
     );
 
+
     console.log(
       "🛡️ Content Security Policy enabled"
     );
 
+
     console.log(
-      "🛡️ Rate limit: 20 analyses / 15 min / IP"
+      "🛡️ Single analysis limit: 20 / 15 min / IP"
+    );
+
+
+    console.log(
+      "📦 Batch limit: 5 batches / 15 min / IP"
+    );
+
+
+    console.log(
+      `📦 Batch size: up to ${MAX_URLS_LOTE} URLs, concurrency ${CONCORRENCIA_LOTE}`
+    );
+
+
+    console.log(
+      "🤖 AI is generated only on explicit outreach requests"
     );
   }
 );

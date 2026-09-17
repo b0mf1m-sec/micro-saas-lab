@@ -301,11 +301,16 @@ async function analisarPageSpeed(
 
 function gerarFindings(
   performance,
-  seo
+  seo,
+  indexability
 ) {
   const findings =
     [];
 
+
+  // ====================================================
+  // ON-PAGE SEO
+  // ====================================================
 
   if (
     !seo.erro
@@ -368,12 +373,46 @@ function gerarFindings(
   }
 
 
+  // ====================================================
+  // INDEXABILITY
+  // ====================================================
+
+  if (
+    indexability?.httpStatus >= 200 &&
+    indexability?.httpStatus < 400 &&
+    indexability?.indexable === false &&
+    indexability?.indexabilityReason ===
+      "An explicit noindex directive was detected."
+  ) {
+    findings.push({
+      codigo:
+        "NOINDEX_DETECTED",
+
+      categoria:
+        "indexability",
+
+      severidade:
+        "high",
+
+      evidencia:
+        "An explicit noindex directive was detected in the analyzed page response."
+    });
+  }
+
+
+  // ====================================================
+  // PERFORMANCE
+  // ====================================================
+
   if (
     !performance.erro
   ) {
+
+    // LCP: 2.5s–4s = medium, above 4s = high.
+
     if (
       performance.lcpMs !== null &&
-      performance.lcpMs > 2500
+      performance.lcpMs > 4000
     ) {
       findings.push({
         codigo:
@@ -388,12 +427,32 @@ function gerarFindings(
         evidencia:
           `The measured Largest Contentful Paint was ${performance.lcp}.`
       });
+
+    } else if (
+      performance.lcpMs !== null &&
+      performance.lcpMs > 2500
+    ) {
+      findings.push({
+        codigo:
+          "LCP_NEEDS_ATTENTION",
+
+        categoria:
+          "performance",
+
+        severidade:
+          "medium",
+
+        evidencia:
+          `The measured Largest Contentful Paint was ${performance.lcp}.`
+      });
     }
 
 
+    // CLS: 0.1–0.25 = medium, above 0.25 = high.
+
     if (
       performance.clsValor !== null &&
-      performance.clsValor > 0.1
+      performance.clsValor > 0.25
     ) {
       findings.push({
         codigo:
@@ -408,11 +467,197 @@ function gerarFindings(
         evidencia:
           `The measured Cumulative Layout Shift was ${performance.clsValor}.`
       });
+
+    } else if (
+      performance.clsValor !== null &&
+      performance.clsValor > 0.1
+    ) {
+      findings.push({
+        codigo:
+          "CLS_NEEDS_ATTENTION",
+
+        categoria:
+          "performance",
+
+        severidade:
+          "medium",
+
+        evidencia:
+          `The measured Cumulative Layout Shift was ${performance.clsValor}.`
+      });
     }
   }
 
 
   return findings;
+}
+
+
+function normalizarSeveridade(
+  severidade
+) {
+  const valor =
+    String(
+      severidade || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (
+    valor === "high" ||
+    valor === "alta"
+  ) {
+    return "high";
+  }
+
+
+  if (
+    valor === "medium" ||
+    valor === "media" ||
+    valor === "média"
+  ) {
+    return "medium";
+  }
+
+
+  if (
+    valor === "low" ||
+    valor === "baixa"
+  ) {
+    return "low";
+  }
+
+
+  return null;
+}
+
+
+function classificarOportunidade(
+  findings = []
+) {
+  const pesos = {
+    high:
+      3,
+
+    medium:
+      2,
+
+    low:
+      1
+  };
+
+
+  const counts = {
+    high:
+      0,
+
+    medium:
+      0,
+
+    low:
+      0
+  };
+
+
+  let priorityScore =
+    0;
+
+
+  const findingsComPeso =
+    findings.map(
+      (
+        finding,
+        index
+      ) => {
+        const severidade =
+          normalizarSeveridade(
+            finding?.severidade
+          );
+
+
+        const peso =
+          severidade
+            ? pesos[severidade]
+            : 0;
+
+
+        if (
+          severidade
+        ) {
+          counts[severidade] +=
+            1;
+
+
+          priorityScore +=
+            peso;
+        }
+
+
+        return {
+          finding,
+          peso,
+          index
+        };
+      }
+    );
+
+
+  let tier =
+    "none";
+
+
+  if (
+    counts.high > 0
+  ) {
+    tier =
+      "high";
+
+  } else if (
+    counts.medium > 0
+  ) {
+    tier =
+      "medium";
+
+  } else if (
+    counts.low > 0
+  ) {
+    tier =
+      "low";
+  }
+
+
+  const topFinding =
+    findingsComPeso
+      .filter(
+        item =>
+          item.peso > 0
+      )
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          b.peso - a.peso ||
+          a.index - b.index
+      )[0]
+      ?.finding
+    ??
+    null;
+
+
+  return {
+    tier,
+
+    priorityScore,
+
+    findingsCount:
+      findings.length,
+
+    counts,
+
+    topFinding
+  };
 }
 
 
@@ -965,35 +1210,56 @@ ${JSON.stringify(
 
 
 async function analisarSite(
-  url
+  url,
+  opcoes = {}
 ) {
+  const gerarIA =
+    opcoes.gerarIA === true;
+
+
+  const logDetalhado =
+    opcoes.logDetalhado !== false;
+
+
+  const log =
+    (...args) => {
+      if (
+        logDetalhado
+      ) {
+        console.log(
+          ...args
+        );
+      }
+    };
+
+
   url =
     await validarUrlPublica(
       url
     );
 
 
-  console.log(
+  log(
     "\n========================================"
   );
 
 
-  console.log(
+  log(
     `🔎 Analyzing: ${url}`
   );
 
 
-  console.log(
+  log(
     "========================================"
   );
 
 
-  console.log(
+  log(
     "\nChecking PageSpeed..."
   );
 
 
-  console.log(
+  log(
     "Checking SEO structure, indexability, structured data, images and Local SEO signals..."
   );
 
@@ -1033,7 +1299,7 @@ async function analisarSite(
     pagina.localSeo;
 
 
-  console.log(
+  log(
     "Generating verified findings..."
   );
 
@@ -1041,7 +1307,14 @@ async function analisarSite(
   const findings =
     gerarFindings(
       performance,
-      seo
+      seo,
+      indexability
+    );
+
+
+  const opportunity =
+    classificarOportunidade(
+      findings
     );
 
 
@@ -1049,9 +1322,10 @@ async function analisarSite(
 
 
   if (
+    gerarIA &&
     findings.length > 0
   ) {
-    console.log(
+    log(
       "🤖 Generating Agency View and Prospect View..."
     );
 
@@ -1062,8 +1336,10 @@ async function analisarSite(
         findings
       );
 
-  } else {
-    console.log(
+  } else if (
+    findings.length === 0
+  ) {
+    log(
       "ℹ️ No verified findings. Gemini will not be called."
     );
 
@@ -1077,6 +1353,26 @@ async function analisarSite(
 
       status:
         "no_findings",
+
+      erro:
+        null
+    };
+
+  } else {
+    log(
+      "ℹ️ Technical analysis completed. AI generation was not requested."
+    );
+
+
+    views = {
+      agencyView:
+        null,
+
+      prospectView:
+        null,
+
+      status:
+        "not_generated",
 
       erro:
         null
@@ -1105,6 +1401,8 @@ async function analisarSite(
 
     findings,
 
+    opportunity,
+
     agencyView:
       views.agencyView,
 
@@ -1116,46 +1414,54 @@ async function analisarSite(
   };
 
 
-  console.log(
-    "\n✅ TECHNICAL RESULT"
-  );
+  if (
+    logDetalhado
+  ) {
+    console.log(
+      "\n✅ TECHNICAL RESULT"
+    );
 
 
-  console.dir(
-    {
-      url:
-        resultado.url,
+    console.dir(
+      {
+        url:
+          resultado.url,
 
-      performance:
-        resultado.performance,
+        performance:
+          resultado.performance,
 
-      indexability:
-        resultado.indexability,
+        indexability:
+          resultado.indexability,
 
-      structuredData:
-        resultado.structuredData,
+        structuredData:
+          resultado.structuredData,
 
-      images:
-        resultado.images,
+        images:
+          resultado.images,
 
-      localSeo:
-        resultado.localSeo,
+        localSeo:
+          resultado.localSeo,
 
-      seo:
-        resultado.seo,
+        seo:
+          resultado.seo,
 
-      findings:
-        resultado.findings
-    },
+        findings:
+          resultado.findings,
 
-    {
-      depth:
-        null
-    }
-  );
+        opportunity:
+          resultado.opportunity
+      },
+
+      {
+        depth:
+          null
+      }
+    );
+  }
 
 
   if (
+    logDetalhado &&
     resultado.agencyView
   ) {
     console.log(
@@ -1180,6 +1486,7 @@ async function analisarSite(
 
 
   if (
+    logDetalhado &&
     resultado.prospectView
   ) {
     console.log(
@@ -1204,6 +1511,7 @@ async function analisarSite(
 
 
   if (
+    logDetalhado &&
     views.erro
   ) {
     console.log(
@@ -1274,7 +1582,11 @@ if (
 
       try {
         await analisarSite(
-          url
+          url,
+          {
+            gerarIA:
+              true
+          }
         );
 
       } catch (erro) {
@@ -1296,5 +1608,7 @@ if (
 
 
 module.exports = {
-  analisarSite
+  analisarSite,
+  gerarViewsComIA,
+  classificarOportunidade
 };

@@ -1,30 +1,84 @@
-const urlInput =
+const batchUrls =
   document.getElementById(
-    "urlInput"
+    "batchUrls"
   );
 
 
-const analyzeButton =
+const analyzeBatchButton =
   document.getElementById(
-    "analyzeButton"
+    "analyzeBatchButton"
   );
 
 
-const loading =
+const batchLoading =
   document.getElementById(
-    "loading"
+    "batchLoading"
   );
 
 
-const results =
+const batchError =
   document.getElementById(
-    "results"
+    "batchError"
   );
 
 
-const errorBox =
+const queueResults =
   document.getElementById(
-    "error"
+    "queueResults"
+  );
+
+
+const prospectQueue =
+  document.getElementById(
+    "prospectQueue"
+  );
+
+
+const queueFilters =
+  document.getElementById(
+    "queueFilters"
+  );
+
+
+const urlCounter =
+  document.getElementById(
+    "urlCounter"
+  );
+
+
+const queueView =
+  document.getElementById(
+    "queueView"
+  );
+
+
+const detailView =
+  document.getElementById(
+    "detailView"
+  );
+
+
+const backToQueueButton =
+  document.getElementById(
+    "backToQueueButton"
+  );
+
+
+const brandButton =
+  document.getElementById(
+    "brandButton"
+  );
+
+
+const themeToggle =
+  document.getElementById(
+    "themeToggle"
+  );
+
+
+const generateOutreachButton =
+  document.getElementById(
+    "generateOutreachButton"
   );
 
 
@@ -46,10 +100,12 @@ const findingFilters =
   );
 
 
-const themeToggle =
-  document.getElementById(
-    "themeToggle"
-  );
+let prospectsAtuais =
+  [];
+
+
+let filtroQueueAtual =
+  "all";
 
 
 let findingsAtuais =
@@ -58,6 +114,14 @@ let findingsAtuais =
 
 let filtroFindingAtual =
   "all";
+
+
+let analiseAtual =
+  null;
+
+
+let analysisIdAtual =
+  null;
 
 
 // =====================================================
@@ -134,6 +198,7 @@ function iniciarTema() {
       salvo
     );
 
+
     return;
   }
 
@@ -155,15 +220,11 @@ function iniciarTema() {
 
 
 function alternarTema() {
-  const atual =
+  aplicarTema(
     document
       .documentElement
       .dataset
-      .theme;
-
-
-  aplicarTema(
-    atual === "dark"
+      .theme === "dark"
       ? "light"
       : "dark"
   );
@@ -171,222 +232,7 @@ function alternarTema() {
 
 
 // =====================================================
-// TABS
-// =====================================================
-
-function ativarAba(
-  nome
-) {
-  document
-    .querySelectorAll(
-      ".tab-button"
-    )
-    .forEach(
-      (
-        botao
-      ) => {
-
-        botao
-          .classList
-          .toggle(
-            "active",
-            botao.dataset.tab ===
-              nome
-          );
-      }
-    );
-
-
-  document
-    .querySelectorAll(
-      ".tab-panel"
-    )
-    .forEach(
-      (
-        painel
-      ) => {
-
-        painel
-          .classList
-          .toggle(
-            "active",
-            painel.dataset.panel ===
-              nome
-          );
-      }
-    );
-}
-
-
-// =====================================================
-// ANALYZE
-// =====================================================
-
-async function analisar() {
-  const url =
-    urlInput
-      .value
-      .trim();
-
-
-  if (
-    !url
-  ) {
-    mostrarErro(
-      "Enter a website URL."
-    );
-
-    return;
-  }
-
-
-  iniciarLoading();
-
-
-  try {
-    const resposta =
-      await fetch(
-        "/analisar",
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              url
-            })
-        }
-      );
-
-
-    let dados;
-
-
-    try {
-      dados =
-        await resposta.json();
-
-    } catch {
-      throw new Error(
-        "The server returned an invalid response."
-      );
-    }
-
-
-    if (
-      !resposta.ok
-    ) {
-      throw new Error(
-        dados.erro ||
-        "Analysis failed."
-      );
-    }
-
-
-    mostrarResultado(
-      dados
-    );
-
-  } catch (
-    erro
-  ) {
-    mostrarErro(
-      erro.message ||
-      "Something went wrong."
-    );
-
-  } finally {
-    finalizarLoading();
-  }
-}
-
-
-// =====================================================
-// LOADING
-// =====================================================
-
-function iniciarLoading() {
-  errorBox
-    .classList
-    .add(
-      "hidden"
-    );
-
-
-  results
-    .classList
-    .add(
-      "hidden"
-    );
-
-
-  loading
-    .classList
-    .remove(
-      "hidden"
-    );
-
-
-  analyzeButton.disabled =
-    true;
-
-
-  urlInput.disabled =
-    true;
-
-
-  analyzeButton.innerHTML =
-    "<span>Analyzing…</span>";
-}
-
-
-function finalizarLoading() {
-  loading
-    .classList
-    .add(
-      "hidden"
-    );
-
-
-  analyzeButton.disabled =
-    false;
-
-
-  urlInput.disabled =
-    false;
-
-
-  analyzeButton.innerHTML =
-    '<span>Analyze</span><span aria-hidden="true">→</span>';
-}
-
-
-// =====================================================
-// ERROR
-// =====================================================
-
-function mostrarErro(
-  mensagem
-) {
-  errorBox.textContent =
-    mensagem;
-
-
-  errorBox
-    .classList
-    .remove(
-      "hidden"
-    );
-}
-
-
-// =====================================================
-// HELPERS
+// GENERIC HELPERS
 // =====================================================
 
 function definirTexto(
@@ -500,35 +346,99 @@ function definirTomCard(
 
 
   if (
-    elemento
+    !elemento
   ) {
-    elemento.dataset.tone =
-      tom;
+    return;
+  }
+
+
+  removerTons(
+    elemento
+  );
+
+
+  if (
+    tom !== "neutral"
+  ) {
+    elemento
+      .classList
+      .add(
+        tom
+      );
   }
 }
 
 
 function capitalizar(
-  texto
+  valor
+) {
+  const texto =
+    String(
+      valor ||
+      ""
+    );
+
+
+  return texto
+    ? texto
+        .charAt(
+          0
+        )
+        .toUpperCase()
+      +
+      texto.slice(
+        1
+      )
+    : "";
+}
+
+
+function numeroSeguro(
+  valor
+) {
+  const numero =
+    Number(
+      valor
+    );
+
+
+  return Number.isFinite(
+    numero
+  )
+    ? numero
+    : 0;
+}
+
+
+function listaLimpa(
+  valor
 ) {
   if (
-    !texto
+    !Array.isArray(
+      valor
+    )
   ) {
-    return "Unknown";
+    return [];
   }
 
 
-  return (
-    texto
-      .charAt(
-        0
-      )
-      .toUpperCase()
-    +
-    texto.slice(
-      1
+  return valor
+    .filter(
+      item =>
+        item !== null &&
+        item !== undefined &&
+        String(
+          item
+        )
+          .trim()
     )
-  );
+    .map(
+      item =>
+        String(
+          item
+        )
+          .trim()
+    );
 }
 
 
@@ -540,6 +450,7 @@ function normalizarSeveridade(
       valor ||
       ""
     )
+      .trim()
       .toLowerCase();
 
 
@@ -565,10 +476,20 @@ function normalizarSeveridade(
   }
 
 
-  return (
-    nivel ||
-    "low"
-  );
+  if (
+    [
+      "high",
+      "medium",
+      "low"
+    ].includes(
+      nivel
+    )
+  ) {
+    return nivel;
+  }
+
+
+  return "low";
 }
 
 
@@ -578,10 +499,16 @@ function nomeFinding(
   const nomes = {
 
     LCP_HIGH:
-      "High Largest Contentful Paint",
+      "Poor Largest Contentful Paint",
+
+    LCP_NEEDS_ATTENTION:
+      "Largest Contentful Paint Needs Attention",
 
     CLS_HIGH:
-      "High Cumulative Layout Shift",
+      "Poor Cumulative Layout Shift",
+
+    CLS_NEEDS_ATTENTION:
+      "Cumulative Layout Shift Needs Attention",
 
     TITLE_MISSING:
       "Missing Page Title",
@@ -591,6 +518,9 @@ function nomeFinding(
 
     H1_MISSING:
       "Missing H1 Heading",
+
+    NOINDEX_DETECTED:
+      "Explicit Noindex Detected",
 
     LCP_ALTO:
       "High Largest Contentful Paint",
@@ -634,10 +564,111 @@ function categoriaFinding(
 }
 
 
+function textoTempoAnalise(
+  valor
+) {
+  if (
+    !valor
+  ) {
+    return "Analyzed just now";
+  }
+
+
+  const data =
+    new Date(
+      valor
+    );
+
+
+  if (
+    Number.isNaN(
+      data.getTime()
+    )
+  ) {
+    return "Analyzed just now";
+  }
+
+
+  const segundos =
+    Math.max(
+      0,
+      Math.round(
+        (
+          Date.now() -
+          data.getTime()
+        )
+        /
+        1000
+      )
+    );
+
+
+  if (
+    segundos < 60
+  ) {
+    return "Analyzed just now";
+  }
+
+
+  const minutos =
+    Math.floor(
+      segundos /
+      60
+    );
+
+
+  if (
+    minutos < 60
+  ) {
+    return (
+      `Analyzed ${minutos} min ago`
+    );
+  }
+
+
+  return (
+    `Analyzed at ${
+      data.toLocaleTimeString(
+        [],
+        {
+          hour:
+            "2-digit",
+
+          minute:
+            "2-digit"
+        }
+      )
+    }`
+  );
+}
+
+
+function hostnameLegivel(
+  url
+) {
+  try {
+    return new URL(
+      url
+    )
+      .hostname
+      .replace(
+        /^www\./i,
+        ""
+      );
+
+  } catch {
+    return String(
+      url ||
+      "Unknown prospect"
+    );
+  }
+}
+
+
 function formatarStatusIA(
   status
 ) {
-  const statusMap = {
+  const mapa = {
 
     generated:
       "Generated",
@@ -645,17 +676,20 @@ function formatarStatusIA(
     cached:
       "Cached",
 
+    not_generated:
+      "Not generated",
+
     no_findings:
       "No findings",
 
     rate_limited:
-      "Temporarily rate limited",
-
-    error:
-      "Error",
+      "Rate limited",
 
     invalid_json:
       "Invalid AI response",
+
+    error:
+      "Error",
 
     gerado:
       "Generated",
@@ -672,44 +706,11 @@ function formatarStatusIA(
 
 
   return (
-    statusMap[
+    mapa[
       status
     ]
     ||
-    "Unknown"
-  );
-}
-
-
-function textoIAIndisponivel(
-  status,
-  tipo
-) {
-  if (
-    status ===
-    "rate_limited"
-  ) {
-    return (
-      "AI generation is temporarily unavailable due to rate limits. Please try again shortly."
-    );
-  }
-
-
-  if (
-    status ===
-      "no_findings"
-    ||
-    status ===
-      "sem_findings"
-  ) {
-    return (
-      `No ${tipo} was generated because no verified findings were detected.`
-    );
-  }
-
-
-  return (
-    `No ${tipo} was generated.`
+    "Not generated"
   );
 }
 
@@ -764,126 +765,970 @@ function urlsEquivalentes(
     );
 
   } catch {
-    return (
-      String(
-        urlA
+    return false;
+  }
+}
+
+
+// =====================================================
+// BATCH INPUT
+// =====================================================
+
+function extrairUrlsDigitadas() {
+  return batchUrls
+    .value
+    .split(
+      /\r?\n/
+    )
+    .map(
+      item =>
+        item.trim()
+    )
+    .filter(
+      Boolean
+    );
+}
+
+
+function atualizarContadorUrls() {
+  const quantidade =
+    extrairUrlsDigitadas()
+      .length;
+
+
+  urlCounter.textContent =
+    `${quantidade} / 50`;
+
+
+  urlCounter.style.color =
+    quantidade > 50
+      ? "var(--danger)"
+      : "";
+}
+
+
+function mostrarErroBatch(
+  mensagem
+) {
+  batchError.textContent =
+    mensagem;
+
+
+  batchError
+    .classList
+    .remove(
+      "hidden"
+    );
+}
+
+
+function limparErroBatch() {
+  batchError
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  batchError.textContent =
+    "";
+}
+
+
+function iniciarBatchLoading() {
+  limparErroBatch();
+
+
+  batchLoading
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  analyzeBatchButton.disabled =
+    true;
+
+
+  batchUrls.disabled =
+    true;
+
+
+  analyzeBatchButton.innerHTML =
+    "<span>Analyzing…</span>";
+}
+
+
+function finalizarBatchLoading() {
+  batchLoading
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  analyzeBatchButton.disabled =
+    false;
+
+
+  batchUrls.disabled =
+    false;
+
+
+  analyzeBatchButton.innerHTML =
+    '<span>Analyze prospects</span><span aria-hidden="true">→</span>';
+}
+
+
+async function analisarLote() {
+  const urls =
+    extrairUrlsDigitadas();
+
+
+  if (
+    urls.length === 0
+  ) {
+    mostrarErroBatch(
+      "Enter at least one prospect URL."
+    );
+
+
+    return;
+  }
+
+
+  if (
+    urls.length > 50
+  ) {
+    mostrarErroBatch(
+      "A maximum of 50 URLs can be analyzed per batch."
+    );
+
+
+    return;
+  }
+
+
+  iniciarBatchLoading();
+
+
+  try {
+    const resposta =
+      await fetch(
+        "/analisar-lote",
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              urls
+            })
+        }
+      );
+
+
+    let dados;
+
+
+    try {
+      dados =
+        await resposta.json();
+
+    } catch {
+      throw new Error(
+        "The server returned an invalid response."
+      );
+    }
+
+
+    if (
+      !resposta.ok
+    ) {
+      throw new Error(
+        dados.erro ||
+        "Batch analysis failed."
+      );
+    }
+
+
+    prospectsAtuais =
+      Array.isArray(
+        dados.prospects
       )
-        .replace(
-          /\/$/,
-          ""
+        ? dados.prospects
+        : [];
+
+
+    filtroQueueAtual =
+      "all";
+
+
+    atualizarResumoQueue(
+      dados
+    );
+
+
+    ativarFiltroQueue(
+      "all"
+    );
+
+
+    renderizarQueue();
+
+
+    queueResults
+      .classList
+      .remove(
+        "hidden"
+      );
+
+
+    queueResults.scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start"
+    });
+
+  } catch (
+    erro
+  ) {
+    mostrarErroBatch(
+      erro.message ||
+      "Something went wrong while analyzing the batch."
+    );
+
+  } finally {
+    finalizarBatchLoading();
+  }
+}
+
+
+// =====================================================
+// QUEUE
+// =====================================================
+
+function contarProspects() {
+  const contagem = {
+
+    all:
+      prospectsAtuais.length,
+
+    high:
+      0,
+
+    medium:
+      0,
+
+    low:
+      0,
+
+    none:
+      0,
+
+    error:
+      0
+  };
+
+
+  for (
+    const prospect of
+    prospectsAtuais
+  ) {
+    if (
+      prospect.status ===
+      "error"
+    ) {
+      contagem.error +=
+        1;
+
+
+      continue;
+    }
+
+
+    if (
+      Object.prototype
+        .hasOwnProperty
+        .call(
+          contagem,
+          prospect.tier
         )
-      ===
-      String(
-        urlB
+    ) {
+      contagem[
+        prospect.tier
+      ] += 1;
+    }
+  }
+
+
+  return contagem;
+}
+
+
+function atualizarResumoQueue(
+  dados = null
+) {
+  const contagem =
+    contarProspects();
+
+
+  definirTexto(
+    "summaryAll",
+    contagem.all,
+    "0"
+  );
+
+
+  definirTexto(
+    "summaryHigh",
+    contagem.high,
+    "0"
+  );
+
+
+  definirTexto(
+    "summaryMedium",
+    contagem.medium,
+    "0"
+  );
+
+
+  definirTexto(
+    "summaryLow",
+    contagem.low,
+    "0"
+  );
+
+
+  definirTexto(
+    "summaryNone",
+    contagem.none,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterAll",
+    contagem.all,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterHigh",
+    contagem.high,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterMedium",
+    contagem.medium,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterLow",
+    contagem.low,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterNone",
+    contagem.none,
+    "0"
+  );
+
+
+  definirTexto(
+    "filterErrors",
+    contagem.error,
+    "0"
+  );
+
+
+  if (
+    dados
+  ) {
+    const uniqueCount =
+      dados.uniqueCount
+      ??
+      contagem.all;
+
+
+    const partes = [
+      `${uniqueCount} unique prospect${Number(uniqueCount) === 1 ? "" : "s"}`,
+      "0 AI calls"
+    ];
+
+
+    if (
+      Number(
+        dados.duplicatesRemoved
+      ) > 0
+    ) {
+      partes.push(
+        `${
+          dados.duplicatesRemoved
+        } duplicate${
+          dados.duplicatesRemoved === 1
+            ? ""
+            : "s"
+        } removed`
+      );
+    }
+
+
+    definirTexto(
+      "batchMeta",
+      partes.join(
+        " · "
       )
-        .replace(
-          /\/$/,
-          ""
-        )
     );
   }
 }
 
 
-function textoTempoAnalise(
-  iso
+function ativarFiltroQueue(
+  filtro
+) {
+  filtroQueueAtual =
+    filtro;
+
+
+  document
+    .querySelectorAll(
+      ".queue-filter"
+    )
+    .forEach(
+      botao => {
+
+        botao
+          .classList
+          .toggle(
+            "active",
+            botao.dataset.filter ===
+              filtro
+          );
+      }
+    );
+}
+
+
+function prospectPassaFiltro(
+  prospect
 ) {
   if (
-    !iso
+    filtroQueueAtual ===
+    "all"
   ) {
-    return (
-      "Analyzed just now"
-    );
+    return true;
   }
 
 
-  const data =
-    new Date(
-      iso
-    );
-
-
   if (
-    Number.isNaN(
-      data.getTime()
-    )
+    filtroQueueAtual ===
+    "error"
   ) {
     return (
-      "Analyzed just now"
+      prospect.status ===
+      "error"
     );
   }
 
 
   return (
-    `Analyzed ${data.toLocaleTimeString(
-      [],
-      {
-        hour:
-          "2-digit",
-
-        minute:
-          "2-digit"
-      }
-    )}`
+    prospect.status !==
+      "error"
+    &&
+    prospect.tier ===
+      filtroQueueAtual
   );
 }
 
 
-function numeroSeguro(
-  valor,
-  fallback = 0
+function criarTierBadge(
+  tier,
+  status
 ) {
-  const numero =
-    Number(
-      valor
+  const span =
+    document.createElement(
+      "span"
     );
 
 
-  return Number.isFinite(
-    numero
-  )
-    ? numero
-    : fallback;
+  const nivel =
+    status === "error"
+      ? "error"
+      : (
+          tier ||
+          "none"
+        );
+
+
+  span.className =
+    `tier-badge tier-${nivel}`;
+
+
+  span.textContent =
+    status === "error"
+      ? "Error"
+      : capitalizar(
+          nivel
+        );
+
+
+  return span;
 }
 
 
-function listaLimpa(
-  valor
-) {
+function renderizarQueue() {
+  prospectQueue.innerHTML =
+    "";
+
+
+  const lista =
+    prospectsAtuais.filter(
+      prospectPassaFiltro
+    );
+
+
   if (
-    !Array.isArray(
-      valor
-    )
+    lista.length === 0
   ) {
-    return [];
+    const vazio =
+      document.createElement(
+        "div"
+      );
+
+
+    vazio.className =
+      "queue-empty";
+
+
+    vazio.textContent =
+      "No prospects match this filter.";
+
+
+    prospectQueue.appendChild(
+      vazio
+    );
+
+
+    return;
   }
 
 
-  return [
-    ...new Set(
-      valor
-        .filter(
-          (
-            item
-          ) =>
-            item !== null
-            &&
-            item !== undefined
-            &&
-            String(
-              item
-            ).trim()
-        )
-        .map(
-          (
-            item
-          ) =>
-            String(
-              item
-            ).trim()
-        )
+  lista.forEach(
+    prospect => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+
+      card.className =
+        `prospect-card${
+          prospect.status === "error"
+            ? " error"
+            : ""
+        }`;
+
+
+      const badge =
+        criarTierBadge(
+          prospect.tier,
+          prospect.status
+        );
+
+
+      const main =
+        document.createElement(
+          "div"
+        );
+
+
+      main.className =
+        "prospect-main";
+
+
+      const titleRow =
+        document.createElement(
+          "div"
+        );
+
+
+      titleRow.className =
+        "prospect-title-row";
+
+
+      const title =
+        document.createElement(
+          "h3"
+        );
+
+
+      title.className =
+        "prospect-title";
+
+
+      title.textContent =
+        prospect.businessName
+        ||
+        hostnameLegivel(
+          prospect.url ||
+          prospect.inputUrl
+        );
+
+
+      titleRow.appendChild(
+        title
+      );
+
+
+      const url =
+        document.createElement(
+          "div"
+        );
+
+
+      url.className =
+        "prospect-url";
+
+
+      url.textContent =
+        prospect.url
+        ||
+        prospect.inputUrl
+        ||
+        "Unknown URL";
+
+
+      const evidence =
+        document.createElement(
+          "div"
+        );
+
+
+      evidence.className =
+        "prospect-evidence";
+
+
+      if (
+        prospect.status ===
+        "error"
+      ) {
+        evidence.textContent =
+          prospect.erro
+          ||
+          "This website could not be analyzed.";
+
+      } else if (
+        prospect.topFinding
+      ) {
+        const strong =
+          document.createElement(
+            "strong"
+          );
+
+
+        strong.textContent =
+          `${
+            nomeFinding(
+              prospect
+                .topFinding
+                .codigo
+            )
+          } · `;
+
+
+        evidence.appendChild(
+          strong
+        );
+
+
+        evidence.append(
+          document.createTextNode(
+            prospect
+              .topFinding
+              .evidencia
+            ||
+            "Verified finding detected."
+          )
+        );
+
+      } else {
+        evidence.textContent =
+          "No verified findings were detected in this analysis.";
+      }
+
+
+      main.append(
+        titleRow,
+        url,
+        evidence
+      );
+
+
+      const side =
+        document.createElement(
+          "div"
+        );
+
+
+      side.className =
+        "prospect-actions";
+
+
+      const stats =
+        document.createElement(
+          "span"
+        );
+
+
+      stats.className =
+        "prospect-stats";
+
+
+      stats.textContent =
+        prospect.status === "error"
+          ? "Analysis failed"
+          : `${
+              prospect.findingsCount
+              ||
+              0
+            } finding${
+              Number(
+                prospect.findingsCount
+                ||
+                0
+              ) === 1
+                ? ""
+                : "s"
+            }`;
+
+
+      side.appendChild(
+        stats
+      );
+
+
+      if (
+        prospect.status !==
+          "error"
+        &&
+        prospect.analysis
+      ) {
+        const abrir =
+          document.createElement(
+            "button"
+          );
+
+
+        abrir.className =
+          "prospect-open";
+
+
+        abrir.type =
+          "button";
+
+
+        abrir.textContent =
+          "View analysis →";
+
+
+        abrir.addEventListener(
+          "click",
+          () =>
+            abrirProspect(
+              prospect
+            )
+        );
+
+
+        side.appendChild(
+          abrir
+        );
+
+
+        card.addEventListener(
+          "dblclick",
+          () =>
+            abrirProspect(
+              prospect
+            )
+        );
+      }
+
+
+      card.append(
+        badge,
+        main,
+        side
+      );
+
+
+      prospectQueue.appendChild(
+        card
+      );
+    }
+  );
+}
+
+
+function filtrarQueue(
+  filtro
+) {
+  ativarFiltroQueue(
+    filtro
+  );
+
+
+  renderizarQueue();
+}
+
+
+function voltarParaQueue() {
+  detailView
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  queueView
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  analiseAtual =
+    null;
+
+
+  analysisIdAtual =
+    null;
+
+
+  window.scrollTo({
+    top:
+      0,
+
+    behavior:
+      "smooth"
+  });
+}
+
+
+function abrirProspect(
+  prospect
+) {
+  if (
+    !prospect?.analysis
+  ) {
+    return;
+  }
+
+
+  analiseAtual =
+    prospect.analysis;
+
+
+  analysisIdAtual =
+    prospect.analysisId
+    ||
+    prospect
+      .analysis
+      .analysisId
+    ||
+    null;
+
+
+  queueView
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  detailView
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  mostrarResultadoDetalhado({
+    ...prospect.analysis,
+
+    analysisId:
+      analysisIdAtual
+  });
+
+
+  window.scrollTo({
+    top:
+      0,
+
+    behavior:
+      "smooth"
+  });
+}
+
+
+// =====================================================
+// TABS
+// =====================================================
+
+function ativarAba(
+  nome
+) {
+  document
+    .querySelectorAll(
+      ".tab-button"
     )
-  ];
+    .forEach(
+      botao => {
+
+        botao
+          .classList
+          .toggle(
+            "active",
+            botao.dataset.tab ===
+              nome
+          );
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      ".tab-panel"
+    )
+    .forEach(
+      painel => {
+
+        painel
+          .classList
+          .toggle(
+            "active",
+            painel.dataset.panel ===
+              nome
+          );
+      }
+    );
 }
 
 
@@ -968,21 +1813,21 @@ function atualizarPerformance(
     )
   ) {
     if (
-      score >=
-      90
+      score >= 90
     ) {
       scoreTom =
         "good";
+
 
       scoreTexto =
         "Good";
 
     } else if (
-      score >=
-      50
+      score >= 50
     ) {
       scoreTom =
         "warning";
+
 
       scoreTexto =
         "Needs attention";
@@ -990,6 +1835,7 @@ function atualizarPerformance(
     } else {
       scoreTom =
         "bad";
+
 
       scoreTexto =
         "Poor";
@@ -1068,6 +1914,7 @@ function atualizarPerformance(
       lcpTom =
         "good";
 
+
       lcpTexto =
         "Good";
 
@@ -1078,12 +1925,14 @@ function atualizarPerformance(
       lcpTom =
         "warning";
 
+
       lcpTexto =
         "Needs attention";
 
     } else {
       lcpTom =
         "bad";
+
 
       lcpTexto =
         "Poor";
@@ -1124,6 +1973,7 @@ function atualizarPerformance(
       clsTom =
         "good";
 
+
       clsTexto =
         "Good";
 
@@ -1134,12 +1984,14 @@ function atualizarPerformance(
       clsTom =
         "warning";
 
+
       clsTexto =
         "Needs attention";
 
     } else {
       clsTom =
         "bad";
+
 
       clsTexto =
         "Poor";
@@ -1155,12 +2007,11 @@ function atualizarPerformance(
 
 
   return {
-
     score,
-
     scoreTom,
-
-    scoreTexto
+    scoreTexto,
+    lcpTom,
+    clsTom
   };
 }
 
@@ -1226,7 +2077,7 @@ function atualizarIndexability(
 
     definirTexto(
       "indexingReason",
-      indexability?.erro ||
+      indexability?.erro,
       "Indexability data is unavailable."
     );
 
@@ -1274,7 +2125,6 @@ function atualizarIndexability(
 
 
     return {
-
       tom:
         "neutral",
 
@@ -1374,6 +2224,19 @@ function atualizarIndexability(
 
 
   if (
+    typeof httpStatus ===
+      "number"
+    &&
+    httpStatus >=
+      400
+  ) {
+    definirStatus(
+      "indexingStatus",
+      "Unavailable",
+      "bad"
+    );
+
+  } else if (
     indexability.indexable ===
     true
   ) {
@@ -1438,9 +2301,7 @@ function atualizarIndexability(
       selfReferencing
         ? "Self-referencing"
         : "Specified",
-      selfReferencing
-        ? "good"
-        : "neutral"
+      "neutral"
     );
 
 
@@ -1452,7 +2313,7 @@ function atualizarIndexability(
   } else {
     definirStatus(
       "canonicalStatus",
-      "Not found",
+      "Not detected",
       "neutral"
     );
 
@@ -1460,7 +2321,7 @@ function atualizarIndexability(
     definirTexto(
       "canonicalUrl",
       null,
-      "No canonical URL detected"
+      "No canonical detected"
     );
   }
 
@@ -1469,12 +2330,12 @@ function atualizarIndexability(
     indexability
       .robotsTxt
       ?.found ===
-    true
+      true
   ) {
     definirStatus(
       "robotsTxtStatus",
       "Found",
-      "good"
+      "neutral"
     );
 
 
@@ -1482,14 +2343,15 @@ function atualizarIndexability(
       "robotsTxtUrl",
       indexability
         .robotsTxt
-        .url
+        .url,
+      "robots.txt detected"
     );
 
   } else if (
     indexability
       .robotsTxt
       ?.found ===
-    false
+      false
   ) {
     definirStatus(
       "robotsTxtStatus",
@@ -1526,7 +2388,7 @@ function atualizarIndexability(
     indexability
       .sitemap
       ?.found ===
-    true
+      true
   ) {
     definirStatus(
       "sitemapStatus",
@@ -1551,11 +2413,9 @@ function atualizarIndexability(
 
     definirTexto(
       "sitemapSource",
-      source ===
-        "robots.txt"
+      source === "robots.txt"
         ? "Detected via robots.txt"
-        : source ===
-            "common_path"
+        : source === "common_path"
           ? "Detected at a common sitemap path"
           : "Sitemap detected"
     );
@@ -1564,7 +2424,7 @@ function atualizarIndexability(
     indexability
       .sitemap
       ?.found ===
-    false
+      false
   ) {
     definirStatus(
       "sitemapStatus",
@@ -1610,24 +2470,6 @@ function atualizarIndexability(
 
 
   if (
-    indexability.indexable ===
-    false
-  ) {
-    return {
-
-      tom:
-        "bad",
-
-      titulo:
-        "Blocked",
-
-      detalhe:
-        "Explicit noindex detected"
-    };
-  }
-
-
-  if (
     typeof httpStatus ===
       "number"
     &&
@@ -1635,7 +2477,6 @@ function atualizarIndexability(
       400
   ) {
     return {
-
       tom:
         "bad",
 
@@ -1649,11 +2490,27 @@ function atualizarIndexability(
 
 
   if (
+    indexability.indexable ===
+    false
+  ) {
+    return {
+      tom:
+        "bad",
+
+      titulo:
+        "Blocked",
+
+      detalhe:
+        "Explicit noindex detected"
+    };
+  }
+
+
+  if (
     indexability.https ===
     false
   ) {
     return {
-
       tom:
         "warning",
 
@@ -1671,7 +2528,6 @@ function atualizarIndexability(
     true
   ) {
     return {
-
       tom:
         "good",
 
@@ -1685,7 +2541,6 @@ function atualizarIndexability(
 
 
   return {
-
     tom:
       "neutral",
 
@@ -1843,11 +2698,9 @@ function atualizarStructuredData(
 
 
   const parsingTone =
-    invalidScripts >
-    0
+    invalidScripts > 0
       ? "warning"
-      : validScripts >
-          0
+      : validScripts > 0
         ? "good"
         : "neutral";
 
@@ -1865,16 +2718,15 @@ function atualizarStructuredData(
   );
 
 
-  const priorityTypes =
-    [
-      "LocalBusiness",
-      "Organization",
-      "WebSite",
-      "WebPage",
-      "Service",
-      "Product",
-      "BreadcrumbList"
-    ];
+  const priorityTypes = [
+    "LocalBusiness",
+    "Organization",
+    "WebSite",
+    "WebPage",
+    "Service",
+    "Product",
+    "BreadcrumbList"
+  ];
 
 
   const mainTypes =
@@ -1891,7 +2743,8 @@ function atualizarStructuredData(
 
 
   for (
-    const type of priorityTypes
+    const type of
+    priorityTypes
   ) {
     if (
       types.includes(
@@ -1902,8 +2755,7 @@ function atualizarStructuredData(
         type
       )
       &&
-      mainTypes.length <
-        4
+      mainTypes.length < 4
     ) {
       mainTypes.push(
         type
@@ -1913,15 +2765,15 @@ function atualizarStructuredData(
 
 
   for (
-    const type of types
+    const type of
+    types
   ) {
     if (
       !mainTypes.includes(
         type
       )
       &&
-      mainTypes.length <
-        4
+      mainTypes.length < 4
     ) {
       mainTypes.push(
         type
@@ -1930,18 +2782,16 @@ function atualizarStructuredData(
   }
 
 
-  const mainTypeSet =
+  const mainSet =
     new Set(
       mainTypes
     );
 
 
-  const otherTypes =
+  const outros =
     types.filter(
-      (
-        type
-      ) =>
-        !mainTypeSet.has(
+      type =>
+        !mainSet.has(
           type
         )
     );
@@ -1949,8 +2799,7 @@ function atualizarStructuredData(
 
   definirTexto(
     "schemaMainTypes",
-    mainTypes.length >
-      0
+    mainTypes.length
       ? mainTypes.join(
           " · "
         )
@@ -1961,11 +2810,9 @@ function atualizarStructuredData(
 
   definirTexto(
     "schemaOtherTypes",
-    otherTypes.length >
-      0
-      ? `+${otherTypes.length} additional type${otherTypes.length === 1 ? "" : "s"} detected`
-      : types.length >
-          0
+    outros.length
+      ? `+${outros.length} additional type${outros.length === 1 ? "" : "s"} detected`
+      : types.length
         ? "No additional types detected"
         : "No @type values detected"
   );
@@ -1973,7 +2820,7 @@ function atualizarStructuredData(
 
 
 // =====================================================
-// IMAGES / ALT ATTRIBUTES
+// IMAGES
 // =====================================================
 
 function atualizarImages(
@@ -2169,13 +3016,11 @@ function atualizarImages(
 
   definirTexto(
     "imagesMissingAltSamples",
-    samples.length >
-      0
+    samples.length
       ? samples.join(
           " · "
         )
-      : missingAlt >
-          0
+      : missingAlt > 0
         ? "No image source samples were available."
         : "No missing-alt image samples."
   );
@@ -2183,7 +3028,7 @@ function atualizarImages(
 
 
 // =====================================================
-// LOCAL SEO SNAPSHOT
+// LOCAL SEO
 // =====================================================
 
 function textoListaLocal(
@@ -2196,12 +3041,11 @@ function textoListaLocal(
     );
 
 
-  return limpos.length >
-    0
-      ? limpos.join(
-          " · "
-        )
-      : fallback;
+  return limpos.length
+    ? limpos.join(
+        " · "
+      )
+    : fallback;
 }
 
 
@@ -2263,12 +3107,11 @@ function detalheSinalLocalidade(
   }
 
 
-  return partes.length >
-    0
-      ? partes.join(
-          " · "
-        )
-      : "No verified locality or region was available from the selected structured address.";
+  return partes.length
+    ? partes.join(
+        " · "
+      )
+    : "No verified locality or region was available from the selected structured address.";
 }
 
 
@@ -2311,8 +3154,7 @@ function statusSinalLocalidade(
 
 
   if (
-    valores.length ===
-    0
+    !valores.length
   ) {
     return "Unavailable";
   }
@@ -2320,9 +3162,7 @@ function statusSinalLocalidade(
 
   if (
     valores.some(
-      (
-        valor
-      ) =>
+      valor =>
         valor === true
     )
   ) {
@@ -2332,9 +3172,7 @@ function statusSinalLocalidade(
 
   if (
     valores.every(
-      (
-        valor
-      ) =>
+      valor =>
         valor === false
     )
   ) {
@@ -2548,8 +3386,7 @@ function atualizarLocalSeo(
 
     definirTexto(
       "localSeoSchemaDetail",
-      localTypes.length >
-        0
+      localTypes.length
         ? `Detected type${localTypes.length === 1 ? "" : "s"}: ${localTypes.join(" · ")}`
         : "A LocalBusiness-compatible Schema entity was detected."
     );
@@ -2574,8 +3411,7 @@ function atualizarLocalSeo(
 
   definirTexto(
     "localSeoEntityTypes",
-    selectedTypes.length >
-      0
+    selectedTypes.length
       ? selectedTypes.join(
           " · "
         )
@@ -2630,7 +3466,7 @@ function atualizarLocalSeo(
     "localSeoClickToCallDetail",
     clickCount > 0
       ? `${clickCount} tel: link${clickCount === 1 ? "" : "s"} detected${
-          clickPhones.length > 0
+          clickPhones.length
             ? ` · ${clickPhones.join(" · ")}`
             : ""
         }`
@@ -2770,7 +3606,7 @@ function atualizarLocalSeo(
     maps.found ===
       true
       ? `${mapsCount} Google Maps reference${mapsCount === 1 ? "" : "s"}${
-          mapsUrls.length > 0
+          mapsUrls.length
             ? ` · ${mapsUrls.join(" · ")}`
             : ""
         }`
@@ -2897,8 +3733,7 @@ function atualizarOnPage(
   const h1Ok =
     Number(
       seo.h1Count
-    ) >
-    0;
+    ) > 0;
 
 
   definirStatus(
@@ -2959,9 +3794,7 @@ function atualizarOnPage(
 
   const issues =
     findings.filter(
-      (
-        finding
-      ) =>
+      finding =>
         onPageCodes.has(
           finding.codigo
         )
@@ -2969,13 +3802,10 @@ function atualizarOnPage(
 
 
   if (
-    issues.length ===
-      0
-    &&
+    issues.length === 0 &&
     !seo.erro
   ) {
     return {
-
       tom:
         "good",
 
@@ -2989,23 +3819,18 @@ function atualizarOnPage(
 
 
   if (
-    issues.length >
-    0
+    issues.length > 0
   ) {
     const high =
       issues.some(
-        (
-          finding
-        ) =>
+        finding =>
           normalizarSeveridade(
             finding.severidade
-          ) ===
-          "high"
+          ) === "high"
       );
 
 
     return {
-
       tom:
         high
           ? "bad"
@@ -3021,7 +3846,6 @@ function atualizarOnPage(
 
 
   return {
-
     tom:
       "neutral",
 
@@ -3171,9 +3995,7 @@ function atualizarSnapshot({
 
   const high =
     findings.filter(
-      (
-        finding
-      ) =>
+      finding =>
         normalizarSeveridade(
           finding.severidade
         ) ===
@@ -3183,9 +4005,7 @@ function atualizarSnapshot({
 
   const medium =
     findings.filter(
-      (
-        finding
-      ) =>
+      finding =>
         normalizarSeveridade(
           finding.severidade
         ) ===
@@ -3206,8 +4026,7 @@ function atualizarSnapshot({
 
 
   if (
-    high >
-    0
+    high > 0
   ) {
     tom =
       "bad";
@@ -3221,8 +4040,7 @@ function atualizarSnapshot({
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
 
   } else if (
-    medium >
-    0
+    medium > 0
   ) {
     tom =
       "warning";
@@ -3236,8 +4054,7 @@ function atualizarSnapshot({
       `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
 
   } else if (
-    quantidade >
-    0
+    quantidade > 0
   ) {
     tom =
       "warning";
@@ -3296,8 +4113,7 @@ function atualizarTopOpportunity(
       findings
     )
     ||
-    findings.length ===
-      0
+    findings.length === 0
   ) {
     container
       ?.classList
@@ -3422,11 +4238,9 @@ function atualizarTopOpportunity(
     capitalizar(
       nivel
     ),
-    nivel ===
-      "high"
+    nivel === "high"
       ? "bad"
-      : nivel ===
-          "medium"
+      : nivel === "medium"
         ? "warning"
         : "good"
   );
@@ -3457,9 +4271,7 @@ function atualizarContadoresFindings(
 
 
   findings.forEach(
-    (
-      finding
-    ) => {
+    finding => {
 
       const nivel =
         normalizarSeveridade(
@@ -3470,13 +4282,11 @@ function atualizarContadoresFindings(
       if (
         contadores[
           nivel
-        ] !==
-        undefined
+        ] !== undefined
       ) {
         contadores[
           nivel
-        ] +=
-          1;
+        ] += 1;
       }
     }
   );
@@ -3598,13 +4408,10 @@ function mostrarFindings(
 
 
   const filtrados =
-    filtro ===
-      "all"
+    filtro === "all"
       ? lista
       : lista.filter(
-          (
-            finding
-          ) =>
+          finding =>
             normalizarSeveridade(
               finding.severidade
             ) ===
@@ -3613,8 +4420,7 @@ function mostrarFindings(
 
 
   if (
-    filtrados.length ===
-    0
+    filtrados.length === 0
   ) {
     const vazio =
       document.createElement(
@@ -3627,8 +4433,7 @@ function mostrarFindings(
 
 
     vazio.textContent =
-      lista.length ===
-        0
+      lista.length === 0
         ? "No verified issues were detected in this analysis."
         : `No ${filtro} severity findings in this analysis.`;
 
@@ -3643,9 +4448,7 @@ function mostrarFindings(
 
 
   filtrados.forEach(
-    (
-      finding
-    ) => {
+    finding => {
 
       const card =
         document.createElement(
@@ -3860,9 +4663,7 @@ function ativarFiltroVisual(
       ".filter-chip"
     )
     .forEach(
-      (
-        botao
-      ) => {
+      botao => {
 
         botao
           .classList
@@ -3896,19 +4697,373 @@ function filtrarFindings(
 
 
 // =====================================================
-// RESULT
+// OUTREACH
 // =====================================================
 
-function mostrarResultado(
+function atualizarBlocoOutreach(
   dados
 ) {
-  errorBox
-    .classList
-    .add(
-      "hidden"
+  const findings =
+    Array.isArray(
+      dados.findings
+    )
+      ? dados.findings
+      : [];
+
+
+  const status =
+    dados.iaStatus ||
+    "not_generated";
+
+
+  const agencyView =
+    dados.agencyView
+    ||
+    (
+      findings.length === 0
+        ? "No Agency View can be generated because no verified findings were detected."
+        : "AI has not been generated for this prospect yet."
     );
 
 
+  const prospectView =
+    dados.prospectView
+    ||
+    (
+      findings.length === 0
+        ? "No Prospect View can be generated because no verified findings were detected."
+        : "AI has not been generated for this prospect yet."
+    );
+
+
+  definirTexto(
+    "agencyView",
+    agencyView
+  );
+
+
+  definirTexto(
+    "prospectView",
+    prospectView
+  );
+
+
+  copyAgencyButton.disabled =
+    !dados.agencyView;
+
+
+  copyProspectButton.disabled =
+    !dados.prospectView;
+
+
+  const statusEl =
+    document.getElementById(
+      "aiGenerationStatus"
+    );
+
+
+  statusEl
+    .classList
+    .remove(
+      "good",
+      "warning",
+      "bad"
+    );
+
+
+  if (
+    findings.length === 0
+  ) {
+    generateOutreachButton.disabled =
+      true;
+
+
+    generateOutreachButton.textContent =
+      "No findings to generate";
+
+
+    statusEl.textContent =
+      "No verified findings were detected, so AI generation is intentionally disabled.";
+
+  } else if (
+    status === "generated" ||
+    status === "cached"
+  ) {
+    generateOutreachButton.disabled =
+      false;
+
+
+    generateOutreachButton.textContent =
+      "Generate again";
+
+
+    statusEl.textContent =
+      `AI outreach ${
+        status === "cached"
+          ? "loaded from cache"
+          : "generated"
+      } from these verified findings.`;
+
+
+    statusEl
+      .classList
+      .add(
+        "good"
+      );
+
+  } else if (
+    status ===
+    "rate_limited"
+  ) {
+    generateOutreachButton.disabled =
+      false;
+
+
+    generateOutreachButton.textContent =
+      "Try again";
+
+
+    statusEl.textContent =
+      "AI generation is temporarily rate limited. The technical analysis is still available.";
+
+
+    statusEl
+      .classList
+      .add(
+        "warning"
+      );
+
+  } else if (
+    status === "error" ||
+    status === "invalid_json"
+  ) {
+    generateOutreachButton.disabled =
+      false;
+
+
+    generateOutreachButton.textContent =
+      "Try again";
+
+
+    statusEl.textContent =
+      "AI generation failed. The verified technical analysis was not affected.";
+
+
+    statusEl
+      .classList
+      .add(
+        "bad"
+      );
+
+  } else {
+    generateOutreachButton.disabled =
+      !analysisIdAtual;
+
+
+    generateOutreachButton.textContent =
+      "Generate outreach";
+
+
+    statusEl.textContent =
+      analysisIdAtual
+        ? "AI has not been generated for this prospect. Generate it only if this prospect is worth contacting."
+        : "This analysis does not have a valid analysis ID. Run the batch again to generate outreach.";
+  }
+
+
+  definirTexto(
+    "analysisStatus",
+    `${findings.length} verified finding${findings.length === 1 ? "" : "s"} · AI status: ${formatarStatusIA(status)}`
+  );
+}
+
+
+async function gerarOutreachAtual() {
+  if (
+    !analiseAtual ||
+    !analysisIdAtual
+  ) {
+    const statusEl =
+      document.getElementById(
+        "aiGenerationStatus"
+      );
+
+
+    statusEl.textContent =
+      "This analysis expired or has no analysis ID. Run the prospect scan again.";
+
+
+    statusEl
+      .classList
+      .add(
+        "bad"
+      );
+
+
+    return;
+  }
+
+
+  if (
+    !Array.isArray(
+      analiseAtual.findings
+    )
+    ||
+    analiseAtual
+      .findings
+      .length === 0
+  ) {
+    return;
+  }
+
+
+  generateOutreachButton.disabled =
+    true;
+
+
+  generateOutreachButton.textContent =
+    "Generating…";
+
+
+  const statusEl =
+    document.getElementById(
+      "aiGenerationStatus"
+    );
+
+
+  statusEl
+    .classList
+    .remove(
+      "good",
+      "warning",
+      "bad"
+    );
+
+
+  statusEl.textContent =
+    "Generating Agency View and Prospect View from verified findings…";
+
+
+  try {
+    const resposta =
+      await fetch(
+        "/gerar-outreach",
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              analysisId:
+                analysisIdAtual
+            })
+        }
+      );
+
+
+    let dados;
+
+
+    try {
+      dados =
+        await resposta.json();
+
+    } catch {
+      throw new Error(
+        "The server returned an invalid response."
+      );
+    }
+
+
+    if (
+      !resposta.ok
+    ) {
+      throw new Error(
+        dados.erro ||
+        "AI generation failed."
+      );
+    }
+
+
+    analiseAtual = {
+      ...analiseAtual,
+
+      agencyView:
+        dados.agencyView
+        ??
+        null,
+
+      prospectView:
+        dados.prospectView
+        ??
+        null,
+
+      iaStatus:
+        dados.iaStatus
+        ||
+        "error"
+    };
+
+
+    const prospect =
+      prospectsAtuais.find(
+        item =>
+          item.analysisId ===
+          analysisIdAtual
+      );
+
+
+    if (
+      prospect?.analysis
+    ) {
+      prospect.analysis = {
+        ...prospect.analysis,
+        ...analiseAtual
+      };
+    }
+
+
+    atualizarBlocoOutreach(
+      analiseAtual
+    );
+
+  } catch (
+    erro
+  ) {
+    generateOutreachButton.disabled =
+      false;
+
+
+    generateOutreachButton.textContent =
+      "Try again";
+
+
+    statusEl.textContent =
+      erro.message ||
+      "AI generation failed.";
+
+
+    statusEl
+      .classList
+      .add(
+        "bad"
+      );
+  }
+}
+
+
+// =====================================================
+// DETAIL RESULT
+// =====================================================
+
+function mostrarResultadoDetalhado(
+  dados
+) {
   const findings =
     Array.isArray(
       dados.findings
@@ -3925,8 +5080,100 @@ function mostrarResultado(
     "all";
 
 
-  ativarFiltroVisual(
-    "all"
+  analiseAtual =
+    dados;
+
+
+  analysisIdAtual =
+    dados.analysisId
+    ||
+    analysisIdAtual;
+
+
+  const title =
+    dados
+      .localSeo
+      ?.businessName
+    ||
+    hostnameLegivel(
+      dados.url
+    );
+
+
+  definirTexto(
+    "detailTitle",
+    title,
+    "Website Analysis"
+  );
+
+
+  definirTexto(
+    "detailUrl",
+    dados.url,
+    "Unknown URL"
+  );
+
+
+  const opportunity =
+    dados.opportunity ||
+    {};
+
+
+  const tier =
+    opportunity.tier
+    ||
+    (
+      findings.some(
+        item =>
+          normalizarSeveridade(
+            item.severidade
+          ) === "high"
+      )
+        ? "high"
+        : findings.some(
+            item =>
+              normalizarSeveridade(
+                item.severidade
+              ) === "medium"
+          )
+          ? "medium"
+          : findings.length
+            ? "low"
+            : "none"
+    );
+
+
+  const tierEl =
+    document.getElementById(
+      "detailTier"
+    );
+
+
+  tierEl.className =
+    `tier-badge tier-${tier}`;
+
+
+  tierEl.textContent =
+    capitalizar(
+      tier
+    );
+
+
+  const freshness =
+    textoTempoAnalise(
+      dados.analisadoEm
+    );
+
+
+  definirTexto(
+    "detailFreshness",
+    freshness
+  );
+
+
+  definirTexto(
+    "analysisFreshness",
+    freshness
   );
 
 
@@ -3983,112 +5230,25 @@ function mostrarResultado(
   );
 
 
+  ativarFiltroVisual(
+    "all"
+  );
+
+
   mostrarFindings(
     findings,
     "all"
   );
 
 
-  const agencyView =
-    dados.agencyView ||
-    textoIAIndisponivel(
-      dados.iaStatus,
-      "Agency View"
-    );
-
-
-  definirTexto(
-    "agencyView",
-    agencyView
+  atualizarBlocoOutreach(
+    dados
   );
-
-
-  copyAgencyButton.disabled =
-    !dados.agencyView;
-
-
-  const prospectView =
-    dados.prospectView ||
-    textoIAIndisponivel(
-      dados.iaStatus,
-      "Prospect View"
-    );
-
-
-  definirTexto(
-    "prospectView",
-    prospectView
-  );
-
-
-  copyProspectButton.disabled =
-    !dados.prospectView;
-
-
-  const quantidade =
-    findings.length;
-
-
-  const statusIA =
-    formatarStatusIA(
-      dados.iaStatus
-    );
-
-
-  definirTexto(
-    "analysisStatus",
-    `${quantidade} verified finding${quantidade === 1 ? "" : "s"} · AI status: ${statusIA}`
-  );
-
-
-  const freshness =
-    textoTempoAnalise(
-      dados.analisadoEm
-    );
-
-
-  definirTexto(
-    "analysisFreshness",
-    freshness
-  );
-
-
-  definirTexto(
-    "lastAnalyzed",
-    freshness
-  );
-
-
-  document
-    .getElementById(
-      "lastAnalyzed"
-    )
-    ?.classList
-    .remove(
-      "hidden"
-    );
-
-
-  results
-    .classList
-    .remove(
-      "hidden"
-    );
 
 
   ativarAba(
     "overview"
   );
-
-
-  results.scrollIntoView({
-
-    behavior:
-      "smooth",
-
-    block:
-      "start"
-  });
 }
 
 
@@ -4100,14 +5260,11 @@ async function copiarTexto(
   elementoId,
   botao
 ) {
-  const elemento =
-    document.getElementById(
-      elementoId
-    );
-
-
   const texto =
-    elemento
+    document
+      .getElementById(
+        elementoId
+      )
       ?.textContent
       ?.trim();
 
@@ -4125,11 +5282,6 @@ async function copiarTexto(
       .writeText(
         texto
       );
-
-
-    mostrarCopiado(
-      botao
-    );
 
   } catch {
     const textarea =
@@ -4164,18 +5316,9 @@ async function copiarTexto(
 
 
     textarea.remove();
-
-
-    mostrarCopiado(
-      botao
-    );
   }
-}
 
 
-function mostrarCopiado(
-  botao
-) {
   const original =
     botao.textContent;
 
@@ -4184,27 +5327,12 @@ function mostrarCopiado(
     "Copied!";
 
 
-  botao
-    .classList
-    .add(
-      "copied"
-    );
-
-
   setTimeout(
     () => {
-
       botao.textContent =
         original;
-
-
-      botao
-        .classList
-        .remove(
-          "copied"
-        );
     },
-    1600
+    1500
   );
 }
 
@@ -4216,32 +5344,116 @@ function mostrarCopiado(
 iniciarTema();
 
 
+atualizarContadorUrls();
+
+
 themeToggle.addEventListener(
   "click",
   alternarTema
 );
 
 
-analyzeButton.addEventListener(
-  "click",
-  analisar
+batchUrls.addEventListener(
+  "input",
+  atualizarContadorUrls
 );
 
 
-urlInput.addEventListener(
-  "keydown",
-  (
-    event
-  ) => {
+analyzeBatchButton.addEventListener(
+  "click",
+  analisarLote
+);
+
+
+backToQueueButton.addEventListener(
+  "click",
+  voltarParaQueue
+);
+
+
+brandButton.addEventListener(
+  "click",
+  voltarParaQueue
+);
+
+
+generateOutreachButton.addEventListener(
+  "click",
+  gerarOutreachAtual
+);
+
+
+queueFilters.addEventListener(
+  "click",
+  event => {
+
+    const botao =
+      event
+        .target
+        .closest(
+          ".queue-filter"
+        );
+
 
     if (
-      event.key ===
-      "Enter"
+      !botao
     ) {
-      analisar();
+      return;
     }
+
+
+    filtrarQueue(
+      botao.dataset.filter ||
+      "all"
+    );
   }
 );
+
+
+document
+  .querySelectorAll(
+    "[data-queue-filter]"
+  )
+  .forEach(
+    card => {
+
+      const ativar =
+        () =>
+          filtrarQueue(
+            card
+              .dataset
+              .queueFilter
+            ||
+            "all"
+          );
+
+
+      card.addEventListener(
+        "click",
+        ativar
+      );
+
+
+      card.addEventListener(
+        "keydown",
+        event => {
+
+          if (
+            event.key ===
+              "Enter"
+            ||
+            event.key ===
+              " "
+          ) {
+            event.preventDefault();
+
+
+            ativar();
+          }
+        }
+      );
+    }
+  );
 
 
 document
@@ -4249,9 +5461,7 @@ document
     ".tab-button"
   )
   .forEach(
-    (
-      botao
-    ) => {
+    botao => {
 
       botao.addEventListener(
         "click",
@@ -4269,9 +5479,7 @@ document
     "[data-go-tab]"
   )
   .forEach(
-    (
-      botao
-    ) => {
+    botao => {
 
       botao.addEventListener(
         "click",
@@ -4306,9 +5514,7 @@ copyProspectButton.addEventListener(
 
 findingFilters.addEventListener(
   "click",
-  (
-    event
-  ) => {
+  event => {
 
     const botao =
       event

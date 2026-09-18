@@ -37,7 +37,7 @@ const CONCORRENCIA_LOTE =
 
 
 const ANALYSIS_CACHE_TTL_MS =
-  30 * 60 * 1000;
+  60 * 60 * 1000;
 
 
 const MAX_ANALYSIS_CACHE_ENTRIES =
@@ -45,6 +45,18 @@ const MAX_ANALYSIS_CACHE_ENTRIES =
 
 
 const cacheAnalises =
+  new Map();
+
+
+const BATCH_JOB_TTL_MS =
+  60 * 60 * 1000;
+
+
+const MAX_BATCH_JOBS =
+  100;
+
+
+const batchJobs =
   new Map();
 
 
@@ -207,14 +219,11 @@ const outreachLimiter =
 
 // ======================================================
 // ANALYSIS CACHE
-// Trusted server-side technical results used later when
-// the user explicitly requests AI outreach.
 // ======================================================
 
 function limparCacheAnalises() {
   const agora =
     Date.now();
-
 
   for (
     const [
@@ -237,7 +246,6 @@ function limparCacheAnalises() {
 function limitarCacheAnalises() {
   limparCacheAnalises();
 
-
   while (
     cacheAnalises.size >=
     MAX_ANALYSIS_CACHE_ENTRIES
@@ -248,13 +256,11 @@ function limitarCacheAnalises() {
         .next()
         .value;
 
-
     if (
       !primeiroId
     ) {
       break;
     }
-
 
     cacheAnalises.delete(
       primeiroId
@@ -268,10 +274,8 @@ function salvarAnaliseNoCache(
 ) {
   limitarCacheAnalises();
 
-
   const analysisId =
     crypto.randomUUID();
-
 
   cacheAnalises.set(
     analysisId,
@@ -284,7 +288,6 @@ function salvarAnaliseNoCache(
     }
   );
 
-
   return analysisId;
 }
 
@@ -294,19 +297,16 @@ function obterAnaliseDoCache(
 ) {
   limparCacheAnalises();
 
-
   const item =
     cacheAnalises.get(
       analysisId
     );
-
 
   if (
     !item
   ) {
     return null;
   }
-
 
   return item.analise;
 }
@@ -323,7 +323,6 @@ function atualizarAnaliseNoCache(
   ) {
     return;
   }
-
 
   cacheAnalises.set(
     analysisId,
@@ -348,14 +347,11 @@ function normalizarListaUrls(
   const vistas =
     new Set();
 
-
   const unicas =
     [];
 
-
   let duplicadasRemovidas =
     0;
-
 
   for (
     const valor of urls
@@ -365,17 +361,14 @@ function normalizarListaUrls(
         ? valor.trim()
         : "";
 
-
     if (
       !url
     ) {
       continue;
     }
 
-
     const chave =
       url.toLowerCase();
-
 
     if (
       vistas.has(
@@ -388,17 +381,14 @@ function normalizarListaUrls(
       continue;
     }
 
-
     vistas.add(
       chave
     );
-
 
     unicas.push(
       url
     );
   }
-
 
   return {
     urls:
@@ -414,15 +404,8 @@ async function mapComConcorrencia(
   concorrencia,
   executar
 ) {
-  const resultados =
-    new Array(
-      itens.length
-    );
-
-
   let proximoIndice =
     0;
-
 
   async function worker() {
     while (
@@ -431,10 +414,8 @@ async function mapComConcorrencia(
       const indice =
         proximoIndice;
 
-
       proximoIndice +=
         1;
-
 
       if (
         indice >=
@@ -443,22 +424,18 @@ async function mapComConcorrencia(
         return;
       }
 
-
-      resultados[indice] =
-        await executar(
-          itens[indice],
-          indice
-        );
+      await executar(
+        itens[indice],
+        indice
+      );
     }
   }
-
 
   const quantidadeWorkers =
     Math.min(
       concorrencia,
       itens.length
     );
-
 
   await Promise.all(
     Array.from(
@@ -470,40 +447,14 @@ async function mapComConcorrencia(
         worker()
     )
   );
-
-
-  return resultados;
-}
-
-
-function ordemTier(
-  tier
-) {
-  const ordem = {
-    high:
-      0,
-
-    medium:
-      1,
-
-    low:
-      2,
-
-    none:
-      3
-  };
-
-
-  return ordem[tier]
-    ??
-    4;
 }
 
 
 function criarResumoProspect(
   inputUrl,
   analysisId,
-  analise
+  analise,
+  batchIndex = null
 ) {
   const opportunity =
     analise.opportunity ||
@@ -536,8 +487,9 @@ function criarResumoProspect(
         null
     };
 
-
   return {
+    batchIndex,
+
     analysisId,
 
     inputUrl,
@@ -570,21 +522,26 @@ function criarResumoProspect(
       null,
 
     analysis:
-      analise
+      null,
+
+    erro:
+      null
   };
 }
 
 
 function criarResumoErro(
   inputUrl,
-  erro
+  erro,
+  batchIndex = null
 ) {
   const urlInsegura =
     erro instanceof
     ErroURLInsegura;
 
-
   return {
+    batchIndex,
+
     analysisId:
       null,
 
@@ -633,6 +590,499 @@ function criarResumoErro(
 }
 
 
+function criarProspectPendente(
+  inputUrl,
+  batchIndex
+) {
+  return {
+    batchIndex,
+
+    analysisId:
+      null,
+
+    inputUrl,
+
+    url:
+      null,
+
+    status:
+      "queued",
+
+    tier:
+      null,
+
+    priorityScore:
+      0,
+
+    findingsCount:
+      0,
+
+    counts: {
+      high:
+        0,
+
+      medium:
+        0,
+
+      low:
+        0
+    },
+
+    topFinding:
+      null,
+
+    businessName:
+      null,
+
+    analysis:
+      null,
+
+    erro:
+      null
+  };
+}
+
+
+function limparBatchJobs() {
+  const agora =
+    Date.now();
+
+  for (
+    const [
+      batchId,
+      job
+    ] of batchJobs
+  ) {
+    if (
+      agora - job.updatedAtMs >
+      BATCH_JOB_TTL_MS
+    ) {
+      batchJobs.delete(
+        batchId
+      );
+    }
+  }
+}
+
+
+function limitarBatchJobs() {
+  limparBatchJobs();
+
+  while (
+    batchJobs.size >=
+    MAX_BATCH_JOBS
+  ) {
+    const finalizado =
+      Array.from(
+        batchJobs.entries()
+      )
+        .find(
+          ([, job]) =>
+            job.status !==
+              "processing"
+        );
+
+    const batchId =
+      finalizado?.[0]
+      ??
+      batchJobs
+        .keys()
+        .next()
+        .value;
+
+    if (
+      !batchId
+    ) {
+      break;
+    }
+
+    batchJobs.delete(
+      batchId
+    );
+  }
+}
+
+
+function criarBatchJob(
+  lista,
+  requestedCount
+) {
+  limitarBatchJobs();
+
+  const batchId =
+    crypto.randomUUID();
+
+  const agora =
+    new Date();
+
+  const job = {
+    batchId,
+
+    status:
+      "processing",
+
+    createdAt:
+      agora.toISOString(),
+
+    updatedAt:
+      agora.toISOString(),
+
+    updatedAtMs:
+      agora.getTime(),
+
+    completedAt:
+      null,
+
+    requestedCount,
+
+    uniqueCount:
+      lista.urls.length,
+
+    duplicatesRemoved:
+      lista.duplicadasRemovidas,
+
+    aiCalls:
+      0,
+
+    summary: {
+      high:
+        0,
+
+      medium:
+        0,
+
+      low:
+        0,
+
+      none:
+        0,
+
+      errors:
+        0
+    },
+
+    prospects:
+      lista.urls.map(
+        (inputUrl, batchIndex) =>
+          criarProspectPendente(
+            inputUrl,
+            batchIndex
+          )
+      )
+  };
+
+  batchJobs.set(
+    batchId,
+    job
+  );
+
+  return job;
+}
+
+
+function tocarBatchJob(
+  job
+) {
+  const agora =
+    new Date();
+
+  job.updatedAt =
+    agora.toISOString();
+
+  job.updatedAtMs =
+    agora.getTime();
+}
+
+
+function obterBatchJob(
+  batchId
+) {
+  limparBatchJobs();
+
+  return batchJobs.get(
+    batchId
+  ) || null;
+}
+
+
+function criarSnapshotBatch(
+  job
+) {
+  let completed =
+    0;
+
+  let analyzing =
+    0;
+
+  let queued =
+    0;
+
+  for (
+    const prospect of job.prospects
+  ) {
+    if (
+      prospect.status === "completed" ||
+      prospect.status === "error"
+    ) {
+      completed +=
+        1;
+
+    } else if (
+      prospect.status === "analyzing"
+    ) {
+      analyzing +=
+        1;
+
+    } else {
+      queued +=
+        1;
+    }
+  }
+
+  const total =
+    job.uniqueCount;
+
+  const remaining =
+    Math.max(
+      0,
+      total - completed
+    );
+
+  const percent =
+    total > 0
+      ? Math.round(
+          completed /
+          total *
+          100
+        )
+      : 100;
+
+  return {
+    batchId:
+      job.batchId,
+
+    status:
+      job.status,
+
+    createdAt:
+      job.createdAt,
+
+    updatedAt:
+      job.updatedAt,
+
+    analyzedAt:
+      job.completedAt,
+
+    requestedCount:
+      job.requestedCount,
+
+    uniqueCount:
+      job.uniqueCount,
+
+    duplicatesRemoved:
+      job.duplicatesRemoved,
+
+    maxBatchSize:
+      MAX_URLS_LOTE,
+
+    aiCalls:
+      job.aiCalls,
+
+    progress: {
+      total,
+
+      completed,
+
+      remaining,
+
+      analyzing,
+
+      queued,
+
+      percent
+    },
+
+    summary: {
+      ...job.summary
+    },
+
+    prospects:
+      job.prospects.map(
+        prospect => ({
+          ...prospect,
+
+          analysis:
+            null
+        })
+      )
+  };
+}
+
+
+async function processarBatchJob(
+  batchId
+) {
+  const job =
+    obterBatchJob(
+      batchId
+    );
+
+  if (
+    !job ||
+    job.status !== "processing"
+  ) {
+    return;
+  }
+
+  try {
+    await mapComConcorrencia(
+      job.prospects,
+      CONCORRENCIA_LOTE,
+      async (
+        prospectInicial,
+        indice
+      ) => {
+
+        const jobAtual =
+          obterBatchJob(
+            batchId
+          );
+
+        if (
+          !jobAtual
+        ) {
+          return;
+        }
+
+        const inputUrl =
+          prospectInicial.inputUrl;
+
+        jobAtual.prospects[indice] = {
+          ...jobAtual.prospects[indice],
+
+          status:
+            "analyzing"
+        };
+
+        tocarBatchJob(
+          jobAtual
+        );
+
+        console.log(
+          `📍 Batch ${indice + 1}/${jobAtual.uniqueCount}: ${inputUrl}`
+        );
+
+        try {
+          const analise =
+            await analisarSite(
+              inputUrl,
+              {
+                gerarIA:
+                  false,
+
+                logDetalhado:
+                  false
+              }
+            );
+
+          const analysisId =
+            salvarAnaliseNoCache(
+              analise
+            );
+
+          const resumo =
+            criarResumoProspect(
+              inputUrl,
+              analysisId,
+              analise,
+              indice
+            );
+
+          jobAtual.prospects[indice] =
+            resumo;
+
+          if (
+            resumo.tier in
+            jobAtual.summary
+          ) {
+            jobAtual.summary[
+              resumo.tier
+            ] += 1;
+          }
+
+        } catch (erro) {
+          console.log(
+            `⚠️ Batch analysis failed for ${inputUrl}: ${erro.message}`
+          );
+
+          jobAtual.prospects[indice] =
+            criarResumoErro(
+              inputUrl,
+              erro,
+              indice
+            );
+
+          jobAtual.summary.errors +=
+            1;
+        }
+
+        tocarBatchJob(
+          jobAtual
+        );
+      }
+    );
+
+    const jobFinal =
+      obterBatchJob(
+        batchId
+      );
+
+    if (
+      !jobFinal
+    ) {
+      return;
+    }
+
+    jobFinal.status =
+      "completed";
+
+    jobFinal.completedAt =
+      new Date()
+        .toISOString();
+
+    tocarBatchJob(
+      jobFinal
+    );
+
+    console.log(
+      `✅ Batch completed: ${jobFinal.uniqueCount} prospects`
+    );
+
+  } catch (erro) {
+    const jobFinal =
+      obterBatchJob(
+        batchId
+      );
+
+    if (
+      jobFinal
+    ) {
+      jobFinal.status =
+        "failed";
+
+      tocarBatchJob(
+        jobFinal
+      );
+    }
+
+    console.error(
+      "Batch processing error:",
+      erro
+    );
+  }
+}
+
+
 // ======================================================
 // STATIC FRONTEND
 // ======================================================
@@ -670,7 +1120,6 @@ app.get(
 
 // ======================================================
 // ANALYZE ONE SITE
-// Technical analysis only. No AI is generated here.
 // ======================================================
 
 app.post(
@@ -684,7 +1133,6 @@ app.post(
       const { url } =
         req.body;
 
-
       if (
         !url ||
         typeof url !== "string"
@@ -697,11 +1145,9 @@ app.post(
           });
       }
 
-
       console.log(
         `\n📥 Technical analysis requested for: ${url}`
       );
-
 
       const resultado =
         await analisarSite(
@@ -712,12 +1158,10 @@ app.post(
           }
         );
 
-
       const analysisId =
         salvarAnaliseNoCache(
           resultado
         );
-
 
       return res.json({
         ...resultado,
@@ -734,7 +1178,6 @@ app.post(
           `🛡️ URL blocked: ${erro.message}`
         );
 
-
         return res
           .status(400)
           .json({
@@ -743,12 +1186,10 @@ app.post(
           });
       }
 
-
       console.error(
         "Internal analysis error:",
         erro
       );
-
 
       return res
         .status(500)
@@ -762,8 +1203,44 @@ app.post(
 
 
 // ======================================================
-// ANALYZE BATCH
-// Up to 50 URLs. Technical analysis only, zero AI calls.
+// GET ONE CACHED ANALYSIS
+// ======================================================
+
+app.get(
+  "/analise/:analysisId",
+
+  (req, res) => {
+
+    const { analysisId } =
+      req.params;
+
+    const analise =
+      obterAnaliseDoCache(
+        analysisId
+      );
+
+    if (
+      !analise
+    ) {
+      return res
+        .status(410)
+        .json({
+          erro:
+            "This analysis expired. Please analyze the website again."
+        });
+    }
+
+    return res.json({
+      ...analise,
+
+      analysisId
+    });
+  }
+);
+
+
+// ======================================================
+// START PROGRESSIVE BATCH
 // ======================================================
 
 app.post(
@@ -771,11 +1248,10 @@ app.post(
 
   loteLimiter,
 
-  async (req, res) => {
+  (req, res) => {
 
     const { urls } =
       req.body;
-
 
     if (
       !Array.isArray(
@@ -790,7 +1266,6 @@ app.post(
         });
     }
 
-
     if (
       urls.length === 0
     ) {
@@ -801,7 +1276,6 @@ app.post(
             "At least one website URL is required."
         });
     }
-
 
     if (
       urls.length >
@@ -814,7 +1288,6 @@ app.post(
             `A maximum of ${MAX_URLS_LOTE} URLs can be analyzed per batch.`
         });
     }
-
 
     if (
       urls.some(
@@ -830,12 +1303,10 @@ app.post(
         });
     }
 
-
     const lista =
       normalizarListaUrls(
         urls
       );
-
 
     if (
       lista.urls.length === 0
@@ -848,192 +1319,84 @@ app.post(
         });
     }
 
-
-    console.log(
-      `\n📦 Batch requested: ${lista.urls.length} unique URLs`
-    );
-
-
-    const prospects =
-      await mapComConcorrencia(
-        lista.urls,
-        CONCORRENCIA_LOTE,
-        async (
-          inputUrl,
-          indice
-        ) => {
-          console.log(
-            `📍 Batch ${indice + 1}/${lista.urls.length}: ${inputUrl}`
-          );
-
-
-          try {
-            const analise =
-              await analisarSite(
-                inputUrl,
-                {
-                  gerarIA:
-                    false,
-
-                  logDetalhado:
-                    false
-                }
-              );
-
-
-            const analysisId =
-              salvarAnaliseNoCache(
-                analise
-              );
-
-
-            return criarResumoProspect(
-              inputUrl,
-              analysisId,
-              analise
-            );
-
-          } catch (erro) {
-            console.log(
-              `⚠️ Batch analysis failed for ${inputUrl}: ${erro.message}`
-            );
-
-
-            return criarResumoErro(
-              inputUrl,
-              erro
-            );
-          }
-        }
+    const job =
+      criarBatchJob(
+        lista,
+        urls.length
       );
 
+    console.log(
+      `\n📦 Progressive batch created: ${job.batchId} · ${job.uniqueCount} unique URLs`
+    );
 
-    prospects.sort(
-      (
-        a,
-        b
-      ) => {
-        if (
-          a.status !== b.status
-        ) {
-          return a.status === "completed"
-            ? -1
-            : 1;
-        }
+    const snapshot =
+      criarSnapshotBatch(
+        job
+      );
 
+    res
+      .status(202)
+      .json(
+        snapshot
+      );
 
-        const tierDifference =
-          ordemTier(
-            a.tier
-          ) -
-          ordemTier(
-            b.tier
-          );
+    setImmediate(
+      () => {
 
-
-        if (
-          tierDifference !== 0
-        ) {
-          return tierDifference;
-        }
-
-
-        if (
-          b.priorityScore !==
-          a.priorityScore
-        ) {
-          return b.priorityScore -
-            a.priorityScore;
-        }
-
-
-        return String(
-          a.url ||
-          a.inputUrl
+        processarBatchJob(
+          job.batchId
         )
-          .localeCompare(
-            String(
-              b.url ||
-              b.inputUrl
-            )
+          .catch(
+            erro => {
+
+              console.error(
+                "Unhandled progressive batch error:",
+                erro
+              );
+            }
           );
       }
     );
+  }
+);
 
 
-    const resumo = {
-      high:
-        0,
+// ======================================================
+// BATCH STATUS
+// ======================================================
 
-      medium:
-        0,
+app.get(
+  "/analisar-lote/:batchId",
 
-      low:
-        0,
+  (req, res) => {
 
-      none:
-        0,
+    const job =
+      obterBatchJob(
+        req.params.batchId
+      );
 
-      errors:
-        0
-    };
-
-
-    for (
-      const prospect of prospects
+    if (
+      !job
     ) {
-      if (
-        prospect.status === "error"
-      ) {
-        resumo.errors +=
-          1;
-
-        continue;
-      }
-
-
-      if (
-        prospect.tier in resumo
-      ) {
-        resumo[prospect.tier] +=
-          1;
-      }
+      return res
+        .status(410)
+        .json({
+          erro:
+            "This batch expired or is no longer available."
+        });
     }
 
-
-    return res.json({
-      analyzedAt:
-        new Date()
-          .toISOString(),
-
-      requestedCount:
-        urls.length,
-
-      uniqueCount:
-        lista.urls.length,
-
-      duplicatesRemoved:
-        lista.duplicadasRemovidas,
-
-      maxBatchSize:
-        MAX_URLS_LOTE,
-
-      aiCalls:
-        0,
-
-      summary:
-        resumo,
-
-      prospects
-    });
+    return res.json(
+      criarSnapshotBatch(
+        job
+      )
+    );
   }
 );
 
 
 // ======================================================
 // GENERATE AI OUTREACH ON DEMAND
-// Uses the trusted technical result previously stored by
-// the server. The browser never supplies its own findings.
 // ======================================================
 
 app.post(
@@ -1047,7 +1410,6 @@ app.post(
       const { analysisId } =
         req.body;
 
-
       if (
         !analysisId ||
         typeof analysisId !== "string"
@@ -1060,12 +1422,10 @@ app.post(
           });
       }
 
-
       const analise =
         obterAnaliseDoCache(
           analysisId
         );
-
 
       if (
         !analise
@@ -1077,7 +1437,6 @@ app.post(
               "This analysis expired. Please analyze the website again."
           });
       }
-
 
       if (
         !Array.isArray(
@@ -1102,18 +1461,15 @@ app.post(
         });
       }
 
-
       console.log(
         `\n🤖 AI generation requested for: ${analise.url}`
       );
-
 
       const views =
         await gerarViewsComIA(
           analise.url,
           analise.findings
         );
-
 
       const analiseAtualizada = {
         ...analise,
@@ -1128,12 +1484,10 @@ app.post(
           views.status
       };
 
-
       atualizarAnaliseNoCache(
         analysisId,
         analiseAtualizada
       );
-
 
       return res.json({
         analysisId,
@@ -1157,11 +1511,11 @@ app.post(
       });
 
     } catch (erro) {
+
       console.error(
         "AI generation error:",
         erro
       );
-
 
       return res
         .status(500)
@@ -1198,7 +1552,6 @@ app.use(
         });
     }
 
-
     if (
       erro instanceof SyntaxError &&
       erro.status === 400 &&
@@ -1212,12 +1565,10 @@ app.use(
         });
     }
 
-
     console.error(
       "Unhandled error:",
       erro
     );
-
 
     return res
       .status(500)
@@ -1237,35 +1588,30 @@ app.listen(
   PORT,
 
   () => {
+
     console.log(
       `\n🚀 Micro-SaaS running at http://localhost:${PORT}`
     );
-
 
     console.log(
       "🛡️ Security headers enabled"
     );
 
-
     console.log(
       "🛡️ Content Security Policy enabled"
     );
-
 
     console.log(
       "🛡️ Single analysis limit: 20 / 15 min / IP"
     );
 
-
     console.log(
       "📦 Batch limit: 5 batches / 15 min / IP"
     );
 
-
     console.log(
-      `📦 Batch size: up to ${MAX_URLS_LOTE} URLs, concurrency ${CONCORRENCIA_LOTE}`
+      `📦 Progressive batch: up to ${MAX_URLS_LOTE} URLs, concurrency ${CONCORRENCIA_LOTE}`
     );
-
 
     console.log(
       "🤖 AI is generated only on explicit outreach requests"

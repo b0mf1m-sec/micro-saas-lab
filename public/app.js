@@ -1,180 +1,76 @@
-const batchUrls =
-  document.getElementById(
-    "batchUrls"
-  );
+const $ = (id) => document.getElementById(id);
 
+const batchUrls = $("batchUrls");
+const analyzeBatchButton = $("analyzeBatchButton");
+const batchLoading = $("batchLoading");
+const batchError = $("batchError");
+const queueResults = $("queueResults");
+const prospectQueue = $("prospectQueue");
+const queueFilters = $("queueFilters");
+const urlCounter = $("urlCounter");
+const queueView = $("queueView");
+const detailView = $("detailView");
+const backToQueueButton = $("backToQueueButton");
+const brandButton = $("brandButton");
+const themeToggle = $("themeToggle");
+const generateOutreachButton = $("generateOutreachButton");
+const copyAgencyButton = $("copyAgencyButton");
+const copyProspectButton = $("copyProspectButton");
+const findingFilters = $("findingFilters");
+const selectVisibleCheckbox = $("selectVisibleCheckbox");
+const selectedCount = $("selectedCount");
+const clearSelectionButton = $("clearSelectionButton");
 
-const analyzeBatchButton =
-  document.getElementById(
-    "analyzeBatchButton"
-  );
+const MAX_OUTREACH_SELECIONADOS = 10;
 
+let generateSelectedOutreachButton = $("generateSelectedOutreachButton");
+let prospectsAtuais = [];
+let filtroQueueAtual = "all";
+let findingsAtuais = [];
+let filtroFindingAtual = "all";
+let analiseAtual = null;
+let analysisIdAtual = null;
+let batchIdAtual = null;
+let pollingBatchAtivo = false;
+let gerandoOutreachSelecionados = false;
+let progressoOutreachSelecionados = null;
+let resumoUltimaGeracaoSelecionados = null;
 
-const batchLoading =
-  document.getElementById(
-    "batchLoading"
-  );
-
-
-const batchError =
-  document.getElementById(
-    "batchError"
-  );
-
-
-const queueResults =
-  document.getElementById(
-    "queueResults"
-  );
-
-
-const prospectQueue =
-  document.getElementById(
-    "prospectQueue"
-  );
-
-
-const queueFilters =
-  document.getElementById(
-    "queueFilters"
-  );
-
-
-const urlCounter =
-  document.getElementById(
-    "urlCounter"
-  );
-
-
-const queueView =
-  document.getElementById(
-    "queueView"
-  );
-
-
-const detailView =
-  document.getElementById(
-    "detailView"
-  );
-
-
-const backToQueueButton =
-  document.getElementById(
-    "backToQueueButton"
-  );
-
-
-const brandButton =
-  document.getElementById(
-    "brandButton"
-  );
-
-
-const themeToggle =
-  document.getElementById(
-    "themeToggle"
-  );
-
-
-const generateOutreachButton =
-  document.getElementById(
-    "generateOutreachButton"
-  );
-
-
-const copyAgencyButton =
-  document.getElementById(
-    "copyAgencyButton"
-  );
-
-
-const copyProspectButton =
-  document.getElementById(
-    "copyProspectButton"
-  );
-
-
-const findingFilters =
-  document.getElementById(
-    "findingFilters"
-  );
-
-
-let prospectsAtuais =
-  [];
-
-
-let filtroQueueAtual =
-  "all";
-
-
-let findingsAtuais =
-  [];
-
-
-let filtroFindingAtual =
-  "all";
-
-
-let analiseAtual =
-  null;
-
-
-let analysisIdAtual =
-  null;
+const prospectIdsSelecionados = new Set();
 
 
 // =====================================================
 // THEME
 // =====================================================
 
-function aplicarTema(
-  theme
-) {
+function aplicarTema(theme) {
   const finalTheme =
     theme === "light"
       ? "light"
       : "dark";
 
-
-  document
-    .documentElement
-    .dataset
-    .theme =
-      finalTheme;
-
+  document.documentElement.dataset.theme =
+    finalTheme;
 
   localStorage.setItem(
     "prospect-analyzer-theme",
     finalTheme
   );
 
-
   const icon =
-    document.getElementById(
-      "themeIcon"
-    );
-
+    $("themeIcon");
 
   const label =
-    document.getElementById(
-      "themeLabel"
-    );
+    $("themeLabel");
 
-
-  if (
-    icon
-  ) {
+  if (icon) {
     icon.textContent =
       finalTheme === "dark"
         ? "☾"
         : "☀";
   }
 
-
-  if (
-    label
-  ) {
+  if (label) {
     label.textContent =
       finalTheme === "dark"
         ? "Dark"
@@ -189,7 +85,6 @@ function iniciarTema() {
       "prospect-analyzer-theme"
     );
 
-
   if (
     salvo === "light" ||
     salvo === "dark"
@@ -198,21 +93,15 @@ function iniciarTema() {
       salvo
     );
 
-
     return;
   }
 
-
-  const prefereClaro =
+  aplicarTema(
     window
       .matchMedia?.(
         "(prefers-color-scheme: light)"
       )
-      .matches;
-
-
-  aplicarTema(
-    prefereClaro
+      .matches
       ? "light"
       : "dark"
   );
@@ -241,10 +130,7 @@ function definirTexto(
   fallback = "-"
 ) {
   const elemento =
-    document.getElementById(
-      id
-    );
-
+    $(id);
 
   if (
     !elemento
@@ -252,12 +138,10 @@ function definirTexto(
     return;
   }
 
-
   const temValor =
     valor !== null &&
     valor !== undefined &&
     valor !== "";
-
 
   elemento.textContent =
     temValor
@@ -292,11 +176,9 @@ function aplicarTom(
     return;
   }
 
-
   removerTons(
     elemento
   );
-
 
   elemento
     .classList
@@ -312,10 +194,7 @@ function definirStatus(
   tom = "neutral"
 ) {
   const elemento =
-    document.getElementById(
-      id
-    );
-
+    $(id);
 
   if (
     !elemento
@@ -323,10 +202,8 @@ function definirStatus(
     return;
   }
 
-
   elemento.textContent =
     texto;
-
 
   aplicarTom(
     elemento,
@@ -340,10 +217,7 @@ function definirTomCard(
   tom = "neutral"
 ) {
   const elemento =
-    document.getElementById(
-      id
-    );
-
+    $(id);
 
   if (
     !elemento
@@ -351,11 +225,9 @@ function definirTomCard(
     return;
   }
 
-
   removerTons(
     elemento
   );
-
 
   if (
     tom !== "neutral"
@@ -377,7 +249,6 @@ function capitalizar(
       valor ||
       ""
     );
-
 
   return texto
     ? texto
@@ -401,12 +272,37 @@ function numeroSeguro(
       valor
     );
 
-
   return Number.isFinite(
     numero
   )
     ? numero
     : 0;
+}
+
+
+// Dados ausentes continuam null.
+// Isso evita Number(null) virar 0.
+function numeroOpcional(
+  valor
+) {
+  if (
+    valor === null ||
+    valor === undefined ||
+    valor === ""
+  ) {
+    return null;
+  }
+
+  const numero =
+    Number(
+      valor
+    );
+
+  return Number.isFinite(
+    numero
+  )
+    ? numero
+    : null;
 }
 
 
@@ -420,7 +316,6 @@ function listaLimpa(
   ) {
     return [];
   }
-
 
   return valor
     .filter(
@@ -453,13 +348,11 @@ function normalizarSeveridade(
       .trim()
       .toLowerCase();
 
-
   if (
     nivel === "alta"
   ) {
     return "high";
   }
-
 
   if (
     nivel === "media" ||
@@ -468,13 +361,11 @@ function normalizarSeveridade(
     return "medium";
   }
 
-
   if (
     nivel === "baixa"
   ) {
     return "low";
   }
-
 
   if (
     [
@@ -488,7 +379,6 @@ function normalizarSeveridade(
     return nivel;
   }
 
-
   return "low";
 }
 
@@ -497,7 +387,6 @@ function nomeFinding(
   codigo
 ) {
   const nomes = {
-
     LCP_HIGH:
       "Poor Largest Contentful Paint",
 
@@ -538,7 +427,6 @@ function nomeFinding(
       "Missing H1 Heading"
   };
 
-
   return (
     nomes[
       codigo
@@ -573,12 +461,10 @@ function textoTempoAnalise(
     return "Analyzed just now";
   }
 
-
   const data =
     new Date(
       valor
     );
-
 
   if (
     Number.isNaN(
@@ -587,7 +473,6 @@ function textoTempoAnalise(
   ) {
     return "Analyzed just now";
   }
-
 
   const segundos =
     Math.max(
@@ -602,20 +487,17 @@ function textoTempoAnalise(
       )
     );
 
-
   if (
     segundos < 60
   ) {
     return "Analyzed just now";
   }
 
-
   const minutos =
     Math.floor(
       segundos /
       60
     );
-
 
   if (
     minutos < 60
@@ -624,7 +506,6 @@ function textoTempoAnalise(
       `Analyzed ${minutos} min ago`
     );
   }
-
 
   return (
     `Analyzed at ${
@@ -669,7 +550,6 @@ function formatarStatusIA(
   status
 ) {
   const mapa = {
-
     generated:
       "Generated",
 
@@ -704,7 +584,6 @@ function formatarStatusIA(
       "Invalid AI response"
   };
 
-
   return (
     mapa[
       status
@@ -726,7 +605,6 @@ function urlsEquivalentes(
     return false;
   }
 
-
   try {
     const normalizar =
       (
@@ -738,7 +616,6 @@ function urlsEquivalentes(
             valor
           );
 
-
         const path =
           url.pathname === "/"
             ? ""
@@ -747,12 +624,10 @@ function urlsEquivalentes(
                 ""
               );
 
-
         return (
           `${url.protocol}//${url.host}${path}${url.search}`
         );
       };
-
 
     return (
       normalizar(
@@ -771,7 +646,7 @@ function urlsEquivalentes(
 
 
 // =====================================================
-// BATCH INPUT
+// BATCH INPUT / PROGRESSIVE BATCH
 // =====================================================
 
 function extrairUrlsDigitadas() {
@@ -795,10 +670,8 @@ function atualizarContadorUrls() {
     extrairUrlsDigitadas()
       .length;
 
-
   urlCounter.textContent =
     `${quantidade} / 50`;
-
 
   urlCounter.style.color =
     quantidade > 50
@@ -812,7 +685,6 @@ function mostrarErroBatch(
 ) {
   batchError.textContent =
     mensagem;
-
 
   batchError
     .classList
@@ -829,7 +701,6 @@ function limparErroBatch() {
       "hidden"
     );
 
-
   batchError.textContent =
     "";
 }
@@ -838,24 +709,45 @@ function limparErroBatch() {
 function iniciarBatchLoading() {
   limparErroBatch();
 
-
   batchLoading
     .classList
     .remove(
       "hidden"
     );
 
-
   analyzeBatchButton.disabled =
     true;
-
 
   batchUrls.disabled =
     true;
 
+  analyzeBatchButton.textContent =
+    "Starting batch…";
+}
 
-  analyzeBatchButton.innerHTML =
-    "<span>Analyzing…</span>";
+
+function atualizarBotaoBatch(
+  dados
+) {
+  const completed =
+    numeroSeguro(
+      dados?.progress?.completed
+    );
+
+  const total =
+    numeroSeguro(
+      dados?.progress?.total
+    );
+
+  if (
+    dados?.status ===
+      "processing"
+    &&
+    total > 0
+  ) {
+    analyzeBatchButton.textContent =
+      `Analyzing ${completed}/${total}…`;
+  }
 }
 
 
@@ -866,24 +758,251 @@ function finalizarBatchLoading() {
       "hidden"
     );
 
-
   analyzeBatchButton.disabled =
     false;
 
-
   batchUrls.disabled =
     false;
-
 
   analyzeBatchButton.innerHTML =
     '<span>Analyze prospects</span><span aria-hidden="true">→</span>';
 }
 
 
+function esperar(
+  ms
+) {
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        ms
+      )
+  );
+}
+
+
+function mesclarSnapshotProspects(
+  novosProspects
+) {
+  const anterioresPorId =
+    new Map(
+      prospectsAtuais
+        .filter(
+          prospect =>
+            prospect.analysisId
+        )
+        .map(
+          prospect => [
+            prospect.analysisId,
+            prospect
+          ]
+        )
+    );
+
+  return novosProspects.map(
+    prospect => {
+
+      const anterior =
+        prospect.analysisId
+          ? anterioresPorId.get(
+              prospect.analysisId
+            )
+          : null;
+
+      return {
+        ...prospect,
+
+        analysis:
+          anterior?.analysis
+          ||
+          null,
+
+        outreachStatus:
+          anterior?.outreachStatus,
+
+        agencyView:
+          anterior?.agencyView
+          ??
+          null,
+
+        prospectView:
+          anterior?.prospectView
+          ??
+          null,
+
+        outreachError:
+          anterior?.outreachError
+          ??
+          null
+      };
+    }
+  );
+}
+
+
+function aplicarSnapshotBatch(
+  dados
+) {
+  batchIdAtual =
+    dados.batchId ||
+    batchIdAtual;
+
+  prospectsAtuais =
+    Array.isArray(
+      dados.prospects
+    )
+      ? mesclarSnapshotProspects(
+          dados.prospects
+        )
+      : prospectsAtuais;
+
+  limparSelecoesInvalidas();
+
+  atualizarResumoQueue(
+    dados
+  );
+
+  atualizarBotaoBatch(
+    dados
+  );
+
+  renderizarQueue();
+
+  queueResults
+    .classList
+    .remove(
+      "hidden"
+    );
+}
+
+
+async function buscarSnapshotBatch(
+  batchId
+) {
+  const resposta =
+    await fetch(
+      `/analisar-lote/${encodeURIComponent(batchId)}`,
+      {
+        method:
+          "GET",
+
+        headers: {
+          Accept:
+            "application/json"
+        }
+      }
+    );
+
+  let dados;
+
+  try {
+    dados =
+      await resposta.json();
+
+  } catch {
+    throw new Error(
+      "The server returned an invalid batch status response."
+    );
+  }
+
+  if (
+    !resposta.ok
+  ) {
+    throw new Error(
+      dados.erro ||
+      "Could not read batch progress."
+    );
+  }
+
+  return dados;
+}
+
+
+async function acompanharLote(
+  batchId,
+  snapshotInicial
+) {
+  pollingBatchAtivo =
+    true;
+
+  let falhasConsecutivas =
+    0;
+
+  let dados =
+    snapshotInicial;
+
+  while (
+    pollingBatchAtivo &&
+    batchIdAtual === batchId
+  ) {
+    aplicarSnapshotBatch(
+      dados
+    );
+
+    if (
+      dados.status ===
+      "completed"
+    ) {
+      pollingBatchAtivo =
+        false;
+
+      return dados;
+    }
+
+    if (
+      dados.status ===
+      "failed"
+    ) {
+      pollingBatchAtivo =
+        false;
+
+      throw new Error(
+        "The batch stopped before every prospect could be analyzed."
+      );
+    }
+
+    await esperar(
+      1000
+    );
+
+    try {
+      dados =
+        await buscarSnapshotBatch(
+          batchId
+        );
+
+      falhasConsecutivas =
+        0;
+
+    } catch (
+      erro
+    ) {
+      falhasConsecutivas +=
+        1;
+
+      if (
+        falhasConsecutivas >= 5
+      ) {
+        pollingBatchAtivo =
+          false;
+
+        throw erro;
+      }
+
+      await esperar(
+        1000
+      );
+    }
+  }
+
+  return dados;
+}
+
+
 async function analisarLote() {
   const urls =
     extrairUrlsDigitadas();
-
 
   if (
     urls.length === 0
@@ -892,10 +1011,8 @@ async function analisarLote() {
       "Enter at least one prospect URL."
     );
 
-
     return;
   }
-
 
   if (
     urls.length > 50
@@ -904,13 +1021,33 @@ async function analisarLote() {
       "A maximum of 50 URLs can be analyzed per batch."
     );
 
-
     return;
   }
 
+  pollingBatchAtivo =
+    false;
+
+  batchIdAtual =
+    null;
+
+  prospectsAtuais =
+    [];
+
+  prospectIdsSelecionados.clear();
+
+  resumoUltimaGeracaoSelecionados =
+    null;
+
+  progressoOutreachSelecionados =
+    null;
+
+  gerandoOutreachSelecionados =
+    false;
+
+  filtroQueueAtual =
+    "all";
 
   iniciarBatchLoading();
-
 
   try {
     const resposta =
@@ -932,9 +1069,7 @@ async function analisarLote() {
         }
       );
 
-
     let dados;
-
 
     try {
       dados =
@@ -946,7 +1081,6 @@ async function analisarLote() {
       );
     }
 
-
     if (
       !resposta.ok
     ) {
@@ -956,46 +1090,43 @@ async function analisarLote() {
       );
     }
 
+    if (
+      !dados.batchId
+    ) {
+      throw new Error(
+        "The server did not return a batchId."
+      );
+    }
 
-    prospectsAtuais =
-      Array.isArray(
-        dados.prospects
-      )
-        ? dados.prospects
-        : [];
-
-
-    filtroQueueAtual =
-      "all";
-
-
-    atualizarResumoQueue(
-      dados
-    );
-
+    batchIdAtual =
+      dados.batchId;
 
     ativarFiltroQueue(
       "all"
     );
 
-
-    renderizarQueue();
-
+    aplicarSnapshotBatch(
+      dados
+    );
 
     queueResults
-      .classList
-      .remove(
-        "hidden"
+      .scrollIntoView({
+        behavior:
+          "smooth",
+
+        block:
+          "start"
+      });
+
+    const final =
+      await acompanharLote(
+        dados.batchId,
+        dados
       );
 
-
-    queueResults.scrollIntoView({
-      behavior:
-        "smooth",
-
-      block:
-        "start"
-    });
+    aplicarSnapshotBatch(
+      final
+    );
 
   } catch (
     erro
@@ -1017,7 +1148,6 @@ async function analisarLote() {
 
 function contarProspects() {
   const contagem = {
-
     all:
       prospectsAtuais.length,
 
@@ -1037,7 +1167,6 @@ function contarProspects() {
       0
   };
 
-
   for (
     const prospect of
     prospectsAtuais
@@ -1049,10 +1178,15 @@ function contarProspects() {
       contagem.error +=
         1;
 
-
       continue;
     }
 
+    if (
+      prospect.status !==
+      "completed"
+    ) {
+      continue;
+    }
 
     if (
       Object.prototype
@@ -1064,10 +1198,10 @@ function contarProspects() {
     ) {
       contagem[
         prospect.tier
-      ] += 1;
+      ] +=
+        1;
     }
   }
-
 
   return contagem;
 }
@@ -1079,13 +1213,11 @@ function atualizarResumoQueue(
   const contagem =
     contarProspects();
 
-
   definirTexto(
     "summaryAll",
     contagem.all,
     "0"
   );
-
 
   definirTexto(
     "summaryHigh",
@@ -1093,13 +1225,11 @@ function atualizarResumoQueue(
     "0"
   );
 
-
   definirTexto(
     "summaryMedium",
     contagem.medium,
     "0"
   );
-
 
   definirTexto(
     "summaryLow",
@@ -1107,13 +1237,11 @@ function atualizarResumoQueue(
     "0"
   );
 
-
   definirTexto(
     "summaryNone",
     contagem.none,
     "0"
   );
-
 
   definirTexto(
     "filterAll",
@@ -1121,13 +1249,11 @@ function atualizarResumoQueue(
     "0"
   );
 
-
   definirTexto(
     "filterHigh",
     contagem.high,
     "0"
   );
-
 
   definirTexto(
     "filterMedium",
@@ -1135,13 +1261,11 @@ function atualizarResumoQueue(
     "0"
   );
 
-
   definirTexto(
     "filterLow",
     contagem.low,
     "0"
   );
-
 
   definirTexto(
     "filterNone",
@@ -1149,53 +1273,89 @@ function atualizarResumoQueue(
     "0"
   );
 
-
   definirTexto(
     "filterErrors",
     contagem.error,
     "0"
   );
 
+  if (
+    !dados
+  ) {
+    return;
+  }
+
+  const uniqueCount =
+    dados.uniqueCount
+    ??
+    contagem.all;
+
+  const completed =
+    numeroSeguro(
+      dados.progress?.completed
+    );
+
+  const analyzing =
+    numeroSeguro(
+      dados.progress?.analyzing
+    );
+
+  const queued =
+    numeroSeguro(
+      dados.progress?.queued
+    );
+
+  const partes =
+    [];
 
   if (
-    dados
+    dados.status ===
+    "processing"
   ) {
-    const uniqueCount =
-      dados.uniqueCount
-      ??
-      contagem.all;
+    partes.push(
+      `${completed}/${uniqueCount} analyzed`
+    );
 
+    partes.push(
+      `${analyzing} analyzing`
+    );
 
-    const partes = [
-      `${uniqueCount} unique prospect${Number(uniqueCount) === 1 ? "" : "s"}`,
-      "0 AI calls"
-    ];
+    partes.push(
+      `${queued} queued`
+    );
 
-
-    if (
-      Number(
-        dados.duplicatesRemoved
-      ) > 0
-    ) {
-      partes.push(
-        `${
-          dados.duplicatesRemoved
-        } duplicate${
-          dados.duplicatesRemoved === 1
-            ? ""
-            : "s"
-        } removed`
-      );
-    }
-
-
-    definirTexto(
-      "batchMeta",
-      partes.join(
-        " · "
-      )
+  } else {
+    partes.push(
+      `${completed}/${uniqueCount} analyzed`
     );
   }
+
+  partes.push(
+    "0 AI calls during scan"
+  );
+
+  if (
+    Number(
+      dados.duplicatesRemoved
+    ) > 0
+  ) {
+    partes.push(
+      `${
+        dados.duplicatesRemoved
+      } duplicate${
+        dados.duplicatesRemoved === 1
+          ? ""
+          : "s"
+      } removed`
+    );
+  }
+
+  definirTexto(
+    "batchMeta",
+    partes.join(
+      " · "
+    )
+  );
 }
 
 
@@ -1204,7 +1364,6 @@ function ativarFiltroQueue(
 ) {
   filtroQueueAtual =
     filtro;
-
 
   document
     .querySelectorAll(
@@ -1235,7 +1394,6 @@ function prospectPassaFiltro(
     return true;
   }
 
-
   if (
     filtroQueueAtual ===
     "error"
@@ -1246,10 +1404,9 @@ function prospectPassaFiltro(
     );
   }
 
-
   return (
-    prospect.status !==
-      "error"
+    prospect.status ===
+      "completed"
     &&
     prospect.tier ===
       filtroQueueAtual
@@ -1257,36 +1414,882 @@ function prospectPassaFiltro(
 }
 
 
+function ordemTierQueue(
+  tier
+) {
+  const ordem = {
+    high:
+      0,
+
+    medium:
+      1,
+
+    low:
+      2,
+
+    none:
+      3
+  };
+
+  return ordem[
+    tier
+  ]
+  ??
+  4;
+}
+
+
+function ordenarProspectsQueue(
+  prospects
+) {
+  const statusOrder = {
+    completed:
+      0,
+
+    error:
+      1,
+
+    analyzing:
+      2,
+
+    queued:
+      3
+  };
+
+  return [
+    ...prospects
+  ]
+    .sort(
+      (
+        a,
+        b
+      ) => {
+
+        const statusDifference =
+          (
+            statusOrder[
+              a.status
+            ]
+            ??
+            4
+          )
+          -
+          (
+            statusOrder[
+              b.status
+            ]
+            ??
+            4
+          );
+
+        if (
+          statusDifference !== 0
+        ) {
+          return statusDifference;
+        }
+
+        if (
+          a.status ===
+            "completed"
+          &&
+          b.status ===
+            "completed"
+        ) {
+          const tierDifference =
+            ordemTierQueue(
+              a.tier
+            )
+            -
+            ordemTierQueue(
+              b.tier
+            );
+
+          if (
+            tierDifference !== 0
+          ) {
+            return tierDifference;
+          }
+
+          const scoreDifference =
+            numeroSeguro(
+              b.priorityScore
+            )
+            -
+            numeroSeguro(
+              a.priorityScore
+            );
+
+          if (
+            scoreDifference !== 0
+          ) {
+            return scoreDifference;
+          }
+        }
+
+        return (
+          numeroSeguro(
+            a.batchIndex
+          )
+          -
+          numeroSeguro(
+            b.batchIndex
+          )
+        );
+      }
+    );
+}
+
+
+// =====================================================
+// MULTI-SELECT + BATCH OUTREACH
+// =====================================================
+
+function prospectSelecionavel(
+  prospect
+) {
+  return (
+    prospect?.status ===
+      "completed"
+    &&
+    Boolean(
+      prospect?.analysisId
+    )
+  );
+}
+
+
+function limparSelecoesInvalidas() {
+  const idsValidos =
+    new Set(
+      prospectsAtuais
+        .filter(
+          prospectSelecionavel
+        )
+        .map(
+          prospect =>
+            prospect.analysisId
+        )
+    );
+
+  for (
+    const analysisId of
+    prospectIdsSelecionados
+  ) {
+    if (
+      !idsValidos.has(
+        analysisId
+      )
+    ) {
+      prospectIdsSelecionados
+        .delete(
+          analysisId
+        );
+    }
+  }
+}
+
+
+function obterProspectsVisiveisSelecionaveis() {
+  return prospectsAtuais
+    .filter(
+      prospectPassaFiltro
+    )
+    .filter(
+      prospectSelecionavel
+    );
+}
+
+
+function garantirBotaoOutreachSelecionados() {
+  if (
+    generateSelectedOutreachButton
+  ) {
+    return;
+  }
+
+  const actions =
+    document
+      .querySelector(
+        ".selection-actions"
+      );
+
+  if (
+    !actions
+  ) {
+    return;
+  }
+
+  const botao =
+    document
+      .createElement(
+        "button"
+      );
+
+  botao.id =
+    "generateSelectedOutreachButton";
+
+  botao.className =
+    "primary-button small";
+
+  botao.type =
+    "button";
+
+  botao.disabled =
+    true;
+
+  botao.textContent =
+    "Generate outreach";
+
+  if (
+    clearSelectionButton
+  ) {
+    actions
+      .insertBefore(
+        botao,
+        clearSelectionButton
+      );
+
+  } else {
+    actions
+      .appendChild(
+        botao
+      );
+  }
+
+  generateSelectedOutreachButton =
+    botao;
+}
+
+
+function atualizarControlesSelecao() {
+  garantirBotaoOutreachSelecionados();
+
+  const quantidadeSelecionada =
+    prospectIdsSelecionados.size;
+
+  if (
+    selectedCount
+  ) {
+    if (
+      gerandoOutreachSelecionados
+      &&
+      progressoOutreachSelecionados
+    ) {
+      selectedCount.textContent =
+        `${
+          quantidadeSelecionada
+        } selected · generating ${
+          progressoOutreachSelecionados.atual
+        }/${
+          progressoOutreachSelecionados.total
+        }`;
+
+    } else if (
+      resumoUltimaGeracaoSelecionados
+    ) {
+      selectedCount.textContent =
+        `${
+          quantidadeSelecionada
+        } selected · ${
+          resumoUltimaGeracaoSelecionados
+        }`;
+
+    } else {
+      selectedCount.textContent =
+        `${quantidadeSelecionada} selected`;
+    }
+  }
+
+  if (
+    clearSelectionButton
+  ) {
+    clearSelectionButton.disabled =
+      quantidadeSelecionada === 0
+      ||
+      gerandoOutreachSelecionados;
+  }
+
+  if (
+    generateSelectedOutreachButton
+  ) {
+    if (
+      gerandoOutreachSelecionados
+      &&
+      progressoOutreachSelecionados
+    ) {
+      generateSelectedOutreachButton.disabled =
+        true;
+
+      generateSelectedOutreachButton.textContent =
+        `Generating ${
+          progressoOutreachSelecionados.atual
+        }/${
+          progressoOutreachSelecionados.total
+        }…`;
+
+    } else if (
+      quantidadeSelecionada >
+      MAX_OUTREACH_SELECIONADOS
+    ) {
+      generateSelectedOutreachButton.disabled =
+        true;
+
+      generateSelectedOutreachButton.textContent =
+        `Max ${MAX_OUTREACH_SELECIONADOS} per run`;
+
+    } else {
+      generateSelectedOutreachButton.disabled =
+        quantidadeSelecionada === 0;
+
+      generateSelectedOutreachButton.textContent =
+        quantidadeSelecionada > 0
+          ? `Generate outreach (${quantidadeSelecionada})`
+          : "Generate outreach";
+    }
+  }
+
+  if (
+    !selectVisibleCheckbox
+  ) {
+    return;
+  }
+
+  const visiveis =
+    obterProspectsVisiveisSelecionaveis();
+
+  const selecionadosVisiveis =
+    visiveis
+      .filter(
+        prospect =>
+          prospectIdsSelecionados
+            .has(
+              prospect.analysisId
+            )
+      )
+      .length;
+
+  selectVisibleCheckbox.disabled =
+    visiveis.length === 0
+    ||
+    gerandoOutreachSelecionados;
+
+  selectVisibleCheckbox.checked =
+    visiveis.length > 0
+    &&
+    selecionadosVisiveis ===
+      visiveis.length;
+
+  selectVisibleCheckbox.indeterminate =
+    selecionadosVisiveis > 0
+    &&
+    selecionadosVisiveis <
+      visiveis.length;
+}
+
+
+function selecionarProspect(
+  analysisId,
+  selecionado
+) {
+  if (
+    !analysisId
+    ||
+    gerandoOutreachSelecionados
+  ) {
+    return;
+  }
+
+  resumoUltimaGeracaoSelecionados =
+    null;
+
+  if (
+    selecionado
+  ) {
+    prospectIdsSelecionados
+      .add(
+        analysisId
+      );
+
+  } else {
+    prospectIdsSelecionados
+      .delete(
+        analysisId
+      );
+  }
+
+  atualizarControlesSelecao();
+}
+
+
+function selecionarProspectsVisiveis(
+  selecionado
+) {
+  if (
+    gerandoOutreachSelecionados
+  ) {
+    return;
+  }
+
+  resumoUltimaGeracaoSelecionados =
+    null;
+
+  for (
+    const prospect of
+    obterProspectsVisiveisSelecionaveis()
+  ) {
+    if (
+      selecionado
+    ) {
+      prospectIdsSelecionados
+        .add(
+          prospect.analysisId
+        );
+
+    } else {
+      prospectIdsSelecionados
+        .delete(
+          prospect.analysisId
+        );
+    }
+  }
+
+  renderizarQueue();
+}
+
+
+function limparSelecao() {
+  if (
+    gerandoOutreachSelecionados
+  ) {
+    return;
+  }
+
+  prospectIdsSelecionados.clear();
+
+  resumoUltimaGeracaoSelecionados =
+    null;
+
+  renderizarQueue();
+}
+
+
+function statusOutreachProspect(
+  prospect
+) {
+  const status =
+    prospect?.outreachStatus;
+
+  if (
+    status ===
+    "generating"
+  ) {
+    return "generating AI…";
+  }
+
+  if (
+    status ===
+      "generated"
+    ||
+    status ===
+      "cached"
+  ) {
+    return "AI ready";
+  }
+
+  if (
+    status ===
+    "no_findings"
+  ) {
+    return "no AI needed";
+  }
+
+  if (
+    status ===
+    "rate_limited"
+  ) {
+    return "AI rate limited";
+  }
+
+  if (
+    status ===
+      "error"
+    ||
+    status ===
+      "invalid_json"
+  ) {
+    return "AI failed";
+  }
+
+  return null;
+}
+
+
+function atualizarProspectComOutreach(
+  prospect,
+  dados
+) {
+  prospect.outreachStatus =
+    dados.iaStatus
+    ||
+    "error";
+
+  prospect.agencyView =
+    dados.agencyView
+    ??
+    null;
+
+  prospect.prospectView =
+    dados.prospectView
+    ??
+    null;
+
+  prospect.outreachError =
+    dados.erro
+    ??
+    null;
+
+  if (
+    prospect.analysis
+  ) {
+    prospect.analysis = {
+      ...prospect.analysis,
+
+      agencyView:
+        prospect.agencyView,
+
+      prospectView:
+        prospect.prospectView,
+
+      iaStatus:
+        prospect.outreachStatus
+    };
+  }
+}
+
+
+async function solicitarOutreach(
+  analysisId
+) {
+  const resposta =
+    await fetch(
+      "/gerar-outreach",
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            analysisId
+          })
+      }
+    );
+
+  let dados;
+
+  try {
+    dados =
+      await resposta.json();
+
+  } catch {
+    throw new Error(
+      "The server returned an invalid AI response."
+    );
+  }
+
+  if (
+    !resposta.ok
+  ) {
+    throw new Error(
+      dados.erro ||
+      "AI generation failed."
+    );
+  }
+
+  return dados;
+}
+
+
+async function gerarOutreachSelecionados() {
+  if (
+    gerandoOutreachSelecionados
+  ) {
+    return;
+  }
+
+  const selecionados =
+    prospectsAtuais
+      .filter(
+        prospect =>
+          prospectSelecionavel(
+            prospect
+          )
+          &&
+          prospectIdsSelecionados
+            .has(
+              prospect.analysisId
+            )
+      );
+
+  if (
+    selecionados.length === 0
+  ) {
+    return;
+  }
+
+  if (
+    selecionados.length >
+    MAX_OUTREACH_SELECIONADOS
+  ) {
+    resumoUltimaGeracaoSelecionados =
+      `select up to ${MAX_OUTREACH_SELECIONADOS} for AI`;
+
+    atualizarControlesSelecao();
+
+    return;
+  }
+
+  gerandoOutreachSelecionados =
+    true;
+
+  resumoUltimaGeracaoSelecionados =
+    null;
+
+  progressoOutreachSelecionados = {
+    atual:
+      0,
+
+    total:
+      selecionados.length
+  };
+
+  let prontos =
+    0;
+
+  let semFindings =
+    0;
+
+  let erros =
+    0;
+
+  for (
+    let indice = 0;
+    indice <
+      selecionados.length;
+    indice++
+  ) {
+    const prospect =
+      selecionados[
+        indice
+      ];
+
+    progressoOutreachSelecionados.atual =
+      indice + 1;
+
+    atualizarControlesSelecao();
+
+    if (
+      numeroSeguro(
+        prospect.findingsCount
+      ) === 0
+    ) {
+      prospect.outreachStatus =
+        "no_findings";
+
+      semFindings +=
+        1;
+
+      renderizarQueue();
+
+      continue;
+    }
+
+    if (
+      prospect.outreachStatus ===
+        "generated"
+      ||
+      prospect.outreachStatus ===
+        "cached"
+    ) {
+      prontos +=
+        1;
+
+      renderizarQueue();
+
+      continue;
+    }
+
+    prospect.outreachStatus =
+      "generating";
+
+    prospect.outreachError =
+      null;
+
+    renderizarQueue();
+
+    try {
+      const dados =
+        await solicitarOutreach(
+          prospect.analysisId
+        );
+
+      atualizarProspectComOutreach(
+        prospect,
+        dados
+      );
+
+      if (
+        prospect.outreachStatus ===
+          "generated"
+        ||
+        prospect.outreachStatus ===
+          "cached"
+      ) {
+        prontos +=
+          1;
+
+      } else if (
+        prospect.outreachStatus ===
+          "no_findings"
+      ) {
+        semFindings +=
+          1;
+
+      } else {
+        erros +=
+          1;
+      }
+
+    } catch (
+      erro
+    ) {
+      prospect.outreachStatus =
+        "error";
+
+      prospect.outreachError =
+        erro.message
+        ||
+        "AI generation failed.";
+
+      erros +=
+        1;
+    }
+
+    renderizarQueue();
+  }
+
+  gerandoOutreachSelecionados =
+    false;
+
+  progressoOutreachSelecionados =
+    null;
+
+  const partes =
+    [];
+
+  if (
+    prontos > 0
+  ) {
+    partes.push(
+      `${prontos} AI ready`
+    );
+  }
+
+  if (
+    semFindings > 0
+  ) {
+    partes.push(
+      `${semFindings} skipped`
+    );
+  }
+
+  if (
+    erros > 0
+  ) {
+    partes.push(
+      `${erros} failed`
+    );
+  }
+
+  resumoUltimaGeracaoSelecionados =
+    partes.length > 0
+      ? partes.join(
+          " · "
+        )
+      : "finished";
+
+  renderizarQueue();
+}
+
+
+// =====================================================
+// QUEUE RENDER
+// =====================================================
+
 function criarTierBadge(
   tier,
   status
 ) {
   const span =
-    document.createElement(
-      "span"
-    );
+    document
+      .createElement(
+        "span"
+      );
 
+  if (
+    status ===
+    "error"
+  ) {
+    span.className =
+      "tier-badge tier-error";
+
+    span.textContent =
+      "Error";
+
+    return span;
+  }
+
+  if (
+    status ===
+    "analyzing"
+  ) {
+    span.className =
+      "tier-badge tier-medium";
+
+    span.textContent =
+      "Analyzing";
+
+    return span;
+  }
+
+  if (
+    status ===
+    "queued"
+  ) {
+    span.className =
+      "tier-badge tier-none";
+
+    span.textContent =
+      "Queued";
+
+    return span;
+  }
 
   const nivel =
-    status === "error"
-      ? "error"
-      : (
-          tier ||
-          "none"
-        );
-
+    tier ||
+    "none";
 
   span.className =
     `tier-badge tier-${nivel}`;
 
-
   span.textContent =
-    status === "error"
-      ? "Error"
-      : capitalizar(
-          nivel
-        );
-
+    capitalizar(
+      nivel
+    );
 
   return span;
 }
@@ -1296,55 +2299,156 @@ function renderizarQueue() {
   prospectQueue.innerHTML =
     "";
 
-
   const lista =
-    prospectsAtuais.filter(
-      prospectPassaFiltro
+    ordenarProspectsQueue(
+      prospectsAtuais
+        .filter(
+          prospectPassaFiltro
+        )
     );
-
 
   if (
     lista.length === 0
   ) {
     const vazio =
-      document.createElement(
-        "div"
-      );
-
+      document
+        .createElement(
+          "div"
+        );
 
     vazio.className =
       "queue-empty";
 
-
     vazio.textContent =
-      "No prospects match this filter.";
+      "No prospects match this filter yet.";
 
+    prospectQueue
+      .appendChild(
+        vazio
+      );
 
-    prospectQueue.appendChild(
-      vazio
-    );
-
+    atualizarControlesSelecao();
 
     return;
   }
 
-
   lista.forEach(
     prospect => {
 
-      const card =
-        document.createElement(
-          "article"
+      const selecionavel =
+        prospectSelecionavel(
+          prospect
         );
 
+      const selecionado =
+        selecionavel
+        &&
+        prospectIdsSelecionados
+          .has(
+            prospect.analysisId
+          );
+
+      const card =
+        document
+          .createElement(
+            "article"
+          );
 
       card.className =
         `prospect-card${
-          prospect.status === "error"
+          prospect.status ===
+            "error"
             ? " error"
+            : ""
+        }${
+          selecionado
+            ? " selected"
             : ""
         }`;
 
+      const selection =
+        document
+          .createElement(
+            "label"
+          );
+
+      selection.className =
+        `prospect-select${
+          selecionavel
+            ? ""
+            : " disabled"
+        }`;
+
+      const checkbox =
+        document
+          .createElement(
+            "input"
+          );
+
+      checkbox.type =
+        "checkbox";
+
+      checkbox.className =
+        "prospect-checkbox";
+
+      checkbox.checked =
+        selecionado;
+
+      checkbox.disabled =
+        !selecionavel
+        ||
+        gerandoOutreachSelecionados;
+
+      checkbox.setAttribute(
+        "aria-label",
+        `Select ${
+          prospect.businessName
+          ||
+          hostnameLegivel(
+            prospect.url
+            ||
+            prospect.inputUrl
+          )
+        }`
+      );
+
+      checkbox
+        .addEventListener(
+          "click",
+          event =>
+            event.stopPropagation()
+        );
+
+      checkbox
+        .addEventListener(
+          "dblclick",
+          event =>
+            event.stopPropagation()
+        );
+
+      checkbox
+        .addEventListener(
+          "change",
+          () => {
+
+            selecionarProspect(
+              prospect.analysisId,
+              checkbox.checked
+            );
+
+            card
+              .classList
+              .toggle(
+                "selected",
+                checkbox.checked
+              );
+          }
+        );
+
+      selection
+        .appendChild(
+          checkbox
+        );
 
       const badge =
         criarTierBadge(
@@ -1352,60 +2456,55 @@ function renderizarQueue() {
           prospect.status
         );
 
-
       const main =
-        document.createElement(
-          "div"
-        );
-
+        document
+          .createElement(
+            "div"
+          );
 
       main.className =
         "prospect-main";
 
-
       const titleRow =
-        document.createElement(
-          "div"
-        );
-
+        document
+          .createElement(
+            "div"
+          );
 
       titleRow.className =
         "prospect-title-row";
 
-
       const title =
-        document.createElement(
-          "h3"
-        );
-
+        document
+          .createElement(
+            "h3"
+          );
 
       title.className =
         "prospect-title";
-
 
       title.textContent =
         prospect.businessName
         ||
         hostnameLegivel(
-          prospect.url ||
+          prospect.url
+          ||
           prospect.inputUrl
         );
 
-
-      titleRow.appendChild(
-        title
-      );
-
-
-      const url =
-        document.createElement(
-          "div"
+      titleRow
+        .appendChild(
+          title
         );
 
+      const url =
+        document
+          .createElement(
+            "div"
+          );
 
       url.className =
         "prospect-url";
-
 
       url.textContent =
         prospect.url
@@ -1414,18 +2513,30 @@ function renderizarQueue() {
         ||
         "Unknown URL";
 
-
       const evidence =
-        document.createElement(
-          "div"
-        );
-
+        document
+          .createElement(
+            "div"
+          );
 
       evidence.className =
         "prospect-evidence";
 
-
       if (
+        prospect.status ===
+        "queued"
+      ) {
+        evidence.textContent =
+          "Waiting for an analysis slot.";
+
+      } else if (
+        prospect.status ===
+        "analyzing"
+      ) {
+        evidence.textContent =
+          "Technical analysis in progress…";
+
+      } else if (
         prospect.status ===
         "error"
       ) {
@@ -1438,10 +2549,10 @@ function renderizarQueue() {
         prospect.topFinding
       ) {
         const strong =
-          document.createElement(
-            "strong"
-          );
-
+          document
+            .createElement(
+              "strong"
+            );
 
         strong.textContent =
           `${
@@ -1452,20 +2563,20 @@ function renderizarQueue() {
             )
           } · `;
 
-
-        evidence.appendChild(
-          strong
-        );
-
+        evidence
+          .appendChild(
+            strong
+          );
 
         evidence.append(
-          document.createTextNode(
-            prospect
-              .topFinding
-              .evidencia
-            ||
-            "Verified finding detected."
-          )
+          document
+            .createTextNode(
+              prospect
+                .topFinding
+                .evidencia
+              ||
+              "Verified finding detected."
+            )
         );
 
       } else {
@@ -1473,117 +2584,176 @@ function renderizarQueue() {
           "No verified findings were detected in this analysis.";
       }
 
-
       main.append(
         titleRow,
         url,
         evidence
       );
 
-
       const side =
-        document.createElement(
-          "div"
-        );
-
+        document
+          .createElement(
+            "div"
+          );
 
       side.className =
         "prospect-actions";
 
-
       const stats =
-        document.createElement(
-          "span"
-        );
-
+        document
+          .createElement(
+            "span"
+          );
 
       stats.className =
         "prospect-stats";
 
-
-      stats.textContent =
-        prospect.status === "error"
-          ? "Analysis failed"
-          : `${
-              prospect.findingsCount
-              ||
-              0
-            } finding${
-              Number(
-                prospect.findingsCount
-                ||
-                0
-              ) === 1
-                ? ""
-                : "s"
-            }`;
-
-
-      side.appendChild(
-        stats
-      );
-
-
       if (
-        prospect.status !==
-          "error"
-        &&
-        prospect.analysis
+        prospect.status ===
+        "queued"
       ) {
-        const abrir =
-          document.createElement(
-            "button"
+        stats.textContent =
+          "Queued";
+
+      } else if (
+        prospect.status ===
+        "analyzing"
+      ) {
+        stats.textContent =
+          "Analyzing…";
+
+      } else if (
+        prospect.status ===
+        "error"
+      ) {
+        stats.textContent =
+          "Analysis failed";
+
+      } else {
+        const findingsCount =
+          numeroSeguro(
+            prospect.findingsCount
           );
 
+        const outreachStatus =
+          statusOutreachProspect(
+            prospect
+          );
+
+        stats.textContent =
+          `${
+            findingsCount
+          } finding${
+            findingsCount === 1
+              ? ""
+              : "s"
+          }${
+            outreachStatus
+              ? ` · ${outreachStatus}`
+              : ""
+          }`;
+      }
+
+      side
+        .appendChild(
+          stats
+        );
+
+      if (
+        prospect.status ===
+          "completed"
+        &&
+        prospect.analysisId
+      ) {
+        const abrir =
+          document
+            .createElement(
+              "button"
+            );
 
         abrir.className =
           "prospect-open";
 
-
         abrir.type =
           "button";
-
 
         abrir.textContent =
           "View analysis →";
 
+        abrir
+          .addEventListener(
+            "click",
+            async () => {
 
-        abrir.addEventListener(
-          "click",
-          () =>
-            abrirProspect(
-              prospect
-            )
-        );
+              const textoOriginal =
+                abrir.textContent;
 
+              abrir.disabled =
+                true;
 
-        side.appendChild(
-          abrir
-        );
+              abrir.textContent =
+                "Loading…";
 
+              try {
+                await abrirProspect(
+                  prospect
+                );
 
-        card.addEventListener(
-          "dblclick",
-          () =>
-            abrirProspect(
-              prospect
-            )
-        );
+              } finally {
+                if (
+                  abrir.isConnected
+                ) {
+                  abrir.disabled =
+                    false;
+
+                  abrir.textContent =
+                    textoOriginal;
+                }
+              }
+            }
+          );
+
+        side
+          .appendChild(
+            abrir
+          );
+
+        card
+          .addEventListener(
+            "dblclick",
+            event => {
+
+              if (
+                event.target
+                  .closest(
+                    ".prospect-select"
+                  )
+              ) {
+                return;
+              }
+
+              abrirProspect(
+                prospect
+              );
+            }
+          );
       }
 
-
       card.append(
+        selection,
         badge,
         main,
         side
       );
 
-
-      prospectQueue.appendChild(
-        card
-      );
+      prospectQueue
+        .appendChild(
+          card
+        );
     }
   );
+
+  atualizarControlesSelecao();
 }
 
 
@@ -1593,7 +2763,6 @@ function filtrarQueue(
   ativarFiltroQueue(
     filtro
   );
-
 
   renderizarQueue();
 }
@@ -1606,85 +2775,182 @@ function voltarParaQueue() {
       "hidden"
     );
 
-
   queueView
     .classList
     .remove(
       "hidden"
     );
 
-
   analiseAtual =
     null;
-
 
   analysisIdAtual =
     null;
 
+  renderizarQueue();
 
-  window.scrollTo({
-    top:
-      0,
+  window
+    .scrollTo({
+      top:
+        0,
 
-    behavior:
-      "smooth"
-  });
+      behavior:
+        "smooth"
+    });
 }
 
 
-function abrirProspect(
+async function carregarAnaliseProspect(
   prospect
 ) {
   if (
-    !prospect?.analysis
+    prospect.analysis
+  ) {
+    return prospect.analysis;
+  }
+
+  if (
+    !prospect.analysisId
+  ) {
+    throw new Error(
+      "This prospect does not have an available analysis yet."
+    );
+  }
+
+  const resposta =
+    await fetch(
+      `/analise/${encodeURIComponent(prospect.analysisId)}`,
+      {
+        method:
+          "GET",
+
+        headers: {
+          Accept:
+            "application/json"
+        }
+      }
+    );
+
+  let dados;
+
+  try {
+    dados =
+      await resposta.json();
+
+  } catch {
+    throw new Error(
+      "The server returned an invalid analysis response."
+    );
+  }
+
+  if (
+    !resposta.ok
+  ) {
+    throw new Error(
+      dados.erro ||
+      "Could not load this analysis."
+    );
+  }
+
+  const atual =
+    prospectsAtuais
+      .find(
+        item =>
+          item.analysisId ===
+          prospect.analysisId
+      );
+
+  if (
+    atual
+  ) {
+    atual.analysis =
+      dados;
+  }
+
+  prospect.analysis =
+    dados;
+
+  if (
+    dados.iaStatus
+  ) {
+    prospect.outreachStatus =
+      dados.iaStatus;
+
+    prospect.agencyView =
+      dados.agencyView
+      ??
+      null;
+
+    prospect.prospectView =
+      dados.prospectView
+      ??
+      null;
+  }
+
+  return dados;
+}
+
+
+async function abrirProspect(
+  prospect
+) {
+  if (
+    prospect?.status !==
+      "completed"
+    ||
+    !prospect?.analysisId
   ) {
     return;
   }
 
+  try {
+    const analise =
+      await carregarAnaliseProspect(
+        prospect
+      );
 
-  analiseAtual =
-    prospect.analysis;
+    analiseAtual =
+      analise;
 
+    analysisIdAtual =
+      prospect.analysisId;
 
-  analysisIdAtual =
-    prospect.analysisId
-    ||
-    prospect
-      .analysis
-      .analysisId
-    ||
-    null;
+    queueView
+      .classList
+      .add(
+        "hidden"
+      );
 
+    detailView
+      .classList
+      .remove(
+        "hidden"
+      );
 
-  queueView
-    .classList
-    .add(
-      "hidden"
+    mostrarResultadoDetalhado({
+      ...analise,
+
+      analysisId:
+        analysisIdAtual
+    });
+
+    window
+      .scrollTo({
+        top:
+          0,
+
+        behavior:
+          "smooth"
+      });
+
+  } catch (
+    erro
+  ) {
+    mostrarErroBatch(
+      erro.message ||
+      "Could not open this prospect."
     );
-
-
-  detailView
-    .classList
-    .remove(
-      "hidden"
-    );
-
-
-  mostrarResultadoDetalhado({
-    ...prospect.analysis,
-
-    analysisId:
-      analysisIdAtual
-  });
-
-
-  window.scrollTo({
-    top:
-      0,
-
-    behavior:
-      "smooth"
-  });
+  }
 }
 
 
@@ -1711,7 +2977,6 @@ function ativarAba(
           );
       }
     );
-
 
   document
     .querySelectorAll(
@@ -1744,80 +3009,65 @@ function atualizarPerformance(
     performance.score
   );
 
-
   definirTexto(
     "lcp",
     performance.lcp
   );
-
 
   definirTexto(
     "cls",
     performance.cls
   );
 
-
   definirTexto(
     "fcp",
     performance.fcp
   );
-
 
   definirTexto(
     "speedIndex",
     performance.speedIndex
   );
 
-
   definirTexto(
     "overviewScore",
     performance.score
   );
-
 
   definirTexto(
     "overviewLcp",
     performance.lcp
   );
 
-
   definirTexto(
     "overviewCls",
     performance.cls
   );
-
 
   definirTexto(
     "overviewFcp",
     performance.fcp
   );
 
-
   const score =
-    Number(
+    numeroOpcional(
       performance.score
     );
-
 
   let scoreTom =
     "neutral";
 
-
   let scoreTexto =
     "Unavailable";
 
-
   if (
-    Number.isFinite(
-      score
-    )
+    score !== null
   ) {
     if (
       score >= 90
     ) {
       scoreTom =
         "good";
-
 
       scoreTexto =
         "Good";
@@ -1828,7 +3078,6 @@ function atualizarPerformance(
       scoreTom =
         "warning";
 
-
       scoreTexto =
         "Needs attention";
 
@@ -1836,12 +3085,10 @@ function atualizarPerformance(
       scoreTom =
         "bad";
 
-
       scoreTexto =
         "Poor";
     }
   }
-
 
   definirStatus(
     "scoreStatus",
@@ -1849,20 +3096,14 @@ function atualizarPerformance(
     scoreTom
   );
 
-
   const scoreBar =
-    document.getElementById(
-      "scoreBar"
-    );
-
+    $("scoreBar");
 
   if (
     scoreBar
   ) {
     const bounded =
-      Number.isFinite(
-        score
-      )
+      score !== null
         ? Math.max(
             0,
             Math.min(
@@ -1872,10 +3113,8 @@ function atualizarPerformance(
           )
         : 0;
 
-
     scoreBar.style.width =
       `${bounded}%`;
-
 
     scoreBar.style.background =
       scoreTom === "good"
@@ -1887,44 +3126,36 @@ function atualizarPerformance(
             : "var(--muted-2)";
   }
 
-
   const lcpMs =
-    Number(
+    numeroOpcional(
       performance.lcpMs
     );
-
 
   let lcpTom =
     "neutral";
 
-
   let lcpTexto =
-    "Measured";
-
+    lcpMs === null
+      ? "Unavailable"
+      : "Measured";
 
   if (
-    Number.isFinite(
-      lcpMs
-    )
+    lcpMs !== null
   ) {
     if (
-      lcpMs <=
-      2500
+      lcpMs <= 2500
     ) {
       lcpTom =
         "good";
-
 
       lcpTexto =
         "Good";
 
     } else if (
-      lcpMs <=
-      4000
+      lcpMs <= 4000
     ) {
       lcpTom =
         "warning";
-
 
       lcpTexto =
         "Needs attention";
@@ -1933,12 +3164,10 @@ function atualizarPerformance(
       lcpTom =
         "bad";
 
-
       lcpTexto =
         "Poor";
     }
   }
-
 
   definirStatus(
     "lcpStatus",
@@ -1946,44 +3175,36 @@ function atualizarPerformance(
     lcpTom
   );
 
-
   const cls =
-    Number(
+    numeroOpcional(
       performance.clsValor
     );
-
 
   let clsTom =
     "neutral";
 
-
   let clsTexto =
-    "Measured";
-
+    cls === null
+      ? "Unavailable"
+      : "Measured";
 
   if (
-    Number.isFinite(
-      cls
-    )
+    cls !== null
   ) {
     if (
-      cls <=
-      0.1
+      cls <= 0.1
     ) {
       clsTom =
         "good";
-
 
       clsTexto =
         "Good";
 
     } else if (
-      cls <=
-      0.25
+      cls <= 0.25
     ) {
       clsTom =
         "warning";
-
 
       clsTexto =
         "Needs attention";
@@ -1992,12 +3213,10 @@ function atualizarPerformance(
       clsTom =
         "bad";
 
-
       clsTexto =
         "Poor";
     }
   }
-
 
   definirStatus(
     "clsStatus",
@@ -2005,13 +3224,17 @@ function atualizarPerformance(
     clsTom
   );
 
-
   return {
     score,
     scoreTom,
     scoreTexto,
     lcpTom,
-    clsTom
+    clsTom,
+
+    erro:
+      performance.erro
+      ||
+      null
   };
 }
 
@@ -2024,7 +3247,8 @@ function atualizarIndexability(
   indexability
 ) {
   if (
-    !indexability ||
+    !indexability
+    ||
     indexability.erro
   ) {
     definirStatus(
@@ -2033,13 +3257,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "httpsStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirStatus(
       "indexingStatus",
@@ -2047,13 +3269,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "canonicalStatus",
       "Unknown",
       "neutral"
     );
-
 
     definirStatus(
       "robotsTxtStatus",
@@ -2061,19 +3281,16 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirStatus(
       "sitemapStatus",
       "Unknown",
       "neutral"
     );
 
-
     definirTexto(
       "httpsDetail",
       "Could not determine protocol"
     );
-
 
     definirTexto(
       "indexingReason",
@@ -2081,13 +3298,11 @@ function atualizarIndexability(
       "Indexability data is unavailable."
     );
 
-
     definirTexto(
       "metaRobots",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "xRobotsTag",
@@ -2095,13 +3310,11 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     definirTexto(
       "canonicalUrl",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "robotsTxtUrl",
@@ -2109,20 +3322,17 @@ function atualizarIndexability(
       "Unavailable"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "Unavailable"
     );
 
-
     definirTexto(
       "sitemapSource",
       null,
       "Unavailable"
     );
-
 
     return {
       tom:
@@ -2136,26 +3346,25 @@ function atualizarIndexability(
     };
   }
 
-
   const httpStatus =
     indexability.httpStatus;
-
 
   if (
     typeof httpStatus ===
     "number"
   ) {
     const tom =
-      httpStatus >= 200 &&
+      httpStatus >= 200
+      &&
       httpStatus < 300
         ? "good"
-        : httpStatus >= 300 &&
+        : httpStatus >= 300
+          &&
           httpStatus < 400
           ? "warning"
           : httpStatus >= 400
             ? "bad"
             : "neutral";
-
 
     definirStatus(
       "httpStatus",
@@ -2175,7 +3384,6 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     indexability.https ===
     true
@@ -2185,7 +3393,6 @@ function atualizarIndexability(
       "Yes",
       "good"
     );
-
 
     definirTexto(
       "httpsDetail",
@@ -2202,7 +3409,6 @@ function atualizarIndexability(
       "bad"
     );
 
-
     definirTexto(
       "httpsDetail",
       "HTTP connection"
@@ -2215,20 +3421,17 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "httpsDetail",
       "Could not determine protocol"
     );
   }
 
-
   if (
     typeof httpStatus ===
       "number"
     &&
-    httpStatus >=
-      400
+    httpStatus >= 400
   ) {
     definirStatus(
       "indexingStatus",
@@ -2264,13 +3467,11 @@ function atualizarIndexability(
     );
   }
 
-
   definirTexto(
     "indexingReason",
     indexability.indexabilityReason,
     "No indexability explanation available."
   );
-
 
   definirTexto(
     "metaRobots",
@@ -2278,13 +3479,11 @@ function atualizarIndexability(
     "Not specified"
   );
 
-
   definirTexto(
     "xRobotsTag",
     indexability.xRobotsTag,
     "Not specified"
   );
-
 
   if (
     indexability.canonical
@@ -2295,7 +3494,6 @@ function atualizarIndexability(
         indexability.finalUrl
       );
 
-
     definirStatus(
       "canonicalStatus",
       selfReferencing
@@ -2303,7 +3501,6 @@ function atualizarIndexability(
         : "Specified",
       "neutral"
     );
-
 
     definirTexto(
       "canonicalUrl",
@@ -2317,14 +3514,12 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "canonicalUrl",
       null,
       "No canonical detected"
     );
   }
-
 
   if (
     indexability
@@ -2337,7 +3532,6 @@ function atualizarIndexability(
       "Found",
       "neutral"
     );
-
 
     definirTexto(
       "robotsTxtUrl",
@@ -2359,7 +3553,6 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "robotsTxtUrl",
       indexability
@@ -2375,14 +3568,12 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "robotsTxtUrl",
       null,
       "robots.txt was not checked"
     );
   }
-
 
   if (
     indexability
@@ -2396,7 +3587,6 @@ function atualizarIndexability(
       "good"
     );
 
-
     definirTexto(
       "sitemapUrl",
       indexability
@@ -2404,12 +3594,10 @@ function atualizarIndexability(
         .url
     );
 
-
     const source =
       indexability
         .sitemap
         .source;
-
 
     definirTexto(
       "sitemapSource",
@@ -2432,13 +3620,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "No sitemap detected"
     );
-
 
     definirTexto(
       "sitemapSource",
@@ -2453,13 +3639,11 @@ function atualizarIndexability(
       "neutral"
     );
 
-
     definirTexto(
       "sitemapUrl",
       null,
       "Sitemap was not checked"
     );
-
 
     definirTexto(
       "sitemapSource",
@@ -2468,13 +3652,11 @@ function atualizarIndexability(
     );
   }
 
-
   if (
     typeof httpStatus ===
       "number"
     &&
-    httpStatus >=
-      400
+    httpStatus >= 400
   ) {
     return {
       tom:
@@ -2487,7 +3669,6 @@ function atualizarIndexability(
         `HTTP ${httpStatus}`
     };
   }
-
 
   if (
     indexability.indexable ===
@@ -2505,7 +3686,6 @@ function atualizarIndexability(
     };
   }
 
-
   if (
     indexability.https ===
     false
@@ -2522,7 +3702,6 @@ function atualizarIndexability(
     };
   }
 
-
   if (
     indexability.indexable ===
     true
@@ -2538,7 +3717,6 @@ function atualizarIndexability(
         "No explicit noindex detected"
     };
   }
-
 
   return {
     tom:
@@ -2561,7 +3739,8 @@ function atualizarStructuredData(
   structuredData
 ) {
   if (
-    !structuredData ||
+    !structuredData
+    ||
     structuredData.erro
   ) {
     definirStatus(
@@ -2570,13 +3749,11 @@ function atualizarStructuredData(
       "neutral"
     );
 
-
     definirTexto(
       "schemaSummary",
       structuredData?.erro,
       "Structured data could not be analyzed."
     );
-
 
     definirStatus(
       "schemaParsingStatus",
@@ -2584,13 +3761,11 @@ function atualizarStructuredData(
       "neutral"
     );
 
-
     definirTexto(
       "schemaParsingDetail",
       null,
       "JSON-LD parsing was not completed."
     );
-
 
     definirTexto(
       "schemaMainTypes",
@@ -2598,41 +3773,34 @@ function atualizarStructuredData(
       "Unavailable"
     );
 
-
     definirTexto(
       "schemaOtherTypes",
       null,
       "Schema types unavailable."
     );
 
-
     return;
   }
-
 
   const scriptCount =
     numeroSeguro(
       structuredData.scriptCount
     );
 
-
   const validScripts =
     numeroSeguro(
       structuredData.validScripts
     );
-
 
   const invalidScripts =
     numeroSeguro(
       structuredData.invalidScripts
     );
 
-
   const types =
     listaLimpa(
       structuredData.types
     );
-
 
   if (
     structuredData.found !==
@@ -2644,13 +3812,11 @@ function atualizarStructuredData(
       "neutral"
     );
 
-
     definirTexto(
       "schemaSummary",
       null,
       "No JSON-LD script was detected in the analyzed HTML."
     );
-
 
     definirStatus(
       "schemaParsingStatus",
@@ -2658,13 +3824,11 @@ function atualizarStructuredData(
       "neutral"
     );
 
-
     definirTexto(
       "schemaParsingDetail",
       null,
       "No JSON-LD scripts were available to parse."
     );
-
 
     definirTexto(
       "schemaMainTypes",
@@ -2672,17 +3836,14 @@ function atualizarStructuredData(
       "None detected"
     );
 
-
     definirTexto(
       "schemaOtherTypes",
       null,
       "No Schema types detected."
     );
 
-
     return;
   }
-
 
   definirStatus(
     "schemaStatus",
@@ -2690,12 +3851,16 @@ function atualizarStructuredData(
     "neutral"
   );
 
-
   definirTexto(
     "schemaSummary",
-    `${scriptCount} JSON-LD script${scriptCount === 1 ? "" : "s"} detected`
+    `${
+      scriptCount
+    } JSON-LD script${
+      scriptCount === 1
+        ? ""
+        : "s"
+    } detected`
   );
-
 
   const parsingTone =
     invalidScripts > 0
@@ -2704,19 +3869,24 @@ function atualizarStructuredData(
         ? "good"
         : "neutral";
 
-
   definirStatus(
     "schemaParsingStatus",
     `${validScripts} parsed`,
     parsingTone
   );
 
-
   definirTexto(
     "schemaParsingDetail",
-    `${invalidScripts} parse error${invalidScripts === 1 ? "" : "s"} · ${scriptCount} total`
+    `${
+      invalidScripts
+    } parse error${
+      invalidScripts === 1
+        ? ""
+        : "s"
+    } · ${
+      scriptCount
+    } total`
   );
-
 
   const priorityTypes = [
     "LocalBusiness",
@@ -2728,10 +3898,8 @@ function atualizarStructuredData(
     "BreadcrumbList"
   ];
 
-
   const mainTypes =
     [];
-
 
   if (
     types[0]
@@ -2740,7 +3908,6 @@ function atualizarStructuredData(
       types[0]
     );
   }
-
 
   for (
     const type of
@@ -2763,7 +3930,6 @@ function atualizarStructuredData(
     }
   }
 
-
   for (
     const type of
     types
@@ -2781,21 +3947,19 @@ function atualizarStructuredData(
     }
   }
 
-
   const mainSet =
     new Set(
       mainTypes
     );
 
-
   const outros =
-    types.filter(
-      type =>
-        !mainSet.has(
-          type
-        )
-    );
-
+    types
+      .filter(
+        type =>
+          !mainSet.has(
+            type
+          )
+      );
 
   definirTexto(
     "schemaMainTypes",
@@ -2807,11 +3971,16 @@ function atualizarStructuredData(
     "No @type values detected"
   );
 
-
   definirTexto(
     "schemaOtherTypes",
     outros.length
-      ? `+${outros.length} additional type${outros.length === 1 ? "" : "s"} detected`
+      ? `+${
+          outros.length
+        } additional type${
+          outros.length === 1
+            ? ""
+            : "s"
+        } detected`
       : types.length
         ? "No additional types detected"
         : "No @type values detected"
@@ -2827,7 +3996,8 @@ function atualizarImages(
   images
 ) {
   if (
-    !images ||
+    !images
+    ||
     images.erro
   ) {
     definirTexto(
@@ -2836,13 +4006,11 @@ function atualizarImages(
       "Unavailable"
     );
 
-
     definirTexto(
       "imagesWithAltText",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "imagesWithAltTextDetail",
@@ -2850,13 +4018,11 @@ function atualizarImages(
       "Image data could not be analyzed."
     );
 
-
     definirTexto(
       "imagesEmptyAlt",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "imagesEmptyAltDetail",
@@ -2864,13 +4030,11 @@ function atualizarImages(
       "Image data could not be analyzed."
     );
 
-
     definirStatus(
       "imagesMissingAltStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "imagesMissingAltDetail",
@@ -2878,13 +4042,11 @@ function atualizarImages(
       "Missing alt coverage could not be determined."
     );
 
-
     definirTexto(
       "imagesMissingAltCount",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "imagesMissingAltSamples",
@@ -2892,82 +4054,83 @@ function atualizarImages(
       "No evidence available."
     );
 
-
     return;
   }
-
 
   const total =
     numeroSeguro(
       images.total
     );
 
-
   const withAltText =
     numeroSeguro(
       images.withAltText
     );
-
 
   const emptyAlt =
     numeroSeguro(
       images.emptyAlt
     );
 
-
   const missingAlt =
     numeroSeguro(
       images.missingAlt
     );
-
 
   const samples =
     listaLimpa(
       images.missingAltSamples
     );
 
-
   definirTexto(
     "imagesTotal",
     total
   );
-
 
   definirTexto(
     "imagesWithAltText",
     withAltText
   );
 
-
   definirTexto(
     "imagesWithAltTextDetail",
     total > 0
-      ? `${withAltText} of ${total} detected image${total === 1 ? " contains" : "s contain"} non-empty alt text.`
+      ? `${
+          withAltText
+        } of ${
+          total
+        } detected image${
+          total === 1
+            ? " contains"
+            : "s contain"
+        } non-empty alt text.`
       : "No img elements were detected in the analyzed HTML."
   );
-
 
   definirTexto(
     "imagesEmptyAlt",
     emptyAlt
   );
 
-
   definirTexto(
     "imagesEmptyAltDetail",
     emptyAlt > 0
-      ? `${emptyAlt} image${emptyAlt === 1 ? " has" : "s have"} an empty alt attribute. This can be intentional for decorative images.`
+      ? `${
+          emptyAlt
+        } image${
+          emptyAlt === 1
+            ? " has"
+            : "s have"
+        } an empty alt attribute. This can be intentional for decorative images.`
       : total > 0
         ? "No empty alt attributes were detected."
         : "No img elements were detected in the analyzed HTML."
   );
 
-
   definirTexto(
     "imagesMissingAltCount",
     missingAlt
   );
-
 
   if (
     total === 0
@@ -2977,7 +4140,6 @@ function atualizarImages(
       "No images",
       "neutral"
     );
-
 
     definirTexto(
       "imagesMissingAltDetail",
@@ -2993,10 +4155,15 @@ function atualizarImages(
       "warning"
     );
 
-
     definirTexto(
       "imagesMissingAltDetail",
-      `${missingAlt} image${missingAlt === 1 ? " is" : "s are"} missing the alt attribute in the analyzed HTML.`
+      `${
+        missingAlt
+      } image${
+        missingAlt === 1
+          ? " is"
+          : "s are"
+      } missing the alt attribute in the analyzed HTML.`
     );
 
   } else {
@@ -3006,13 +4173,11 @@ function atualizarImages(
       "good"
     );
 
-
     definirTexto(
       "imagesMissingAltDetail",
       "Every detected img element includes an alt attribute."
     );
   }
-
 
   definirTexto(
     "imagesMissingAltSamples",
@@ -3040,7 +4205,6 @@ function textoListaLocal(
       valores
     );
 
-
   return limpos.length
     ? limpos.join(
         " · "
@@ -3060,10 +4224,8 @@ function detalheSinalLocalidade(
     ||
     {};
 
-
   const partes =
     [];
-
 
   if (
     sinais.locality
@@ -3073,9 +4235,10 @@ function detalheSinalLocalidade(
         localKey
       ];
 
-
     partes.push(
-      `${sinais.locality}: ${
+      `${
+        sinais.locality
+      }: ${
         valor === true
           ? "detected"
           : valor === false
@@ -3084,7 +4247,6 @@ function detalheSinalLocalidade(
       }`
     );
   }
-
 
   if (
     sinais.region
@@ -3094,9 +4256,10 @@ function detalheSinalLocalidade(
         regionKey
       ];
 
-
     partes.push(
-      `${sinais.region}: ${
+      `${
+        sinais.region
+      }: ${
         valor === true
           ? "detected"
           : valor === false
@@ -3105,7 +4268,6 @@ function detalheSinalLocalidade(
       }`
     );
   }
-
 
   return partes.length
     ? partes.join(
@@ -3126,10 +4288,8 @@ function statusSinalLocalidade(
     ||
     {};
 
-
   const valores =
     [];
-
 
   if (
     sinais.locality
@@ -3141,7 +4301,6 @@ function statusSinalLocalidade(
     );
   }
 
-
   if (
     sinais.region
   ) {
@@ -3152,13 +4311,11 @@ function statusSinalLocalidade(
     );
   }
 
-
   if (
     !valores.length
   ) {
     return "Unavailable";
   }
-
 
   if (
     valores.some(
@@ -3169,7 +4326,6 @@ function statusSinalLocalidade(
     return "Detected";
   }
 
-
   if (
     valores.every(
       valor =>
@@ -3179,7 +4335,6 @@ function statusSinalLocalidade(
     return "Not detected";
   }
 
-
   return "Unknown";
 }
 
@@ -3188,7 +4343,8 @@ function atualizarLocalSeo(
   localSeo
 ) {
   if (
-    !localSeo ||
+    !localSeo
+    ||
     localSeo.erro
   ) {
     definirStatus(
@@ -3197,13 +4353,11 @@ function atualizarLocalSeo(
       "neutral"
     );
 
-
     definirTexto(
       "localSeoSchemaDetail",
       localSeo?.erro,
       "Local SEO signals could not be analyzed."
     );
-
 
     definirTexto(
       "localSeoEntityTypes",
@@ -3211,13 +4365,11 @@ function atualizarLocalSeo(
       "Unavailable"
     );
 
-
     definirTexto(
       "localSeoBusinessName",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "localSeoSchemaPhones",
@@ -3225,13 +4377,11 @@ function atualizarLocalSeo(
       "Unavailable"
     );
 
-
     definirStatus(
       "localSeoClickToCallStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoClickToCallDetail",
@@ -3239,13 +4389,11 @@ function atualizarLocalSeo(
       "Click-to-call signals could not be analyzed."
     );
 
-
     definirTexto(
       "localSeoAddress",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "localSeoAddressDetail",
@@ -3253,13 +4401,11 @@ function atualizarLocalSeo(
       "Structured address could not be analyzed."
     );
 
-
     definirStatus(
       "localSeoHoursStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoHoursDetail",
@@ -3267,13 +4413,11 @@ function atualizarLocalSeo(
       "Opening hours could not be analyzed."
     );
 
-
     definirStatus(
       "localSeoAreaServedStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoAreaServedDetail",
@@ -3281,13 +4425,11 @@ function atualizarLocalSeo(
       "Area served could not be analyzed."
     );
 
-
     definirStatus(
       "localSeoGeoStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoGeoDetail",
@@ -3295,13 +4437,11 @@ function atualizarLocalSeo(
       "Geo data could not be analyzed."
     );
 
-
     definirStatus(
       "localSeoMapsStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoMapsDetail",
@@ -3309,13 +4449,11 @@ function atualizarLocalSeo(
       "Google Maps signals could not be analyzed."
     );
 
-
     definirTexto(
       "localSeoSameAsCount",
       null,
       "Unavailable"
     );
-
 
     definirTexto(
       "localSeoSameAsDetail",
@@ -3323,13 +4461,11 @@ function atualizarLocalSeo(
       "sameAs data could not be analyzed."
     );
 
-
     definirStatus(
       "localSeoTitleLocationStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoTitleLocationDetail",
@@ -3337,13 +4473,11 @@ function atualizarLocalSeo(
       "Location-title comparison unavailable."
     );
 
-
     definirStatus(
       "localSeoH1LocationStatus",
       "Unavailable",
       "neutral"
     );
-
 
     definirTexto(
       "localSeoH1LocationDetail",
@@ -3351,27 +4485,23 @@ function atualizarLocalSeo(
       "Location-H1 comparison unavailable."
     );
 
-
     return;
   }
 
-
   const schema =
-    localSeo.schema ||
+    localSeo.schema
+    ||
     {};
-
 
   const localTypes =
     listaLimpa(
       schema.localBusinessTypes
     );
 
-
   const selectedTypes =
     listaLimpa(
       schema.selectedEntityTypes
     );
-
 
   if (
     schema.localBusinessFound ===
@@ -3383,11 +4513,18 @@ function atualizarLocalSeo(
       "neutral"
     );
 
-
     definirTexto(
       "localSeoSchemaDetail",
       localTypes.length
-        ? `Detected type${localTypes.length === 1 ? "" : "s"}: ${localTypes.join(" · ")}`
+        ? `Detected type${
+            localTypes.length === 1
+              ? ""
+              : "s"
+          }: ${
+            localTypes.join(
+              " · "
+            )
+          }`
         : "A LocalBusiness-compatible Schema entity was detected."
     );
 
@@ -3398,7 +4535,6 @@ function atualizarLocalSeo(
       "neutral"
     );
 
-
     definirTexto(
       "localSeoSchemaDetail",
       schema.organizationFound ===
@@ -3407,7 +4543,6 @@ function atualizarLocalSeo(
         : "No LocalBusiness-compatible Schema entity was detected in the analyzed JSON-LD."
     );
   }
-
 
   definirTexto(
     "localSeoEntityTypes",
@@ -3419,13 +4554,11 @@ function atualizarLocalSeo(
     "Not detected"
   );
 
-
   definirTexto(
     "localSeoBusinessName",
     localSeo.businessName,
     "Not detected"
   );
-
 
   definirTexto(
     "localSeoSchemaPhones",
@@ -3435,23 +4568,20 @@ function atualizarLocalSeo(
     "Not detected"
   );
 
-
   const clickToCall =
-    localSeo.clickToCall ||
+    localSeo.clickToCall
+    ||
     {};
-
 
   const clickCount =
     numeroSeguro(
       clickToCall.count
     );
 
-
   const clickPhones =
     listaLimpa(
       clickToCall.phones
     );
-
 
   definirStatus(
     "localSeoClickToCallStatus",
@@ -3461,23 +4591,31 @@ function atualizarLocalSeo(
     "neutral"
   );
 
-
   definirTexto(
     "localSeoClickToCallDetail",
     clickCount > 0
-      ? `${clickCount} tel: link${clickCount === 1 ? "" : "s"} detected${
+      ? `${
+          clickCount
+        } tel: link${
+          clickCount === 1
+            ? ""
+            : "s"
+        } detected${
           clickPhones.length
-            ? ` · ${clickPhones.join(" · ")}`
+            ? ` · ${
+                clickPhones.join(
+                  " · "
+                )
+              }`
             : ""
         }`
       : "No tel: links were detected in the analyzed server HTML."
   );
 
-
   const address =
-    localSeo.address ||
+    localSeo.address
+    ||
     {};
-
 
   definirTexto(
     "localSeoAddress",
@@ -3488,7 +4626,6 @@ function atualizarLocalSeo(
     "Not detected"
   );
 
-
   definirTexto(
     "localSeoAddressDetail",
     address.found ===
@@ -3497,11 +4634,10 @@ function atualizarLocalSeo(
       : "No structured address was detected for the selected entity."
   );
 
-
   const openingHours =
-    localSeo.openingHours ||
+    localSeo.openingHours
+    ||
     {};
-
 
   definirStatus(
     "localSeoHoursStatus",
@@ -3511,7 +4647,6 @@ function atualizarLocalSeo(
       : "Not detected",
     "neutral"
   );
-
 
   definirTexto(
     "localSeoHoursDetail",
@@ -3523,11 +4658,10 @@ function atualizarLocalSeo(
       : "No opening hours were detected for the selected entity."
   );
 
-
   const areaServed =
-    localSeo.areaServed ||
+    localSeo.areaServed
+    ||
     {};
-
 
   definirStatus(
     "localSeoAreaServedStatus",
@@ -3537,7 +4671,6 @@ function atualizarLocalSeo(
       : "Not detected",
     "neutral"
   );
-
 
   definirTexto(
     "localSeoAreaServedDetail",
@@ -3549,11 +4682,10 @@ function atualizarLocalSeo(
       : "No areaServed value was detected for the selected entity."
   );
 
-
   const geo =
-    localSeo.geo ||
+    localSeo.geo
+    ||
     {};
-
 
   definirStatus(
     "localSeoGeoStatus",
@@ -3564,32 +4696,32 @@ function atualizarLocalSeo(
     "neutral"
   );
 
-
   definirTexto(
     "localSeoGeoDetail",
     geo.found ===
       true
-      ? `${geo.latitude}, ${geo.longitude}`
+      ? `${
+          geo.latitude
+        }, ${
+          geo.longitude
+        }`
       : "No geo coordinates were associated with the selected entity."
   );
 
-
   const maps =
-    localSeo.googleMaps ||
+    localSeo.googleMaps
+    ||
     {};
-
 
   const mapsCount =
     numeroSeguro(
       maps.count
     );
 
-
   const mapsUrls =
     listaLimpa(
       maps.urls
     );
-
 
   definirStatus(
     "localSeoMapsStatus",
@@ -3600,42 +4732,47 @@ function atualizarLocalSeo(
     "neutral"
   );
 
-
   definirTexto(
     "localSeoMapsDetail",
     maps.found ===
       true
-      ? `${mapsCount} Google Maps reference${mapsCount === 1 ? "" : "s"}${
+      ? `${
+          mapsCount
+        } Google Maps reference${
+          mapsCount === 1
+            ? ""
+            : "s"
+        }${
           mapsUrls.length
-            ? ` · ${mapsUrls.join(" · ")}`
+            ? ` · ${
+                mapsUrls.join(
+                  " · "
+                )
+              }`
             : ""
         }`
       : "No Google Maps link or embed was detected in the analyzed server HTML."
   );
 
-
   const sameAs =
-    localSeo.sameAs ||
+    localSeo.sameAs
+    ||
     {};
-
 
   const sameAsCount =
     numeroSeguro(
       sameAs.count
     );
 
-
   const sameAsUrls =
     listaLimpa(
       sameAs.urls
     );
 
-
   definirTexto(
     "localSeoSameAsCount",
     sameAsCount
   );
-
 
   definirTexto(
     "localSeoSameAsDetail",
@@ -3645,7 +4782,6 @@ function atualizarLocalSeo(
         )
       : "No sameAs URLs were detected for the selected entity."
   );
-
 
   definirStatus(
     "localSeoTitleLocationStatus",
@@ -3657,7 +4793,6 @@ function atualizarLocalSeo(
     "neutral"
   );
 
-
   definirTexto(
     "localSeoTitleLocationDetail",
     detalheSinalLocalidade(
@@ -3666,7 +4801,6 @@ function atualizarLocalSeo(
       "regionInTitle"
     )
   );
-
 
   definirStatus(
     "localSeoH1LocationStatus",
@@ -3677,7 +4811,6 @@ function atualizarLocalSeo(
     ),
     "neutral"
   );
-
 
   definirTexto(
     "localSeoH1LocationDetail",
@@ -3698,88 +4831,116 @@ function atualizarOnPage(
   seo = {},
   findings = []
 ) {
+  const seoDisponivel =
+    !seo.erro;
+
   definirTexto(
     "title",
-    seo.title,
-    "Not found"
+    seoDisponivel
+      ? seo.title
+      : null,
+    seoDisponivel
+      ? "Not found"
+      : "Unavailable"
   );
-
 
   definirTexto(
     "metaDescription",
-    seo.metaDescription,
-    "Not found"
+    seoDisponivel
+      ? seo.metaDescription
+      : null,
+    seoDisponivel
+      ? "Not found"
+      : "Unavailable"
   );
-
 
   definirTexto(
     "h1Count",
-    seo.h1Count
+    seoDisponivel
+      ? seo.h1Count
+      : null
   );
 
-
   const titleOk =
+    seoDisponivel
+    &&
     Boolean(
       seo.title
     );
 
-
   const metaOk =
+    seoDisponivel
+    &&
     Boolean(
       seo.metaDescription
     );
 
+  const h1Count =
+    seoDisponivel
+      ? numeroOpcional(
+          seo.h1Count
+        )
+      : null;
 
   const h1Ok =
-    Number(
-      seo.h1Count
-    ) > 0;
-
+    h1Count !== null
+    &&
+    h1Count > 0;
 
   definirStatus(
     "titleStatus",
-    titleOk
-      ? "✓"
-      : "!",
-    titleOk
-      ? "good"
-      : "bad"
+    !seoDisponivel
+      ? "?"
+      : titleOk
+        ? "✓"
+        : "!",
+    !seoDisponivel
+      ? "neutral"
+      : titleOk
+        ? "good"
+        : "bad"
   );
-
 
   definirStatus(
     "metaDescriptionStatus",
-    metaOk
-      ? "✓"
-      : "!",
-    metaOk
-      ? "good"
-      : "warning"
+    !seoDisponivel
+      ? "?"
+      : metaOk
+        ? "✓"
+        : "!",
+    !seoDisponivel
+      ? "neutral"
+      : metaOk
+        ? "good"
+        : "warning"
   );
-
 
   definirStatus(
     "h1Status",
-    h1Ok
-      ? "✓"
-      : "!",
-    h1Ok
-      ? "good"
-      : "warning"
+    h1Count === null
+      ? "?"
+      : h1Ok
+        ? "✓"
+        : "!",
+    h1Count === null
+      ? "neutral"
+      : h1Ok
+        ? "good"
+        : "warning"
   );
-
 
   definirTexto(
     "h1Detail",
-    Number.isFinite(
-      Number(
-        seo.h1Count
-      )
-    )
-      ? `${seo.h1Count} heading${Number(seo.h1Count) === 1 ? "" : "s"} detected`
+    h1Count !== null
+      ? `${
+          h1Count
+        } heading${
+          h1Count === 1
+            ? ""
+            : "s"
+        } detected`
       : "Heading count unavailable"
   );
-
 
   const onPageCodes =
     new Set([
@@ -3791,18 +4952,18 @@ function atualizarOnPage(
       "H1_AUSENTE"
     ]);
 
-
   const issues =
-    findings.filter(
-      finding =>
-        onPageCodes.has(
-          finding.codigo
-        )
-    );
-
+    findings
+      .filter(
+        finding =>
+          onPageCodes.has(
+            finding.codigo
+          )
+      );
 
   if (
-    issues.length === 0 &&
+    issues.length === 0
+    &&
     !seo.erro
   ) {
     return {
@@ -3817,18 +4978,18 @@ function atualizarOnPage(
     };
   }
 
-
   if (
     issues.length > 0
   ) {
     const high =
-      issues.some(
-        finding =>
-          normalizarSeveridade(
-            finding.severidade
-          ) === "high"
-      );
-
+      issues
+        .some(
+          finding =>
+            normalizarSeveridade(
+              finding.severidade
+            ) ===
+            "high"
+        );
 
     return {
       tom:
@@ -3837,13 +4998,18 @@ function atualizarOnPage(
           : "warning",
 
       titulo:
-        `${issues.length} issue${issues.length === 1 ? "" : "s"}`,
+        `${
+          issues.length
+        } issue${
+          issues.length === 1
+            ? ""
+            : "s"
+        }`,
 
       detalhe:
         "Verified on-page findings detected"
     };
   }
-
 
   return {
     tom:
@@ -3871,7 +5037,6 @@ function atualizarSnapshot({
   const score =
     performanceInfo.score;
 
-
   definirTexto(
     "snapshotScore",
     Number.isFinite(
@@ -3881,12 +5046,10 @@ function atualizarSnapshot({
       : "-"
   );
 
-
   definirTexto(
     "snapshotPerformance",
     performanceInfo.scoreTexto
   );
-
 
   definirTexto(
     "snapshotPerformanceDetail",
@@ -3894,21 +5057,18 @@ function atualizarSnapshot({
       score
     )
       ? `Lighthouse score ${score}/100`
-      : "Performance unavailable"
+      : performanceInfo.erro
+        ? `Performance unavailable: ${performanceInfo.erro}`
+        : "Performance unavailable"
   );
-
 
   definirTomCard(
     "snapshotPerformanceCard",
     performanceInfo.scoreTom
   );
 
-
   const ring =
-    document.getElementById(
-      "snapshotScoreRing"
-    );
-
+    $("snapshotScoreRing");
 
   if (
     ring
@@ -3926,7 +5086,6 @@ function atualizarSnapshot({
           )
         : 0;
 
-
     const color =
       performanceInfo.scoreTom ===
         "good"
@@ -3939,12 +5098,10 @@ function atualizarSnapshot({
             ? "var(--danger)"
             : "var(--muted-2)";
 
-
     ring.style.setProperty(
       "--score-angle",
       `${bounded * 3.6}deg`
     );
-
 
     ring.style.setProperty(
       "--score-color",
@@ -3952,78 +5109,69 @@ function atualizarSnapshot({
     );
   }
 
-
   definirTexto(
     "snapshotIndexability",
     indexabilityInfo.titulo
   );
-
 
   definirTexto(
     "snapshotIndexabilityDetail",
     indexabilityInfo.detalhe
   );
 
-
   definirTomCard(
     "snapshotIndexabilityCard",
     indexabilityInfo.tom
   );
-
 
   definirTexto(
     "snapshotOnPage",
     onPageInfo.titulo
   );
 
-
   definirTexto(
     "snapshotOnPageDetail",
     onPageInfo.detalhe
   );
-
 
   definirTomCard(
     "snapshotOnPageCard",
     onPageInfo.tom
   );
 
-
   const quantidade =
     findings.length;
 
-
   const high =
-    findings.filter(
-      finding =>
-        normalizarSeveridade(
-          finding.severidade
-        ) ===
-        "high"
-    ).length;
-
+    findings
+      .filter(
+        finding =>
+          normalizarSeveridade(
+            finding.severidade
+          ) ===
+          "high"
+      )
+      .length;
 
   const medium =
-    findings.filter(
-      finding =>
-        normalizarSeveridade(
-          finding.severidade
-        ) ===
-        "medium"
-    ).length;
-
+    findings
+      .filter(
+        finding =>
+          normalizarSeveridade(
+            finding.severidade
+          ) ===
+          "medium"
+      )
+      .length;
 
   let tom =
     "good";
 
-
   let titulo =
     "No findings";
 
-
   let detalhe =
     "No verified opportunities detected";
-
 
   if (
     high > 0
@@ -4031,13 +5179,17 @@ function atualizarSnapshot({
     tom =
       "bad";
 
-
     titulo =
       `${high} high priority`;
 
-
     detalhe =
-      `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
+      `${
+        quantidade
+      } verified finding${
+        quantidade === 1
+          ? ""
+          : "s"
+      }`;
 
   } else if (
     medium > 0
@@ -4045,13 +5197,17 @@ function atualizarSnapshot({
     tom =
       "warning";
 
-
     titulo =
       `${medium} to review`;
 
-
     detalhe =
-      `${quantidade} verified finding${quantidade === 1 ? "" : "s"}`;
+      `${
+        quantidade
+      } verified finding${
+        quantidade === 1
+          ? ""
+          : "s"
+      }`;
 
   } else if (
     quantidade > 0
@@ -4059,27 +5215,22 @@ function atualizarSnapshot({
     tom =
       "warning";
 
-
     titulo =
       `${quantidade} detected`;
-
 
     detalhe =
       "Verified opportunities available";
   }
-
 
   definirTexto(
     "snapshotOpportunities",
     titulo
   );
 
-
   definirTexto(
     "snapshotOpportunitiesDetail",
     detalhe
   );
-
 
   definirTomCard(
     "snapshotOpportunitiesCard",
@@ -4096,17 +5247,13 @@ function atualizarTopOpportunity(
   findings
 ) {
   const container =
-    document.getElementById(
-      "topOpportunity"
-    );
-
+    $("topOpportunity");
 
   const marcador =
     container
       ?.querySelector(
         ".opportunity-marker"
       );
-
 
   if (
     !Array.isArray(
@@ -4121,7 +5268,6 @@ function atualizarTopOpportunity(
         "empty-opportunity"
       );
 
-
     if (
       marcador
     ) {
@@ -4129,18 +5275,15 @@ function atualizarTopOpportunity(
         "✓";
     }
 
-
     definirTexto(
       "topOpportunityTitle",
       "No verified findings"
     );
 
-
     definirTexto(
       "topOpportunityEvidence",
       "No verified opportunities were detected in this analysis."
     );
-
 
     definirStatus(
       "topOpportunitySeverity",
@@ -4148,13 +5291,10 @@ function atualizarTopOpportunity(
       "good"
     );
 
-
     return;
   }
 
-
   const peso = {
-
     high:
       3,
 
@@ -4164,7 +5304,6 @@ function atualizarTopOpportunity(
     low:
       1
   };
-
 
   const principal =
     [
@@ -4196,19 +5335,16 @@ function atualizarTopOpportunity(
           )
       )[0];
 
-
   const nivel =
     normalizarSeveridade(
       principal.severidade
     );
-
 
   container
     ?.classList
     .remove(
       "empty-opportunity"
     );
-
 
   if (
     marcador
@@ -4217,7 +5353,6 @@ function atualizarTopOpportunity(
       "!";
   }
 
-
   definirTexto(
     "topOpportunityTitle",
     nomeFinding(
@@ -4225,13 +5360,11 @@ function atualizarTopOpportunity(
     )
   );
 
-
   definirTexto(
     "topOpportunityEvidence",
     principal.evidencia,
     "Verified by analyzer."
   );
-
 
   definirStatus(
     "topOpportunitySeverity",
@@ -4255,7 +5388,6 @@ function atualizarContadoresFindings(
   findings
 ) {
   const contadores = {
-
     all:
       findings.length,
 
@@ -4269,28 +5401,27 @@ function atualizarContadoresFindings(
       0
   };
 
+  findings
+    .forEach(
+      finding => {
 
-  findings.forEach(
-    finding => {
+        const nivel =
+          normalizarSeveridade(
+            finding.severidade
+          );
 
-      const nivel =
-        normalizarSeveridade(
-          finding.severidade
-        );
-
-
-      if (
-        contadores[
-          nivel
-        ] !== undefined
-      ) {
-        contadores[
-          nivel
-        ] += 1;
+        if (
+          contadores[
+            nivel
+          ] !== undefined
+        ) {
+          contadores[
+            nivel
+          ] +=
+            1;
+        }
       }
-    }
-  );
-
+    );
 
   definirTexto(
     "filterAllCount",
@@ -4298,13 +5429,11 @@ function atualizarContadoresFindings(
     "0"
   );
 
-
   definirTexto(
     "filterHighCount",
     contadores.high,
     "0"
   );
-
 
   definirTexto(
     "filterMediumCount",
@@ -4312,13 +5441,11 @@ function atualizarContadoresFindings(
     "0"
   );
 
-
   definirTexto(
     "filterLowCount",
     contadores.low,
     "0"
   );
-
 
   definirTexto(
     "tabOpportunityCount",
@@ -4333,48 +5460,42 @@ function criarCampoFinding(
   valor
 ) {
   const campo =
-    document.createElement(
-      "div"
-    );
-
+    document
+      .createElement(
+        "div"
+      );
 
   campo.className =
     "finding-field";
 
-
   const titulo =
-    document.createElement(
-      "span"
-    );
-
+    document
+      .createElement(
+        "span"
+      );
 
   titulo.className =
     "finding-field-label";
 
-
   titulo.textContent =
     label;
 
-
   const texto =
-    document.createElement(
-      "span"
-    );
-
+    document
+      .createElement(
+        "span"
+      );
 
   texto.className =
     "finding-field-value";
 
-
   texto.textContent =
     valor;
-
 
   campo.append(
     titulo,
     texto
   );
-
 
   return campo;
 }
@@ -4385,14 +5506,10 @@ function mostrarFindings(
   filtro = "all"
 ) {
   const container =
-    document.getElementById(
-      "findings"
-    );
-
+    $("findings");
 
   container.innerHTML =
     "";
-
 
   const lista =
     Array.isArray(
@@ -4401,11 +5518,9 @@ function mostrarFindings(
       ? findings
       : [];
 
-
   atualizarContadoresFindings(
     lista
   );
-
 
   const filtrados =
     filtro === "all"
@@ -4418,240 +5533,215 @@ function mostrarFindings(
             filtro
         );
 
-
   if (
     filtrados.length === 0
   ) {
     const vazio =
-      document.createElement(
-        "div"
-      );
-
+      document
+        .createElement(
+          "div"
+        );
 
     vazio.className =
       "empty-state";
-
 
     vazio.textContent =
       lista.length === 0
         ? "No verified issues were detected in this analysis."
         : `No ${filtro} severity findings in this analysis.`;
 
-
-    container.appendChild(
-      vazio
-    );
-
+    container
+      .appendChild(
+        vazio
+      );
 
     return;
   }
 
+  filtrados
+    .forEach(
+      finding => {
 
-  filtrados.forEach(
-    finding => {
+        const card =
+          document
+            .createElement(
+              "article"
+            );
 
-      const card =
-        document.createElement(
-          "article"
+        card.className =
+          "finding";
+
+        const main =
+          document
+            .createElement(
+              "div"
+            );
+
+        main.className =
+          "finding-main";
+
+        const alert =
+          document
+            .createElement(
+              "div"
+            );
+
+        alert.className =
+          "finding-alert";
+
+        alert.textContent =
+          "!";
+
+        const mainText =
+          document
+            .createElement(
+              "div"
+            );
+
+        const titulo =
+          document
+            .createElement(
+              "div"
+            );
+
+        titulo.className =
+          "finding-code";
+
+        titulo.textContent =
+          nomeFinding(
+            finding.codigo
+          );
+
+        const evidencia =
+          document
+            .createElement(
+              "div"
+            );
+
+        evidencia.className =
+          "finding-evidence";
+
+        evidencia.textContent =
+          finding.evidencia
+          ||
+          "No evidence provided.";
+
+        mainText.append(
+          titulo,
+          evidencia
         );
 
-
-      card.className =
-        "finding";
-
-
-      const main =
-        document.createElement(
-          "div"
+        main.append(
+          alert,
+          mainText
         );
 
+        const evidenceField =
+          criarCampoFinding(
+            "Evidence",
+            finding.evidencia
+            ||
+            "Verified by analyzer"
+          );
 
-      main.className =
-        "finding-main";
+        const categoryField =
+          document
+            .createElement(
+              "div"
+            );
 
+        categoryField.className =
+          "finding-field";
 
-      const alert =
-        document.createElement(
-          "div"
+        const categoryLabel =
+          document
+            .createElement(
+              "span"
+            );
+
+        categoryLabel.className =
+          "finding-field-label";
+
+        categoryLabel.textContent =
+          "Category";
+
+        const categoryValue =
+          document
+            .createElement(
+              "span"
+            );
+
+        categoryValue.className =
+          "badge";
+
+        categoryValue.textContent =
+          categoriaFinding(
+            finding.categoria
+          );
+
+        categoryField.append(
+          categoryLabel,
+          categoryValue
         );
 
+        const severityField =
+          document
+            .createElement(
+              "div"
+            );
 
-      alert.className =
-        "finding-alert";
+        severityField.className =
+          "finding-field";
 
+        const severityLabel =
+          document
+            .createElement(
+              "span"
+            );
 
-      alert.textContent =
-        "!";
+        severityLabel.className =
+          "finding-field-label";
 
+        severityLabel.textContent =
+          "Severity";
 
-      const mainText =
-        document.createElement(
-          "div"
+        const nivel =
+          normalizarSeveridade(
+            finding.severidade
+          );
+
+        const severityValue =
+          document
+            .createElement(
+              "span"
+            );
+
+        severityValue.className =
+          `badge badge-${nivel}`;
+
+        severityValue.textContent =
+          capitalizar(
+            nivel
+          );
+
+        severityField.append(
+          severityLabel,
+          severityValue
         );
 
-
-      const titulo =
-        document.createElement(
-          "div"
+        card.append(
+          main,
+          evidenceField,
+          categoryField,
+          severityField
         );
 
-
-      titulo.className =
-        "finding-code";
-
-
-      titulo.textContent =
-        nomeFinding(
-          finding.codigo
-        );
-
-
-      const evidencia =
-        document.createElement(
-          "div"
-        );
-
-
-      evidencia.className =
-        "finding-evidence";
-
-
-      evidencia.textContent =
-        finding.evidencia ||
-        "No evidence provided.";
-
-
-      mainText.append(
-        titulo,
-        evidencia
-      );
-
-
-      main.append(
-        alert,
-        mainText
-      );
-
-
-      const evidenceField =
-        criarCampoFinding(
-          "Evidence",
-          finding.evidencia ||
-          "Verified by analyzer"
-        );
-
-
-      const categoryField =
-        document.createElement(
-          "div"
-        );
-
-
-      categoryField.className =
-        "finding-field";
-
-
-      const categoryLabel =
-        document.createElement(
-          "span"
-        );
-
-
-      categoryLabel.className =
-        "finding-field-label";
-
-
-      categoryLabel.textContent =
-        "Category";
-
-
-      const categoryValue =
-        document.createElement(
-          "span"
-        );
-
-
-      categoryValue.className =
-        "badge";
-
-
-      categoryValue.textContent =
-        categoriaFinding(
-          finding.categoria
-        );
-
-
-      categoryField.append(
-        categoryLabel,
-        categoryValue
-      );
-
-
-      const severityField =
-        document.createElement(
-          "div"
-        );
-
-
-      severityField.className =
-        "finding-field";
-
-
-      const severityLabel =
-        document.createElement(
-          "span"
-        );
-
-
-      severityLabel.className =
-        "finding-field-label";
-
-
-      severityLabel.textContent =
-        "Severity";
-
-
-      const nivel =
-        normalizarSeveridade(
-          finding.severidade
-        );
-
-
-      const severityValue =
-        document.createElement(
-          "span"
-        );
-
-
-      severityValue.className =
-        `badge badge-${nivel}`;
-
-
-      severityValue.textContent =
-        capitalizar(
-          nivel
-        );
-
-
-      severityField.append(
-        severityLabel,
-        severityValue
-      );
-
-
-      card.append(
-        main,
-        evidenceField,
-        categoryField,
-        severityField
-      );
-
-
-      container.appendChild(
-        card
-      );
-    }
-  );
+        container
+          .appendChild(
+            card
+          );
+      }
+    );
 }
 
 
@@ -4683,11 +5773,9 @@ function filtrarFindings(
   filtroFindingAtual =
     filtro;
 
-
   ativarFiltroVisual(
     filtro
   );
-
 
   mostrarFindings(
     findingsAtuais,
@@ -4697,7 +5785,7 @@ function filtrarFindings(
 
 
 // =====================================================
-// OUTREACH
+// OUTREACH DETAIL
 // =====================================================
 
 function atualizarBlocoOutreach(
@@ -4710,11 +5798,10 @@ function atualizarBlocoOutreach(
       ? dados.findings
       : [];
 
-
   const status =
-    dados.iaStatus ||
+    dados.iaStatus
+    ||
     "not_generated";
-
 
   const agencyView =
     dados.agencyView
@@ -4725,7 +5812,6 @@ function atualizarBlocoOutreach(
         : "AI has not been generated for this prospect yet."
     );
 
-
   const prospectView =
     dados.prospectView
     ||
@@ -4735,32 +5821,24 @@ function atualizarBlocoOutreach(
         : "AI has not been generated for this prospect yet."
     );
 
-
   definirTexto(
     "agencyView",
     agencyView
   );
-
 
   definirTexto(
     "prospectView",
     prospectView
   );
 
-
   copyAgencyButton.disabled =
     !dados.agencyView;
-
 
   copyProspectButton.disabled =
     !dados.prospectView;
 
-
   const statusEl =
-    document.getElementById(
-      "aiGenerationStatus"
-    );
-
+    $("aiGenerationStatus");
 
   statusEl
     .classList
@@ -4770,32 +5848,30 @@ function atualizarBlocoOutreach(
       "bad"
     );
 
-
   if (
     findings.length === 0
   ) {
     generateOutreachButton.disabled =
       true;
 
-
     generateOutreachButton.textContent =
       "No findings to generate";
-
 
     statusEl.textContent =
       "No verified findings were detected, so AI generation is intentionally disabled.";
 
   } else if (
-    status === "generated" ||
-    status === "cached"
+    status ===
+      "generated"
+    ||
+    status ===
+      "cached"
   ) {
     generateOutreachButton.disabled =
       false;
 
-
     generateOutreachButton.textContent =
       "Generate again";
-
 
     statusEl.textContent =
       `AI outreach ${
@@ -4803,7 +5879,6 @@ function atualizarBlocoOutreach(
           ? "loaded from cache"
           : "generated"
       } from these verified findings.`;
-
 
     statusEl
       .classList
@@ -4818,14 +5893,11 @@ function atualizarBlocoOutreach(
     generateOutreachButton.disabled =
       false;
 
-
     generateOutreachButton.textContent =
       "Try again";
 
-
     statusEl.textContent =
       "AI generation is temporarily rate limited. The technical analysis is still available.";
-
 
     statusEl
       .classList
@@ -4834,20 +5906,20 @@ function atualizarBlocoOutreach(
       );
 
   } else if (
-    status === "error" ||
-    status === "invalid_json"
+    status ===
+      "error"
+    ||
+    status ===
+      "invalid_json"
   ) {
     generateOutreachButton.disabled =
       false;
 
-
     generateOutreachButton.textContent =
       "Try again";
 
-
     statusEl.textContent =
       "AI generation failed. The verified technical analysis was not affected.";
-
 
     statusEl
       .classList
@@ -4859,10 +5931,8 @@ function atualizarBlocoOutreach(
     generateOutreachButton.disabled =
       !analysisIdAtual;
 
-
     generateOutreachButton.textContent =
       "Generate outreach";
-
 
     statusEl.textContent =
       analysisIdAtual
@@ -4870,28 +5940,34 @@ function atualizarBlocoOutreach(
         : "This analysis does not have a valid analysis ID. Run the batch again to generate outreach.";
   }
 
-
   definirTexto(
     "analysisStatus",
-    `${findings.length} verified finding${findings.length === 1 ? "" : "s"} · AI status: ${formatarStatusIA(status)}`
+    `${
+      findings.length
+    } verified finding${
+      findings.length === 1
+        ? ""
+        : "s"
+    } · AI status: ${
+      formatarStatusIA(
+        status
+      )
+    }`
   );
 }
 
 
 async function gerarOutreachAtual() {
   if (
-    !analiseAtual ||
+    !analiseAtual
+    ||
     !analysisIdAtual
   ) {
     const statusEl =
-      document.getElementById(
-        "aiGenerationStatus"
-      );
-
+      $("aiGenerationStatus");
 
     statusEl.textContent =
       "This analysis expired or has no analysis ID. Run the prospect scan again.";
-
 
     statusEl
       .classList
@@ -4899,10 +5975,8 @@ async function gerarOutreachAtual() {
         "bad"
       );
 
-
     return;
   }
-
 
   if (
     !Array.isArray(
@@ -4916,20 +5990,14 @@ async function gerarOutreachAtual() {
     return;
   }
 
-
   generateOutreachButton.disabled =
     true;
-
 
   generateOutreachButton.textContent =
     "Generating…";
 
-
   const statusEl =
-    document.getElementById(
-      "aiGenerationStatus"
-    );
-
+    $("aiGenerationStatus");
 
   statusEl
     .classList
@@ -4939,56 +6007,14 @@ async function gerarOutreachAtual() {
       "bad"
     );
 
-
   statusEl.textContent =
     "Generating Agency View and Prospect View from verified findings…";
 
-
   try {
-    const resposta =
-      await fetch(
-        "/gerar-outreach",
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              analysisId:
-                analysisIdAtual
-            })
-        }
+    const dados =
+      await solicitarOutreach(
+        analysisIdAtual
       );
-
-
-    let dados;
-
-
-    try {
-      dados =
-        await resposta.json();
-
-    } catch {
-      throw new Error(
-        "The server returned an invalid response."
-      );
-    }
-
-
-    if (
-      !resposta.ok
-    ) {
-      throw new Error(
-        dados.erro ||
-        "AI generation failed."
-      );
-    }
-
 
     analiseAtual = {
       ...analiseAtual,
@@ -5009,24 +6035,22 @@ async function gerarOutreachAtual() {
         "error"
     };
 
-
     const prospect =
-      prospectsAtuais.find(
-        item =>
-          item.analysisId ===
-          analysisIdAtual
-      );
-
+      prospectsAtuais
+        .find(
+          item =>
+            item.analysisId ===
+            analysisIdAtual
+        );
 
     if (
-      prospect?.analysis
+      prospect
     ) {
-      prospect.analysis = {
-        ...prospect.analysis,
-        ...analiseAtual
-      };
+      atualizarProspectComOutreach(
+        prospect,
+        dados
+      );
     }
-
 
     atualizarBlocoOutreach(
       analiseAtual
@@ -5038,15 +6062,13 @@ async function gerarOutreachAtual() {
     generateOutreachButton.disabled =
       false;
 
-
     generateOutreachButton.textContent =
       "Try again";
 
-
     statusEl.textContent =
-      erro.message ||
+      erro.message
+      ||
       "AI generation failed.";
-
 
     statusEl
       .classList
@@ -5071,24 +6093,19 @@ function mostrarResultadoDetalhado(
       ? dados.findings
       : [];
 
-
   findingsAtuais =
     findings;
-
 
   filtroFindingAtual =
     "all";
 
-
   analiseAtual =
     dados;
-
 
   analysisIdAtual =
     dados.analysisId
     ||
     analysisIdAtual;
-
 
   const title =
     dados
@@ -5099,13 +6116,11 @@ function mostrarResultadoDetalhado(
       dados.url
     );
 
-
   definirTexto(
     "detailTitle",
     title,
     "Website Analysis"
   );
-
 
   definirTexto(
     "detailUrl",
@@ -5113,138 +6128,119 @@ function mostrarResultadoDetalhado(
     "Unknown URL"
   );
 
-
   const opportunity =
-    dados.opportunity ||
+    dados.opportunity
+    ||
     {};
-
 
   const tier =
     opportunity.tier
     ||
     (
-      findings.some(
-        item =>
-          normalizarSeveridade(
-            item.severidade
-          ) === "high"
-      )
+      findings
+        .some(
+          item =>
+            normalizarSeveridade(
+              item.severidade
+            ) ===
+            "high"
+        )
         ? "high"
-        : findings.some(
-            item =>
-              normalizarSeveridade(
-                item.severidade
-              ) === "medium"
-          )
+        : findings
+            .some(
+              item =>
+                normalizarSeveridade(
+                  item.severidade
+                ) ===
+                "medium"
+            )
           ? "medium"
           : findings.length
             ? "low"
             : "none"
     );
 
-
   const tierEl =
-    document.getElementById(
-      "detailTier"
-    );
-
+    $("detailTier");
 
   tierEl.className =
     `tier-badge tier-${tier}`;
-
 
   tierEl.textContent =
     capitalizar(
       tier
     );
 
-
   const freshness =
     textoTempoAnalise(
       dados.analisadoEm
     );
-
 
   definirTexto(
     "detailFreshness",
     freshness
   );
 
-
   definirTexto(
     "analysisFreshness",
     freshness
   );
 
-
   const performanceInfo =
     atualizarPerformance(
-      dados.performance ||
+      dados.performance
+      ||
       {}
     );
-
 
   const indexabilityInfo =
     atualizarIndexability(
       dados.indexability
     );
 
-
   atualizarStructuredData(
     dados.structuredData
   );
-
 
   atualizarImages(
     dados.images
   );
 
-
   atualizarLocalSeo(
     dados.localSeo
   );
 
-
   const onPageInfo =
     atualizarOnPage(
-      dados.seo ||
+      dados.seo
+      ||
       {},
       findings
     );
 
-
   atualizarSnapshot({
-
     performanceInfo,
-
     indexabilityInfo,
-
     onPageInfo,
-
     findings
   });
-
 
   atualizarTopOpportunity(
     findings
   );
 
-
   ativarFiltroVisual(
     "all"
   );
-
 
   mostrarFindings(
     findings,
     "all"
   );
 
-
   atualizarBlocoOutreach(
     dados
   );
-
 
   ativarAba(
     "overview"
@@ -5261,20 +6257,15 @@ async function copiarTexto(
   botao
 ) {
   const texto =
-    document
-      .getElementById(
-        elementoId
-      )
+    $(elementoId)
       ?.textContent
       ?.trim();
-
 
   if (
     !texto
   ) {
     return;
   }
-
 
   try {
     await navigator
@@ -5285,47 +6276,40 @@ async function copiarTexto(
 
   } catch {
     const textarea =
-      document.createElement(
-        "textarea"
-      );
-
+      document
+        .createElement(
+          "textarea"
+        );
 
     textarea.value =
       texto;
 
-
     textarea.style.position =
       "fixed";
-
 
     textarea.style.opacity =
       "0";
 
-
-    document.body.appendChild(
-      textarea
-    );
-
+    document.body
+      .appendChild(
+        textarea
+      );
 
     textarea.select();
 
-
-    document.execCommand(
-      "copy"
-    );
-
+    document
+      .execCommand(
+        "copy"
+      );
 
     textarea.remove();
   }
 
-
   const original =
     botao.textContent;
 
-
   botao.textContent =
     "Copied!";
-
 
   setTimeout(
     () => {
@@ -5341,73 +6325,117 @@ async function copiarTexto(
 // EVENTS
 // =====================================================
 
-iniciarTema();
+garantirBotaoOutreachSelecionados();
 
+atualizarControlesSelecao();
+
+iniciarTema();
 
 atualizarContadorUrls();
 
 
-themeToggle.addEventListener(
-  "click",
-  alternarTema
-);
+themeToggle
+  .addEventListener(
+    "click",
+    alternarTema
+  );
 
 
-batchUrls.addEventListener(
-  "input",
-  atualizarContadorUrls
-);
+batchUrls
+  .addEventListener(
+    "input",
+    atualizarContadorUrls
+  );
 
 
-analyzeBatchButton.addEventListener(
-  "click",
-  analisarLote
-);
+analyzeBatchButton
+  .addEventListener(
+    "click",
+    analisarLote
+  );
 
 
-backToQueueButton.addEventListener(
-  "click",
-  voltarParaQueue
-);
-
-
-brandButton.addEventListener(
-  "click",
-  voltarParaQueue
-);
-
-
-generateOutreachButton.addEventListener(
-  "click",
-  gerarOutreachAtual
-);
-
-
-queueFilters.addEventListener(
-  "click",
-  event => {
-
-    const botao =
-      event
-        .target
-        .closest(
-          ".queue-filter"
-        );
-
-
-    if (
-      !botao
-    ) {
-      return;
-    }
-
-
-    filtrarQueue(
-      botao.dataset.filter ||
-      "all"
+if (
+  selectVisibleCheckbox
+) {
+  selectVisibleCheckbox
+    .addEventListener(
+      "change",
+      () =>
+        selecionarProspectsVisiveis(
+          selectVisibleCheckbox.checked
+        )
     );
-  }
-);
+}
+
+
+if (
+  clearSelectionButton
+) {
+  clearSelectionButton
+    .addEventListener(
+      "click",
+      limparSelecao
+    );
+}
+
+
+if (
+  generateSelectedOutreachButton
+) {
+  generateSelectedOutreachButton
+    .addEventListener(
+      "click",
+      gerarOutreachSelecionados
+    );
+}
+
+
+backToQueueButton
+  .addEventListener(
+    "click",
+    voltarParaQueue
+  );
+
+
+brandButton
+  .addEventListener(
+    "click",
+    voltarParaQueue
+  );
+
+
+generateOutreachButton
+  .addEventListener(
+    "click",
+    gerarOutreachAtual
+  );
+
+
+queueFilters
+  .addEventListener(
+    "click",
+    event => {
+
+      const botao =
+        event.target
+          .closest(
+            ".queue-filter"
+          );
+
+      if (
+        !botao
+      ) {
+        return;
+      }
+
+      filtrarQueue(
+        botao.dataset.filter
+        ||
+        "all"
+      );
+    }
+  );
 
 
 document
@@ -5427,31 +6455,30 @@ document
             "all"
           );
 
+      card
+        .addEventListener(
+          "click",
+          ativar
+        );
 
-      card.addEventListener(
-        "click",
-        ativar
-      );
+      card
+        .addEventListener(
+          "keydown",
+          event => {
 
+            if (
+              event.key ===
+                "Enter"
+              ||
+              event.key ===
+                " "
+            ) {
+              event.preventDefault();
 
-      card.addEventListener(
-        "keydown",
-        event => {
-
-          if (
-            event.key ===
-              "Enter"
-            ||
-            event.key ===
-              " "
-          ) {
-            event.preventDefault();
-
-
-            ativar();
+              ativar();
+            }
           }
-        }
-      );
+        );
     }
   );
 
@@ -5463,13 +6490,14 @@ document
   .forEach(
     botao => {
 
-      botao.addEventListener(
-        "click",
-        () =>
-          ativarAba(
-            botao.dataset.tab
-          )
-      );
+      botao
+        .addEventListener(
+          "click",
+          () =>
+            ativarAba(
+              botao.dataset.tab
+            )
+        );
     }
   );
 
@@ -5481,59 +6509,61 @@ document
   .forEach(
     botao => {
 
-      botao.addEventListener(
-        "click",
-        () =>
-          ativarAba(
-            botao.dataset.goTab
-          )
-      );
+      botao
+        .addEventListener(
+          "click",
+          () =>
+            ativarAba(
+              botao.dataset.goTab
+            )
+        );
     }
   );
 
 
-copyAgencyButton.addEventListener(
-  "click",
-  () =>
-    copiarTexto(
-      "agencyView",
-      copyAgencyButton
-    )
-);
+copyAgencyButton
+  .addEventListener(
+    "click",
+    () =>
+      copiarTexto(
+        "agencyView",
+        copyAgencyButton
+      )
+  );
 
 
-copyProspectButton.addEventListener(
-  "click",
-  () =>
-    copiarTexto(
-      "prospectView",
-      copyProspectButton
-    )
-);
+copyProspectButton
+  .addEventListener(
+    "click",
+    () =>
+      copiarTexto(
+        "prospectView",
+        copyProspectButton
+      )
+  );
 
 
-findingFilters.addEventListener(
-  "click",
-  event => {
+findingFilters
+  .addEventListener(
+    "click",
+    event => {
 
-    const botao =
-      event
-        .target
-        .closest(
-          ".filter-chip"
-        );
+      const botao =
+        event.target
+          .closest(
+            ".filter-chip"
+          );
 
+      if (
+        !botao
+      ) {
+        return;
+      }
 
-    if (
-      !botao
-    ) {
-      return;
+      filtrarFindings(
+        botao.dataset.filter
+        ||
+        "all"
+      );
     }
-
-
-    filtrarFindings(
-      botao.dataset.filter ||
-      "all"
-    );
-  }
-);
+  );

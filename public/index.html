@@ -31,7 +31,7 @@
         </span>
 
         <span class="version-badge">
-          V3 Batch
+          V3.1 Select
         </span>
       </button>
 
@@ -453,6 +453,55 @@
               <span id="batchMeta">
                 Waiting for analysis
               </span>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- MULTI-SELECT TOOLBAR -->
+
+          <div
+            id="selectionToolbar"
+            class="selection-toolbar"
+            aria-label="Prospect selection controls"
+          >
+
+            <label class="select-visible-control">
+
+              <input
+                id="selectVisibleCheckbox"
+                type="checkbox"
+                disabled
+              >
+
+              <span>
+                Select visible
+              </span>
+
+            </label>
+
+
+            <div class="selection-actions">
+
+              <span
+                id="selectedCount"
+                class="selected-count"
+                aria-live="polite"
+              >
+                0 selected
+              </span>
+
+
+              <button
+                id="clearSelectionButton"
+                class="secondary-button selection-clear"
+                type="button"
+                disabled
+              >
+                Clear selection
+              </button>
 
             </div>
 

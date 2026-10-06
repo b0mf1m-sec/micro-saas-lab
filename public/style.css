@@ -3076,3 +3076,51 @@ button:disabled {
   }
 
 }
+
+/* =====================================================
+   MANTENHA TODO O SEU CSS EXISTENTE ACIMA AQUI
+   E ADICIONE AS SEGUINTES REGRAS NO FINAL:
+   ===================================================== */
+
+/* =====================================================
+   CSV IMPORT PREVIEW
+   ===================================================== */
+
+.csv-preview-panel {
+  width: 100%;
+  min-height: 190px;
+  margin-top: 18px;
+  padding: 15px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.csv-preview-stats {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.csv-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 130px;
+  overflow-y: auto;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.csv-preview-item {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csv-preview-item:last-child {
+  border-bottom: none;
+}

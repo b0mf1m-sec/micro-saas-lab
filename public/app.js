@@ -20,6 +20,18 @@ const findingFilters = $("findingFilters");
 const selectVisibleCheckbox = $("selectVisibleCheckbox");
 const selectedCount = $("selectedCount");
 const clearSelectionButton = $("clearSelectionButton");
+
+// Novas referências CSV e Retry
+const importCsvButton = $("importCsvButton");
+const csvFileInput = $("csvFileInput");
+const importActionsNormal = $("importActionsNormal");
+const importActionsCsv = $("importActionsCsv");
+const cancelCsvButton = $("cancelCsvButton");
+const confirmCsvButton = $("confirmCsvButton");
+const csvPreviewPanel = $("csvPreviewPanel");
+const csvPreviewStats = $("csvPreviewStats");
+const csvPreviewList = $("csvPreviewList");
+const exportCsvButton = $("exportCsvButton");
 const retryFailedButton = $("retryFailedButton");
 
 const MAX_OUTREACH_SELECIONADOS = 10;
@@ -36,6 +48,7 @@ let pollingBatchAtivo = false;
 let gerandoOutreachSelecionados = false;
 let progressoOutreachSelecionados = null;
 let resumoUltimaGeracaoSelecionados = null;
+let urlsDoCsv = [];
 
 const prospectIdsSelecionados = new Set();
 
@@ -281,8 +294,6 @@ function numeroSeguro(
 }
 
 
-// Dados ausentes continuam null.
-// Isso evita Number(null) virar 0.
 function numeroOpcional(
   valor
 ) {
@@ -647,7 +658,7 @@ function urlsEquivalentes(
 
 
 // =====================================================
-// BATCH INPUT / PROGRESSIVE BATCH
+// BATCH INPUT / PROGRESSIVE BATCH / CSV
 // =====================================================
 
 function extrairUrlsDigitadas() {
@@ -780,6 +791,201 @@ function esperar(
         ms
       )
   );
+}
+
+
+// Parser customizado de CSV para o Frontend
+function parseCSVRow(str) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (inQuotes) {
+      if (char === '"') {
+        if (i + 1 < str.length && str[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+
+function normalizarListaUrlsFrontend(urls) {
+  const vistas = new Set();
+  const unicas = [];
+  let duplicadasRemovidas = 0;
+  for (const valor of urls) {
+    const url = typeof valor === "string" ? valor.trim() : "";
+    if (!url) continue;
+    const chave = url.toLowerCase();
+    if (vistas.has(chave)) {
+      duplicadasRemovidas += 1;
+      continue;
+    }
+    vistas.add(chave);
+    unicas.push(url);
+  }
+  return { urls: unicas, duplicadasRemovidas };
+}
+
+
+function alternarViewCsv(showCsv) {
+  if (showCsv) {
+    batchUrls.classList.add("hidden");
+    csvPreviewPanel?.classList.remove("hidden");
+    importActionsNormal?.classList.add("hidden");
+    importActionsCsv?.classList.remove("hidden");
+  } else {
+    batchUrls.classList.remove("hidden");
+    csvPreviewPanel?.classList.add("hidden");
+    importActionsNormal?.classList.remove("hidden");
+    importActionsCsv?.classList.add("hidden");
+    urlsDoCsv = [];
+    limparErroBatch();
+    if (csvFileInput) csvFileInput.value = '';
+  }
+}
+
+
+function mostrarPreviewCsv(normalizado) {
+  const totalRaw = normalizado.urls.length + normalizado.duplicadasRemovidas;
+  
+  if (csvPreviewStats) {
+    const dupsText = normalizado.duplicadasRemovidas > 0 ? ` · ${normalizado.duplicadasRemovidas} duplicate${normalizado.duplicadasRemovidas === 1 ? '' : 's'} removed` : '';
+    csvPreviewStats.textContent = `${totalRaw} URL${totalRaw === 1 ? '' : 's'} found${dupsText} · ${normalizado.urls.length} unique`;
+  }
+  
+  if (csvPreviewList) {
+    csvPreviewList.innerHTML = '';
+    normalizado.urls.slice(0, 50).forEach(url => {
+      const div = document.createElement("div");
+      div.className = "csv-preview-item";
+      div.textContent = url;
+      csvPreviewList.appendChild(div);
+    });
+    if (normalizado.urls.length > 50) {
+      const div = document.createElement("div");
+      div.className = "csv-preview-item";
+      div.style.color = "var(--danger)";
+      div.textContent = `...and ${normalizado.urls.length - 50} more. Limit is 50 per batch.`;
+      csvPreviewList.appendChild(div);
+    }
+  }
+
+  if (normalizado.urls.length > 50) {
+    mostrarErroBatch(`This CSV contains ${normalizado.urls.length} unique URLs. The current limit is 50 URLs per batch.`);
+    if (confirmCsvButton) confirmCsvButton.disabled = true;
+  } else {
+    limparErroBatch();
+    if (confirmCsvButton) confirmCsvButton.disabled = false;
+  }
+
+  urlsDoCsv = normalizado.urls;
+  alternarViewCsv(true);
+}
+
+
+function processarArquivoCsv(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (!lines.length) throw new Error("The CSV file is empty.");
+
+      const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase());
+      const urlIndex = headers.findIndex(h => ['url', 'website', 'site', 'website_url'].includes(h));
+
+      if (urlIndex === -1) {
+        throw new Error("No supported URL column was found. Expected: url, website, site or website_url.");
+      }
+
+      const rawUrls = [];
+      for (let i = 1; i < lines.length; i++) {
+        const row = parseCSVRow(lines[i]);
+        if (row[urlIndex]) {
+          rawUrls.push(row[urlIndex].trim());
+        }
+      }
+
+      if (!rawUrls.length) {
+        throw new Error("No valid URLs were found in the selected column.");
+      }
+
+      const normalizado = normalizarListaUrlsFrontend(rawUrls);
+      mostrarPreviewCsv(normalizado);
+
+    } catch(err) {
+      mostrarErroBatch(err.message);
+      if (csvFileInput) csvFileInput.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+function formatCSVField(val) {
+  if (val === null || val === undefined) return '""';
+  const str = String(val);
+  if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+    const escaped = str.replace(/"/g, '""');
+    return `"${escaped}"`;
+  }
+  return str;
+}
+
+
+function exportarResultadosCSV() {
+  if (!prospectsAtuais.length) return;
+
+  const headers = ['url', 'business_name', 'status', 'tier', 'priority_score', 'findings_count', 'high', 'medium', 'low', 'top_finding', 'analysis_id', 'agency_view', 'prospect_view'];
+  const rows = [headers];
+
+  for (const p of prospectsAtuais) {
+    rows.push([
+      p.inputUrl || p.url || '',
+      p.businessName || '',
+      p.status || '',
+      p.tier || '',
+      p.priorityScore || 0,
+      p.findingsCount || 0,
+      p.counts?.high || 0,
+      p.counts?.medium || 0,
+      p.counts?.low || 0,
+      p.topFinding?.codigo || '',
+      p.analysisId || '',
+      p.agencyView || '',
+      p.prospectView || ''
+    ].map(v => formatCSVField(v)));
+  }
+
+  const csvContent = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "prospect-analyzer-export.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 
@@ -1001,9 +1207,8 @@ async function acompanharLote(
 }
 
 
-async function analisarLote() {
-  const urls =
-    extrairUrlsDigitadas();
+async function analisarLote(eventoOuUrls = null) {
+  const urls = Array.isArray(eventoOuUrls) ? eventoOuUrls : extrairUrlsDigitadas();
 
   if (
     urls.length === 0
@@ -1049,6 +1254,7 @@ async function analisarLote() {
     "all";
 
   iniciarBatchLoading();
+  alternarViewCsv(false);
 
   try {
     const resposta =
@@ -1142,55 +1348,27 @@ async function analisarLote() {
   }
 }
 
-async function analisarLoteRetryFailed() {
-    if (!batchIdAtual || pollingBatchAtivo) {
-        return;
-    }
 
-    const contagem = contarProspects();
-    if (contagem.error === 0) {
-        return;
-    }
-    
-    if (retryFailedButton) {
-        retryFailedButton.disabled = true;
-        retryFailedButton.textContent = "Retrying...";
-    }
+// Função de Retry Failed existente integrada ao fluxo
+async function reprocessarFalhas() {
+  if (!batchIdAtual) return;
 
-    try {
-        const resposta = await fetch(`/analisar-lote/${encodeURIComponent(batchIdAtual)}/retry-failed`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
+  try {
+    const resposta = await fetch(`/analisar-lote/${encodeURIComponent(batchIdAtual)}/retry`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
 
-        let dados;
+    let dados = await resposta.json();
+    if (!resposta.ok) throw new Error(dados.erro || "Could not retry failed prospects.");
 
-        try {
-            dados = await resposta.json();
-        } catch {
-            throw new Error("The server returned an invalid response.");
-        }
+    aplicarSnapshotBatch(dados);
+    const final = await acompanharLote(batchIdAtual, dados);
+    aplicarSnapshotBatch(final);
 
-        if (!resposta.ok) {
-            throw new Error(dados.erro || "Retry failed.");
-        }
-        
-        aplicarSnapshotBatch(dados);
-
-        const final = await acompanharLote(dados.batchId, dados);
-
-        aplicarSnapshotBatch(final);
-
-    } catch (erro) {
-        mostrarErroBatch(erro.message || "Something went wrong while retrying.");
-    } finally {
-        if (retryFailedButton) {
-            retryFailedButton.disabled = false;
-            retryFailedButton.textContent = "Retry failed";
-        }
-    }
+  } catch(err) {
+    mostrarErroBatch(err.message || "Failed to retry failed items.");
+  }
 }
 
 
@@ -1331,6 +1509,22 @@ function atualizarResumoQueue(
     "0"
   );
 
+  if (retryFailedButton) {
+    if (contagem.error > 0 && dados && dados.status === "completed") {
+      retryFailedButton.classList.remove("hidden");
+    } else {
+      retryFailedButton.classList.add("hidden");
+    }
+  }
+
+  if (exportCsvButton) {
+    if (dados && dados.status === "completed" && prospectsAtuais.length > 0) {
+      exportCsvButton.classList.remove("hidden");
+    } else {
+      exportCsvButton.classList.add("hidden");
+    }
+  }
+
   if (
     !dados
   ) {
@@ -1408,14 +1602,6 @@ function atualizarResumoQueue(
       " · "
     )
   );
-
-  if (retryFailedButton) {
-      if (dados.status === "completed" && contagem.error > 0) {
-          retryFailedButton.classList.remove("hidden");
-      } else {
-          retryFailedButton.classList.add("hidden");
-      }
-  }
 }
 
 
@@ -6411,11 +6597,42 @@ batchUrls
 analyzeBatchButton
   .addEventListener(
     "click",
-    analisarLote
+    () => analisarLote(null)
   );
 
+
+if (importCsvButton && csvFileInput) {
+  importCsvButton.addEventListener("click", () => csvFileInput.click());
+  csvFileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+      mostrarErroBatch("Selected file is not a valid CSV.");
+      csvFileInput.value = '';
+      return;
+    }
+    processarArquivoCsv(file);
+  });
+}
+
+
+if (cancelCsvButton) {
+  cancelCsvButton.addEventListener("click", () => alternarViewCsv(false));
+}
+
+
+if (confirmCsvButton) {
+  confirmCsvButton.addEventListener("click", () => analisarLote(urlsDoCsv));
+}
+
+
+if (exportCsvButton) {
+  exportCsvButton.addEventListener("click", exportarResultadosCSV);
+}
+
+
 if (retryFailedButton) {
-    retryFailedButton.addEventListener("click", analisarLoteRetryFailed);
+  retryFailedButton.addEventListener("click", reprocessarFalhas);
 }
 
 

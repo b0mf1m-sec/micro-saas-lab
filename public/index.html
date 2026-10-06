@@ -31,7 +31,7 @@
         </span>
 
         <span class="version-badge">
-          V3.2 Retry
+          V3.2 CSV
         </span>
       </button>
 
@@ -124,11 +124,11 @@
               </span>
 
               <h2>
-                Paste prospect URLs
+                Paste or Import prospects
               </h2>
 
               <p>
-                One URL per line. Up to 50 prospects per batch.
+                One URL per line or a CSV file. Up to 50 prospects per batch.
               </p>
 
             </div>
@@ -152,7 +152,15 @@
           ></textarea>
 
 
-          <div class="import-actions">
+          <!-- CSV PREVIEW PANEL -->
+          <div id="csvPreviewPanel" class="csv-preview-panel hidden">
+            <div id="csvPreviewStats" class="csv-preview-stats"></div>
+            <div class="csv-preview-list" id="csvPreviewList"></div>
+          </div>
+
+
+          <!-- NORMAL ACTIONS -->
+          <div class="import-actions" id="importActionsNormal">
 
             <div class="import-hints">
 
@@ -166,20 +174,40 @@
 
             </div>
 
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+              <button id="importCsvButton" class="secondary-button" type="button">Import CSV</button>
+              <button
+                id="analyzeBatchButton"
+                class="primary-button"
+                type="button"
+              >
+                <span>
+                  Analyze prospects
+                </span>
 
-            <button
-              id="analyzeBatchButton"
-              class="primary-button"
-              type="button"
-            >
-              <span>
-                Analyze prospects
-              </span>
+                <span aria-hidden="true">
+                  →
+                </span>
+              </button>
+            </div>
 
-              <span aria-hidden="true">
-                →
-              </span>
-            </button>
+          </div>
+
+
+          <!-- CSV PREVIEW ACTIONS -->
+          <div class="import-actions hidden" id="importActionsCsv">
+
+            <div class="import-hints">
+              <span id="csvImportHint">Review the imported URLs before analyzing.</span>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button id="cancelCsvButton" class="secondary-button" type="button">Cancel</button>
+              <button id="confirmCsvButton" class="primary-button" type="button">
+                <span>Confirm & Analyze</span><span aria-hidden="true">→</span>
+              </button>
+            </div>
 
           </div>
 
@@ -452,13 +480,8 @@
               <span id="batchMeta">
                 Waiting for analysis
               </span>
-              <button 
-                  id="retryFailedButton" 
-                  class="secondary-button hidden" 
-                  type="button"
-              >
-                Retry failed
-              </button>
+              <button id="exportCsvButton" class="secondary-button hidden" type="button">Export CSV</button>
+              <button id="retryFailedButton" class="secondary-button hidden" type="button">Retry failed</button>
             </div>
 
           </div>

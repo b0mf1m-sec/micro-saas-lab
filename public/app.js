@@ -20,6 +20,7 @@ const findingFilters = $("findingFilters");
 const selectVisibleCheckbox = $("selectVisibleCheckbox");
 const selectedCount = $("selectedCount");
 const clearSelectionButton = $("clearSelectionButton");
+const retryFailedButton = $("retryFailedButton");
 
 const MAX_OUTREACH_SELECIONADOS = 10;
 
@@ -1141,6 +1142,57 @@ async function analisarLote() {
   }
 }
 
+async function analisarLoteRetryFailed() {
+    if (!batchIdAtual || pollingBatchAtivo) {
+        return;
+    }
+
+    const contagem = contarProspects();
+    if (contagem.error === 0) {
+        return;
+    }
+    
+    if (retryFailedButton) {
+        retryFailedButton.disabled = true;
+        retryFailedButton.textContent = "Retrying...";
+    }
+
+    try {
+        const resposta = await fetch(`/analisar-lote/${encodeURIComponent(batchIdAtual)}/retry-failed`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        let dados;
+
+        try {
+            dados = await resposta.json();
+        } catch {
+            throw new Error("The server returned an invalid response.");
+        }
+
+        if (!resposta.ok) {
+            throw new Error(dados.erro || "Retry failed.");
+        }
+        
+        aplicarSnapshotBatch(dados);
+
+        const final = await acompanharLote(dados.batchId, dados);
+
+        aplicarSnapshotBatch(final);
+
+    } catch (erro) {
+        mostrarErroBatch(erro.message || "Something went wrong while retrying.");
+    } finally {
+        if (retryFailedButton) {
+            retryFailedButton.disabled = false;
+            retryFailedButton.textContent = "Retry failed";
+        }
+    }
+}
+
 
 // =====================================================
 // QUEUE
@@ -1356,6 +1408,14 @@ function atualizarResumoQueue(
       " · "
     )
   );
+
+  if (retryFailedButton) {
+      if (dados.status === "completed" && contagem.error > 0) {
+          retryFailedButton.classList.remove("hidden");
+      } else {
+          retryFailedButton.classList.add("hidden");
+      }
+  }
 }
 
 
@@ -6353,6 +6413,10 @@ analyzeBatchButton
     "click",
     analisarLote
   );
+
+if (retryFailedButton) {
+    retryFailedButton.addEventListener("click", analisarLoteRetryFailed);
+}
 
 
 if (

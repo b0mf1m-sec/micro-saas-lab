@@ -920,7 +920,8 @@ function criarSnapshotBatch(
 
 
 async function processarBatchJob(
-  batchId
+  batchId,
+  retryApenasFalhos = false
 ) {
   const job =
     obterBatchJob(
@@ -935,12 +936,30 @@ async function processarBatchJob(
   }
 
   try {
+    const indicesParaProcessar = [];
+    
+    for (let i = 0; i < job.prospects.length; i++) {
+        if (!retryApenasFalhos || job.prospects[i].status === "error") {
+            indicesParaProcessar.push(i);
+            
+            if (retryApenasFalhos && job.summary.errors > 0) {
+               job.summary.errors--;
+            }
+            
+            job.prospects[i] = {
+              ...job.prospects[i],
+              status: "queued"
+            };
+        }
+    }
+    
+    tocarBatchJob(job);
+
     await mapComConcorrencia(
-      job.prospects,
+      indicesParaProcessar,
       CONCORRENCIA_LOTE,
       async (
-        prospectInicial,
-        indice
+        indiceOriginal
       ) => {
 
         const jobAtual =
@@ -953,12 +972,12 @@ async function processarBatchJob(
         ) {
           return;
         }
+        
+        const prospectAlvo = jobAtual.prospects[indiceOriginal];
+        const inputUrl = prospectAlvo.inputUrl;
 
-        const inputUrl =
-          prospectInicial.inputUrl;
-
-        jobAtual.prospects[indice] = {
-          ...jobAtual.prospects[indice],
+        jobAtual.prospects[indiceOriginal] = {
+          ...prospectAlvo,
 
           status:
             "analyzing"
@@ -969,7 +988,7 @@ async function processarBatchJob(
         );
 
         console.log(
-          `📍 Batch ${indice + 1}/${jobAtual.uniqueCount}: ${inputUrl}`
+          `📍 Batch ${indiceOriginal + 1}/${jobAtual.uniqueCount}: ${inputUrl}`
         );
 
         try {
@@ -995,10 +1014,10 @@ async function processarBatchJob(
               inputUrl,
               analysisId,
               analise,
-              indice
+              indiceOriginal
             );
 
-          jobAtual.prospects[indice] =
+          jobAtual.prospects[indiceOriginal] =
             resumo;
 
           if (
@@ -1015,11 +1034,11 @@ async function processarBatchJob(
             `⚠️ Batch analysis failed for ${inputUrl}: ${erro.message}`
           );
 
-          jobAtual.prospects[indice] =
+          jobAtual.prospects[indiceOriginal] =
             criarResumoErro(
               inputUrl,
               erro,
-              indice
+              indiceOriginal
             );
 
           jobAtual.summary.errors +=
@@ -1357,6 +1376,62 @@ app.post(
           );
       }
     );
+  }
+);
+
+// ======================================================
+// RETRY FAILED BATCH PROSPECTS
+// ======================================================
+
+app.post(
+  "/analisar-lote/:batchId/retry-failed",
+
+  loteLimiter,
+
+  (req, res) => {
+
+    const { batchId } = req.params;
+    
+    const job = obterBatchJob(batchId);
+    
+    if (!job) {
+        return res.status(410).json({
+            erro: "This batch expired or is no longer available."
+        });
+    }
+    
+    if (job.status === "processing") {
+        return res.status(400).json({
+            erro: "Batch is currently processing. Wait for it to finish."
+        });
+    }
+    
+    const temErro = job.prospects.some(p => p.status === "error");
+    
+    if (!temErro) {
+        return res.status(400).json({
+           erro: "There are no failed prospects to retry." 
+        });
+    }
+    
+    job.status = "processing";
+    job.completedAt = null;
+    tocarBatchJob(job);
+    
+    console.log(
+      `\n🔄 Retrying failed prospects for batch: ${job.batchId}`
+    );
+
+    const snapshot = criarSnapshotBatch(job);
+
+    res.status(202).json(snapshot);
+
+    setImmediate(() => {
+        processarBatchJob(job.batchId, true)
+          .catch(erro => {
+              console.error("Unhandled retry batch error:", erro);
+          });
+    });
   }
 );
 

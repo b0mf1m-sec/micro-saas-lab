@@ -31,7 +31,7 @@
         </span>
 
         <span class="version-badge">
-          V3.1 Select
+          V3.2 Retry
         </span>
       </button>
 
@@ -448,12 +448,17 @@
             </div>
 
 
-            <div class="queue-meta">
-
+            <div class="queue-meta" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
               <span id="batchMeta">
                 Waiting for analysis
               </span>
-
+              <button 
+                  id="retryFailedButton" 
+                  class="secondary-button hidden" 
+                  type="button"
+              >
+                Retry failed
+              </button>
             </div>
 
           </div>

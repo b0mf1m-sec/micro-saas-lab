@@ -302,7 +302,8 @@ async function analisarPageSpeed(
 function gerarFindings(
   performance,
   seo,
-  indexability
+  indexability,
+  brokenInternalLinks
 ) {
   const findings =
     [];
@@ -399,6 +400,23 @@ function gerarFindings(
     });
   }
 
+  if (
+  brokenInternalLinks &&
+  Number.isFinite(brokenInternalLinks.count) &&
+  brokenInternalLinks.count > 0
+) {
+  findings.push({
+    code: "BROKEN_INTERNAL_LINKS",
+    severity: "medium",
+    category: "technical",
+    title: "Broken internal links detected",
+    reason: `${brokenInternalLinks.count} internal link(s) returned a broken HTTP status.`,
+    evidence: brokenInternalLinks.links
+      .slice(0, 5)
+      .map((link) => `${link.status} — ${link.url}`)
+      .join("\n")
+  });
+}
 
   // ====================================================
   // PERFORMANCE
@@ -1299,17 +1317,22 @@ async function analisarSite(
     pagina.localSeo;
 
 
+  const brokenInternalLinks =
+    pagina.brokenInternalLinks;
+
+    
   log(
     "Generating verified findings..."
   );
 
 
-  const findings =
-    gerarFindings(
-      performance,
-      seo,
-      indexability
-    );
+const findings =
+  gerarFindings(
+    performance,
+    seo,
+    indexability,
+    brokenInternalLinks
+  );
 
 
   const opportunity =

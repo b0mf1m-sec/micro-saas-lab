@@ -2759,6 +2759,154 @@ function localSeoIndisponivel(
   };
 }
 
+// ======================================================
+// BROKEN INTERNAL LINKS
+// ======================================================
+
+async function analisarBrokenInternalLinks(
+  $,
+  finalUrl
+) {
+  const resultado = {
+    count:
+      0,
+
+    links:
+      [],
+
+    erro:
+      null
+  };
+
+  const limiteLinks =
+    50;
+
+  try {
+    const paginaUrl =
+      new URL(
+        finalUrl
+      );
+
+    const host =
+      paginaUrl.hostname
+        .toLowerCase();
+
+    const candidatos =
+      new Set();
+
+    $("a[href]").each(
+      (
+        index,
+        elemento
+      ) => {
+        const href =
+          $(elemento)
+            .attr("href")
+            ?.trim();
+
+        if (
+          !href ||
+          href.startsWith("#") ||
+          /^(mailto:|tel:|javascript:|data:)/i.test(
+            href
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const url =
+            new URL(
+              href,
+              finalUrl
+            );
+
+          if (
+            !/^https?:$/i.test(
+              url.protocol
+            )
+          ) {
+            return;
+          }
+
+          if (
+            url.hostname.toLowerCase() !==
+            host
+          ) {
+            return;
+          }
+
+          url.hash =
+            "";
+
+          candidatos.add(
+            url.toString()
+          );
+        } catch {
+          // Ignore invalid href values.
+        }
+      }
+    );
+
+    const urls =
+      Array.from(
+        candidatos
+      ).slice(
+        0,
+        limiteLinks
+      );
+
+    for (
+      const url of urls
+    ) {
+      try {
+        const resposta =
+          await fetchSeguro(
+            url,
+            {
+              headers: {
+                "User-Agent":
+                  "ProspectAnalyzer/1.0",
+
+                "Accept":
+                  "*/*"
+              }
+            }
+          );
+
+        if (
+          resposta.status === 404 ||
+          resposta.status === 410 ||
+          resposta.status >= 500
+        ) {
+          resultado.links.push({
+            url,
+            status:
+              resposta.status
+          });
+        }
+      } catch {
+        // Individual link failures do not fail the page analysis.
+      }
+    }
+
+    resultado.count =
+      resultado.links.length;
+
+    return resultado;
+  } catch (erro) {
+    return {
+      count:
+        0,
+
+      links:
+        [],
+
+      erro:
+        erro.message
+    };
+  }
+}
 
 // ======================================================
 // ANALYZE PAGE
@@ -2946,6 +3094,11 @@ async function analisarPagina(
           finalUrl
         );
 
+      const brokenInternalLinks =
+        await analisarBrokenInternalLinks(
+          $,
+          finalUrl
+        );
 
       // =================================================
       // ON-PAGE SEO
@@ -3129,6 +3282,8 @@ async function analisarPagina(
         structuredData,
 
         images,
+
+        brokenInternalLinks,
 
         localSeo,
 

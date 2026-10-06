@@ -1354,7 +1354,7 @@ async function reprocessarFalhas() {
   if (!batchIdAtual) return;
 
   try {
-    const resposta = await fetch(`/analisar-lote/${encodeURIComponent(batchIdAtual)}/retry`, {
+    const resposta = await fetch(`/analisar-lote/${encodeURIComponent(batchIdAtual)}/retry-failed`, {
       method: "POST",
       headers: { "Content-Type": "application/json" }
     });
